@@ -66,6 +66,7 @@ static char dump_walk(xgraph_t *g);
 static char append_root(xgraph_t *g, cmph_uint32 root, xgraph_adj_t list);
 static char append_list(xgraph_t *g, cmph_uint32 root, cmph_uint32 from, xgraph_adj_t list, cmph_uint32 wanted_from);
 static void remove_root(xgraph_t *g, cmph_uint32 root);
+static cmph_uint32 find_root(xgraph_t *g, cmph_uint32 root);
 static cmph_uint32 next_block(xgraph_t *g);
 static void print_roots(xgraph_t *g);
 
@@ -367,12 +368,12 @@ static void build_walk(xgraph_t *g)
 				if (g->wanted[ptree].v == g->wanted[wi].v && g->wanted[wi].v != UINT_MAX)
 				{
 					DEBUGP("Both trees %u and %u want vertex %u\n", g->wanted[ptree].root, g->wanted[wi].root, g->wanted[wi].v);
-					if (g->steps[g->wanted[ptree].root] > g->steps[g->wanted[wi].root])
+					if (g->steps[g->wanted[ptree].root] > g->steps[g->wanted[wi].root] && g->steps[g->wanted[wi].root])
 					{
 						remove_root(g, g->wanted[wi].root);
 						g->wanted[wi].v = UINT_MAX;
 					}
-					else
+					else if (g->steps[g->wanted[ptree].root])
 					{
 						remove_root(g, g->wanted[ptree].root);
 						g->wanted[ptree].v = UINT_MAX;
@@ -424,6 +425,13 @@ static void build_walk(xgraph_t *g)
 				}
 			}
 			DEBUGP("Pruning wanted\n");
+			for (wi = 0; wi < g->nwanted; ++wi)
+			{
+				if (find_root(g, g->wanted[wi].root) == UINT_MAX)
+				{
+					g->wanted[wi].v = UINT_MAX;
+				}
+			}
 			//Sort wanted
 			qsort(g->wanted, g->nwanted, sizeof(wanted_t), wanted_cmp);
 			//Realloc it
@@ -665,16 +673,8 @@ static char append_list(xgraph_t *g, cmph_uint32 root, cmph_uint32 from, xgraph_
 {
 	DEBUGP("Appending list from %u sized %u to root %u asked by %u\n", from, list.degree, root, wanted_from);
 	//Find root. Please change to binary search later.
-	cmph_uint32 root_ptr = UINT_MAX;
 	cmph_uint32 i = 0;
-	for (i = 0; i < g->nroots; ++i)
-	{
-		if (g->roots[i][0] == root)
-		{
-			root_ptr = i;
-			break;
-		}
-	}
+	cmph_uint32 root_ptr = find_root(g, root);
 	if (root_ptr == UINT_MAX)
 	{
 		DEBUGP("Tree removed. Ignoring.\n");
@@ -715,6 +715,22 @@ static char append_list(xgraph_t *g, cmph_uint32 root, cmph_uint32 from, xgraph_
 static void remove_root(xgraph_t *g, cmph_uint32 root)
 {
 	DEBUGP("Removing tree rooted at %u\n", root);
+	cmph_uint32 i = 0;
+	cmph_uint32 root_ptr = find_root(g, root);
+	if (root_ptr == UINT_MAX) return;
+	for (i = 0; i < g->steps[root_ptr]; ++i)
+	{
+		g->dead[g->roots[root_ptr][i]] = 1;
+		g->visited[g->roots[root_ptr][i]] = 0;
+	}
+	g->steps[root_ptr] = 0;
+	g->roots[root_ptr][0] = UINT_MAX; //no realloc by now
+									  //just mark it
+}
+
+static cmph_uint32 find_root(xgraph_t *g, cmph_uint32 root)
+{
+	DEBUGP("Looking for tree %u\n", root);
 	//Find root. Please change to binary search later.
 	cmph_uint32 root_ptr = UINT_MAX;
 	cmph_uint32 i = 0;
@@ -726,12 +742,7 @@ static void remove_root(xgraph_t *g, cmph_uint32 root)
 			break;
 		}
 	}
-	if (root_ptr == UINT_MAX) return;
-	for (i = 0; i < g->steps[root_ptr]; ++i)
-	{
-		g->dead[g->roots[root_ptr][i]] = 1;
-		g->visited[g->roots[root_ptr][i]] = 0;
-	}
-	g->roots[root_ptr][0] = UINT_MAX; //no realloc by now
-									  //just mark it
+	DEBUGP("Found at position %u\n", root_ptr);
+	return root_ptr;
 }
+
