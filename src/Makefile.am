@@ -18,6 +18,7 @@ libcmph_la_SOURCES = debug.h\
 				  cmph_structs.h cmph_structs.c\
 				  chm.h chm_structs.h chm.c\
 				  bmz.h bmz_structs.h bmz.c\
+				  xchmr.h xchmr_structs.h xchmr.c\
 				  xgraph.h xgraph.c
 
 libcmph_la_LDFLAGS = -version-info 0:0:0

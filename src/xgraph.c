@@ -6,7 +6,7 @@
 #include <assert.h>
 #include <unistd.h>
 
-#define DEBUG
+//#define DEBUG
 #include "debug.h"
 
 typedef struct
@@ -38,6 +38,7 @@ struct __xgraph_t
 	cmph_uint32 memory;
 
 	cmph_uint8 *visited;
+	cmph_uint8 *dead;
 
 	cmph_uint32 **roots;
 	cmph_uint32 *steps;
@@ -61,7 +62,7 @@ typedef struct __xgraph_edge_t
 static cmph_uint32 *write_adj(xgraph_t *g);
 static void init_roots(xgraph_t *g, cmph_uint32 *list_sizes);
 static void build_walk(xgraph_t *g);
-static void dump_walk(xgraph_t *g);
+static char dump_walk(xgraph_t *g);
 static char append_root(xgraph_t *g, cmph_uint32 root, xgraph_adj_t list);
 static char append_list(xgraph_t *g, cmph_uint32 root, cmph_uint32 from, xgraph_adj_t list, cmph_uint32 wanted_from);
 static void remove_root(xgraph_t *g, cmph_uint32 root);
@@ -139,6 +140,8 @@ xgraph_adj_t xgraph_pbfs_next(xgraph_t *g)
 	xgraph_adj_t list;
 	read(g->adj_fd, &(list.v), sizeof(cmph_uint32));
 	read(g->adj_fd, &(list.degree), sizeof(cmph_uint32));
+	list.adj = (cmph_uint32 *)malloc(sizeof(cmph_uint32)*list.degree);
+	list.ids = (cmph_uint32 *)malloc(sizeof(cmph_uint32)*list.degree);
 	for (i = 0; i < list.degree; ++i)
 	{
 		read(g->adj_fd, &(list.adj[i]), sizeof(cmph_uint32));
@@ -149,7 +152,7 @@ xgraph_adj_t xgraph_pbfs_next(xgraph_t *g)
 
 
 
-void xgraph_pack(xgraph_t *g)
+char xgraph_pack(xgraph_t *g)
 {
 	cmph_uint32 *list_sizes = NULL;
 	DEBUGP("Writing adjacency lists\n");
@@ -159,8 +162,10 @@ void xgraph_pack(xgraph_t *g)
 	free(list_sizes);
 	DEBUGP("Building walk\n");
 	build_walk(g);
-	dump_walk(g);
+	char cyclic = dump_walk(g);
+	if (cyclic) return 0;
 	xgraph_pbfs_reset(g);
+	return 1;
 }
 
 static cmph_uint32 *write_adj(xgraph_t *g)
@@ -263,6 +268,8 @@ static void init_roots(xgraph_t *g, cmph_uint32 *list_sizes)
 
 	g->visited = (cmph_uint8 *)malloc(sizeof(cmph_uint8) * g->nnodes);
 	memset(g->visited, 0, g->nnodes);
+	g->dead = (cmph_uint8 *)malloc(sizeof(cmph_uint8) * g->nnodes);
+	memset(g->dead, 0, g->nnodes);
 	assert(g->nblocks);
 	g->visited_blocks = (cmph_uint8 *)malloc(sizeof(cmph_uint8) * g->nblocks);
 	memset(g->visited_blocks, 0, g->nblocks);
@@ -322,8 +329,10 @@ static int wanted_cmp(const void *a, const void *b)
 {
 	wanted_t *w1 = (wanted_t *)a;
 	wanted_t *w2 = (wanted_t *)b;
-
-	return w1->v - w2->v;
+	//Do not use - because of overflow
+	if (w2->v == w1->v) return 0;
+	if (w1->v > w2->v) return 1;
+	return -1;
 }
 
 static void build_walk(xgraph_t *g)
@@ -357,6 +366,7 @@ static void build_walk(xgraph_t *g)
 			{
 				if (g->wanted[ptree].v == g->wanted[wi].v && g->wanted[wi].v != UINT_MAX)
 				{
+					DEBUGP("Both trees %u and %u want vertex %u\n", g->wanted[ptree].root, g->wanted[wi].root, g->wanted[wi].v);
 					if (g->steps[g->wanted[ptree].root] > g->steps[g->wanted[wi].root])
 					{
 						remove_root(g, g->wanted[wi].root);
@@ -403,7 +413,7 @@ static void build_walk(xgraph_t *g)
 			DEBUGP("Adding new trees\n");
 			for (i = 0; i < nlists; ++i)
 			{
-				if(!g->visited[first + i])
+				if((!g->visited[first + i]) && (!g->dead[first + i]))
 				{
 					char appended = append_root(g, first + i, lists[i]);
 					if (appended) 
@@ -413,6 +423,7 @@ static void build_walk(xgraph_t *g)
 					}
 				}
 			}
+			DEBUGP("Pruning wanted\n");
 			//Sort wanted
 			qsort(g->wanted, g->nwanted, sizeof(wanted_t), wanted_cmp);
 			//Realloc it
@@ -421,12 +432,13 @@ static void build_walk(xgraph_t *g)
 			{
 				if (g->wanted[wi].v == UINT_MAX) break;
 			}
+			DEBUGP("Prune point is %u\n", wi);
 			if (wi < g->nwanted) 
 			{	
 				g->wanted = (wanted_t *)realloc(g->wanted, wi*sizeof(wanted_t));
 				g->nwanted = wi;
 			}
-
+			print_roots(g);
 		}
 		free_adj_lists(lists, nlists);
 
@@ -442,6 +454,8 @@ static void build_walk(xgraph_t *g)
 	g->nwanted = 0;
 	free(g->visited);
 	g->visited = NULL;
+	free(g->dead);
+	g->dead = NULL;
 	free(g->visited_blocks);
 	g->visited_blocks = NULL;
 	free(g->blocks);
@@ -457,7 +471,7 @@ static int adj_walk_cmp(const void *a, const void *b)
 	return __walk[l1->v] - __walk[l2->v];
 }
 
-static void dump_walk(xgraph_t *g)
+static char dump_walk(xgraph_t *g)
 {
 	cmph_uint32 walksteps = 0;
 	g->walk_fname = strdup("cmph_xgraph_walk.XXXXXX");
@@ -478,13 +492,24 @@ static void dump_walk(xgraph_t *g)
 
 	if (walksteps != g->nnodes) 
 	{
-		DEBUGP("CYCLIC GRAPH");
-		return;
+		DEBUGP("CYCLIC GRAPH: walk steps: %u nodes: %u\n", walksteps, g->nnodes);
+		return 0;
 	}
 
 	lseek(g->walk_fd, 0, SEEK_SET);
 	cmph_uint32 *walk = (cmph_uint32 *)malloc(sizeof(cmph_uint32)*walksteps);
-	read(g->walk_fd, walk, sizeof(cmph_uint32)*walksteps);
+	for (i = 0; i < walksteps; ++i)
+	{
+		cmph_uint32 step = 0;
+		read(g->walk_fd, &step, sizeof(cmph_uint32));
+		walk[step] = i;
+	}
+
+#ifdef DEBUG
+	DEBUGP("Dumping walk:\n");
+	for (i = 0; i < walksteps; ++i) fprintf(stderr, "%u ", walk[i]);
+	fprintf(stderr, "\n");
+#endif
 
 	xgraph_adj_t *lists = (xgraph_adj_t *)malloc(sizeof(xgraph_adj_t)*walksteps);
 	//Use external sort
@@ -510,6 +535,7 @@ static void dump_walk(xgraph_t *g)
 	for (i = 0; i < walksteps; ++i)
 	{
 		xgraph_adj_t clist = lists[i];
+		DEBUGP("Writing adjacency list for vertex %u\n", clist.v);
 		write(g->adj_fd, &(clist.v), sizeof(cmph_uint32)); 
 		write(g->adj_fd, &(clist.degree), sizeof(cmph_uint32)); 
 		for (j = 0; j < clist.degree; ++j)
@@ -522,11 +548,12 @@ static void dump_walk(xgraph_t *g)
 	}
 	free(lists);
 	lists = NULL;
-	return;
+	return 1;
 }
 
 static void print_roots(xgraph_t *g)
 {
+#ifdef DEBUG
 	cmph_uint32 i = 0, j = 0;
 	DEBUGP("Printing %u roots\n", g->nroots);
 	for (i = 0; i < g->nroots; ++i)
@@ -544,6 +571,7 @@ static void print_roots(xgraph_t *g)
 	}
 	fprintf(stderr, "Wanted vector:\n");
 	for (i = 0; i < g->nwanted; ++i) fprintf(stderr, "adj %u root %u\n", g->wanted[i].v, g->wanted[i].root);
+#endif
 }
 
 static cmph_uint32 next_block(xgraph_t *g)
@@ -606,7 +634,7 @@ static char append_root(xgraph_t *g, cmph_uint32 root, xgraph_adj_t list)
 	{
 		//Tree is violating another one.
 		//Refuse to continue and let tree be removed later
-		if (g->visited[list.adj[i]]) return 0;
+		if (g->visited[list.adj[i]] || g->dead[list.adj[i]]) return 0;
 	}
 	g->roots = (cmph_uint32 **)realloc(g->roots, sizeof(cmph_uint32 *)*(g->nroots + 1));
 	g->steps = (cmph_uint32 *)realloc(g->steps, sizeof(cmph_uint32)*(g->nroots + 1));
@@ -631,7 +659,6 @@ static char append_root(xgraph_t *g, cmph_uint32 root, xgraph_adj_t list)
 		g->wanted[(g->nwanted + i)].from = root;
 	}
 	g->nwanted += list.degree;
-	print_roots(g);
 	return 1;
 }
 static char append_list(xgraph_t *g, cmph_uint32 root, cmph_uint32 from, xgraph_adj_t list, cmph_uint32 wanted_from)
@@ -661,7 +688,11 @@ static char append_list(xgraph_t *g, cmph_uint32 root, cmph_uint32 from, xgraph_
 		if (list.adj[i] == wanted_from) continue;
 		//Tree is violating another one.
 		//Refuse to continue and let tree be removed later
-		if (g->visited[list.adj[i]]) return 0;
+		if (g->visited[list.adj[i]]) 
+		{
+			DEBUGP("Tree wants to touch visited vertex %u\n", list.adj[i]);
+			return 0;
+		}
 
 		g->roots[root_ptr][g->steps[root_ptr]] = list.adj[i];
 		++(g->steps[root_ptr]);
@@ -678,7 +709,6 @@ static char append_list(xgraph_t *g, cmph_uint32 root, cmph_uint32 from, xgraph_
 		g->wanted[g->nwanted].from = from;
 		++g->nwanted;
 	}
-	print_roots(g);
 	return 1;
 }
 
@@ -696,7 +726,12 @@ static void remove_root(xgraph_t *g, cmph_uint32 root)
 			break;
 		}
 	}
-	assert(root_ptr != UINT_MAX);
+	if (root_ptr == UINT_MAX) return;
+	for (i = 0; i < g->steps[root_ptr]; ++i)
+	{
+		g->dead[g->roots[root_ptr][i]] = 1;
+		g->visited[g->roots[root_ptr][i]] = 0;
+	}
 	g->roots[root_ptr][0] = UINT_MAX; //no realloc by now
 									  //just mark it
 }

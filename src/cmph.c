@@ -1,7 +1,8 @@
 #include "cmph.h"
 #include "cmph_structs.h"
-#include "chm.h"
 #include "bmz.h"
+#include "chm.h"
+#include "xchmr.h"
 //#include "bmz.h" /* included -- Fabiano */
 
 #include <stdlib.h>
@@ -10,7 +11,7 @@
 //#define DEBUG
 #include "debug.h"
 
-const char *cmph_names[] = { "bmz", "chm", NULL }; /* included -- Fabiano */
+const char *cmph_names[] = { "bmz", "chm", "xchmr", NULL }; /* included -- Fabiano */
 
 static int key_nlfile_read(void *data, char **key, cmph_uint32 *keylen)
 {
@@ -114,6 +115,9 @@ void cmph_config_set_algo(cmph_config_t *mph, CMPH_ALGO algo)
 			case CMPH_BMZ:
 			bmz_config_destroy(mph->data);
 			break;
+			case CMPH_XCHMR:
+			xchmr_config_destroy(mph->data);
+			break;
 			default:
 			assert(0);
 		}
@@ -124,6 +128,9 @@ void cmph_config_set_algo(cmph_config_t *mph, CMPH_ALGO algo)
 			break;
 			case CMPH_BMZ:
 			mph->data = bmz_config_new();
+			break;
+			case CMPH_XCHMR:
+			mph->data = xchmr_config_new();
 			break;
 			default:
 			assert(0);
@@ -143,6 +150,9 @@ void cmph_config_destroy(cmph_config_t *mph)
 		case CMPH_BMZ: /* included -- Fabiano */
 	        bmz_config_destroy(mph);
 			break;
+		case CMPH_XCHMR:
+			xchmr_config_destroy(mph);
+			break;
 		default:
 			assert(0);
 	}
@@ -161,8 +171,11 @@ void cmph_config_set_hashfuncs(cmph_config_t *mph, CMPH_HASH *hashfuncs)
 		case CMPH_CHM:
 			chm_config_set_hashfuncs(mph, hashfuncs);
 			break;
-		case CMPH_BMZ: /* included -- Fabiano */
+		case CMPH_BMZ: 
 			bmz_config_set_hashfuncs(mph, hashfuncs);
+			break;
+		case CMPH_XCHMR:
+			xchmr_config_set_hashfuncs(mph, hashfuncs);
 			break;
 		default:
 			break;
@@ -188,10 +201,14 @@ cmph_t *cmph_new(cmph_config_t *mph)
 			if (c == 0) c = 2.09;
 			mphf = chm_new(mph, c);
 			break;
-		case CMPH_BMZ: /* included -- Fabiano */
+		case CMPH_BMZ: 
 			DEBUGP("Creating bmz hash\n");
 			if (c == 0) c = 1.15;
 			mphf = bmz_new(mph, c);
+			break;
+		case CMPH_XCHMR:
+			if (c == 0) c = 2.09;
+			mphf = xchmr_new(mph, c);
 			break;
 		default:
 			assert(0);
@@ -206,8 +223,11 @@ int cmph_dump(cmph_t *mphf, FILE *f)
 		case CMPH_CHM:
 			return chm_dump(mphf, f);
 			break;
-		case CMPH_BMZ: /* included -- Fabiano */
-		        return bmz_dump(mphf, f);
+		case CMPH_BMZ: 
+	        return bmz_dump(mphf, f);
+			break;
+		case CMPH_XCHMR:
+			return xchmr_dump(mphf, f);
 			break;
 		default:
 			assert(0);
@@ -228,9 +248,12 @@ cmph_t *cmph_load(FILE *f)
 		case CMPH_CHM:
 			chm_load(f, mphf);
 			break;
-		case CMPH_BMZ: /* included -- Fabiano */
+		case CMPH_BMZ: 
 			DEBUGP("Loading bmz algorithm dependent parts\n");
 			bmz_load(f, mphf);
+			break;
+		case CMPH_XCHMR:
+			xchmr_load(f, mphf);
 			break;
 		default:
 			assert(0);
@@ -247,9 +270,11 @@ cmph_uint32 cmph_search(cmph_t *mphf, const char *key, cmph_uint32 keylen)
 	{
 		case CMPH_CHM:
 			return chm_search(mphf, key, keylen);
-		case CMPH_BMZ: /* included -- Fabiano */
-		        DEBUGP("bmz algorithm search\n");		         
-		        return bmz_search(mphf, key, keylen);
+		case CMPH_BMZ: 
+			DEBUGP("bmz algorithm search\n");		         
+			return bmz_search(mphf, key, keylen);
+		case CMPH_XCHMR:
+			return xchmr_search(mphf, key, keylen);
 		default:
 			assert(0);
 	}
@@ -269,8 +294,11 @@ void cmph_destroy(cmph_t *mphf)
 		case CMPH_CHM:
 			chm_destroy(mphf);
 			return;
-		case CMPH_BMZ: /* included -- Fabiano */
-		        bmz_destroy(mphf);
+		case CMPH_BMZ: 
+			bmz_destroy(mphf);
+			return;
+		case CMPH_XCHMR:
+			xchmr_destroy(mphf);
 			return;
 		default: 
 			assert(0);
