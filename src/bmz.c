@@ -76,7 +76,7 @@ cmph_t *bmz_new(cmph_config_t *mph, float c)
 	bmz->m = mph->key_source->nkeys;	
 	bmz->n = ceil(c * mph->key_source->nkeys);	
 	DEBUGP("m (edges): %u n (vertices): %u c: %f\n", bmz->m, bmz->n, c);
-	bmz->graph = graph_new(bmz->n, bmz->m);
+	bmz->graph = graph_new(bmz->n, bmz->m, 0);
 	DEBUGP("Created graph\n");
 
 	bmz->hashes = (hash_state_t **)malloc(sizeof(hash_state_t *)*3);

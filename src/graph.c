@@ -25,15 +25,16 @@ struct __graph_t
 	cmph_uint32 *edges;
 	cmph_uint32 *first;
 	cmph_uint32 *next;
-        cmph_uint8  *critical_nodes;   /* included -- Fabiano*/
-        cmph_uint32 ncritical_nodes;   /* included -- Fabiano*/
+	cmph_uint8  *critical_nodes;  
+	cmph_uint32 ncritical_nodes; 
 	cmph_uint32 cedges;
+	cmph_uint32 *edges_id;
 	int shrinking;
 };
 
 static cmph_uint32 EMPTY = UINT_MAX;
 
-graph_t *graph_new(cmph_uint32 nnodes, cmph_uint32 nedges)
+graph_t *graph_new(cmph_uint32 nnodes, cmph_uint32 nedges, cmph_uint8 hold_edges)
 {
 	graph_t *graph = (graph_t *)malloc(sizeof(graph_t));
 	if (!graph) return NULL;
@@ -41,10 +42,12 @@ graph_t *graph_new(cmph_uint32 nnodes, cmph_uint32 nedges)
 	graph->edges = (cmph_uint32 *)malloc(sizeof(cmph_uint32) * 2 * nedges);
 	graph->next =  (cmph_uint32 *)malloc(sizeof(cmph_uint32) * 2 * nedges);
 	graph->first = (cmph_uint32 *)malloc(sizeof(cmph_uint32) * nnodes);
-        graph->critical_nodes = NULL; /* included -- Fabiano*/
-	graph->ncritical_nodes = 0;   /* included -- Fabiano*/
+	graph->critical_nodes = NULL;
+	graph->ncritical_nodes = 0;   
 	graph->nnodes = nnodes;
 	graph->nedges = nedges;
+	if (hold_edges) graph->edges_id = (cmph_uint32 *)malloc(sizeof(cmph_uint32)*nedges);
+	else graph->edges_id = NULL;
 
 	graph_clear_edges(graph);
 	return graph;
@@ -57,7 +60,8 @@ void graph_destroy(graph_t *graph)
 	free(graph->edges);
 	free(graph->first);
 	free(graph->next);
-        free(graph->critical_nodes); /* included -- Fabiano*/
+	free(graph->critical_nodes); 
+	free(graph->edges_id);
 	free(graph);
 	return;
 }
@@ -80,6 +84,13 @@ void graph_print(graph_t *g)
 			
 	}
 	return;
+}
+
+void graph_add_edge_with_id(graph_t *g, cmph_uint32 v1, cmph_uint32 v2, cmph_uint32 id)
+{
+	assert(g->edges_id);
+	g->edges_id[g->cedges] = id;
+	graph_add_edge(g, v1, v2);
 }
 
 void graph_add_edge(graph_t *g, cmph_uint32 v1, cmph_uint32 v2)
@@ -115,13 +126,18 @@ cmph_uint32 graph_edge_id(graph_t *g, cmph_uint32 v1, cmph_uint32 v2)
 	cmph_uint32 e;
 	e = g->first[v1];
 	assert(e != EMPTY);
-	if (check_edge(g, e, v1, v2)) return abs_edge(e, 0);
+	if (check_edge(g, e, v1, v2)) 
+	{
+		if (g->edges_id) return g->edges_id[abs_edge(e, 0)];
+		return abs_edge(e, 0);
+	}
 	do
 	{
 		e = g->next[e];
 		assert(e != EMPTY);
 	}
 	while (!check_edge(g, e, v1, v2));
+	if (g->edges_id) return g->edges_id[abs_edge(e, 0)];
 	return abs_edge(e, 0);
 }
 static void del_edge_point(graph_t *g, cmph_uint32 v1, cmph_uint32 v2)
@@ -210,7 +226,7 @@ static void cyclic_del_edge(graph_t *g, cmph_uint32 v, char *deleted)
 	{
 		DEBUGP("Deleting edge %u (%u->%u)\n", e, g->edges[abs_edge(e, 0)], g->edges[abs_edge(e, 1)]);
 		SETBIT(deleted, abs_edge(e, 0));
-		
+
 		v2 = g->edges[abs_edge(e, 0)];
 		if (v2 == v1) v2 = g->edges[abs_edge(e, 1)];
 
@@ -241,6 +257,8 @@ int graph_is_cyclic(graph_t *g)
 	{
 		if (!(GETBIT(deleted, i))) 
 		{
+			//Skip non-existent vertices
+			if (g->edges[i] == UINT_MAX) continue;
 			DEBUGP("Edge %u %u->%u was not deleted\n", i, g->edges[i], g->edges[i + g->nedges]);
 			free(deleted);
 			return 1;
@@ -252,12 +270,12 @@ int graph_is_cyclic(graph_t *g)
 
 cmph_uint8 graph_node_is_critical(graph_t * g, cmph_uint32 v) /* included -- Fabiano */
 {
-        return GETBIT(g->critical_nodes,v);
+	return GETBIT(g->critical_nodes,v);
 }
 
 void graph_obtain_critical_nodes(graph_t *g) /* included -- Fabiano*/
 {
-        cmph_uint32 i;
+	cmph_uint32 i;
 	cmph_uint32 v;
 	char *deleted = (char *)malloc((g->nedges*sizeof(char))/8+1);
 	memset(deleted, 0, g->nedges/8 + 1);
@@ -278,13 +296,13 @@ void graph_obtain_critical_nodes(graph_t *g) /* included -- Fabiano*/
 			DEBUGP("Edge %u %u->%u belongs to the 2-core\n", i, g->edges[i], g->edges[i + g->nedges]);
 			if(!(GETBIT(g->critical_nodes,g->edges[i]))) 
 			{
-			  g->ncritical_nodes ++;
-			  SETBIT(g->critical_nodes,g->edges[i]);
+				g->ncritical_nodes ++;
+				SETBIT(g->critical_nodes,g->edges[i]);
 			}
 			if(!(GETBIT(g->critical_nodes,g->edges[i + g->nedges]))) 
 			{
-			  g->ncritical_nodes ++;
-			  SETBIT(g->critical_nodes,g->edges[i + g->nedges]);
+				g->ncritical_nodes ++;
+				SETBIT(g->critical_nodes,g->edges[i + g->nedges]);
 			}
 		}
 	}

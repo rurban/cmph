@@ -182,6 +182,19 @@ void cmph_config_set_hashfuncs(cmph_config_t *mph, CMPH_HASH *hashfuncs)
 	}
 	return;
 }
+
+void cmph_config_set_ncomponents(cmph_config_t *mph, cmph_uint32 K)
+{
+	switch (mph->algo)
+	{
+		case CMPH_CHM:
+			chm_config_set_ncomponents(mph, K);
+			break;
+		default:
+			break;
+	}
+	return;
+}
 void cmph_config_set_graphsize(cmph_config_t *mph, float c)
 {
 	mph->c = c;

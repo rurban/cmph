@@ -16,10 +16,11 @@ struct __graph_iterator_t
 
 
 
-graph_t *graph_new(cmph_uint32 nnodes, cmph_uint32 nedges);
+graph_t *graph_new(cmph_uint32 nnodes, cmph_uint32 nedges, cmph_uint8 hold_edges_id);
 void graph_destroy(graph_t *graph);
 
 void graph_add_edge(graph_t *g, cmph_uint32 v1, cmph_uint32 v2);
+void graph_add_edge_with_id(graph_t *g, cmph_uint32 v1, cmph_uint32 v2, cmph_uint32 id);
 void graph_del_edge(graph_t *g, cmph_uint32 v1, cmph_uint32 v2);
 void graph_clear_edges(graph_t *g);
 cmph_uint32 graph_edge_id(graph_t *g, cmph_uint32 v1, cmph_uint32 v2);
