@@ -4,7 +4,7 @@ include_HEADERS = cmph.h cmph_types.h
 libcmph_la_SOURCES = debug.h\
 				  bitbool.h bitbool.c\
 				  cmph_types.h\
-				  hash.h hash_state.h hash.c\
+				  hash.h  hash.c\
 				  jenkins_hash.h jenkins_hash.c\
 				  djb2_hash.h djb2_hash.c\
 				  sdbm_hash.h sdbm_hash.c\
@@ -12,12 +12,11 @@ libcmph_la_SOURCES = debug.h\
 				  vstack.h vstack.c\
 				  vqueue.h vqueue.c\
 				  graph.h graph.c\
-				  cmph.h cmph.c\
+				  cmph.h cmph.c cmph_config.c\
 				  cmph_structs.h cmph_structs.c\
-				  chm.h chm_structs.h chm.c\
-				  bmz.h bmz_structs.h bmz.c\
-				  bmz8.h bmz8_structs.h bmz8.c\
-				  brz.h brz_structs.h brz.c
+				  cmph_io_adapter.h cmph_io_adapter.c\
+				  chm.h chm.c chm_config.c\
+				  chm_structs.h chm_structs.c
 
 libcmph_la_LDFLAGS = -version-info 0:0:0
 

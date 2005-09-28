@@ -1,22 +1,10 @@
 #include "fnv_hash.h"
 #include <stdlib.h>
 
-fnv_state_t *fnv_state_new()
-{
-	fnv_state_t *state = (fnv_state_t *)malloc(sizeof(fnv_state_t));
-	state->hashfunc = CMPH_HASH_FNV;
-	return state;
-}
-
-void fnv_state_destroy(fnv_state_t *state)
-{
-	free(state);
-}
-
-cmph_uint32 fnv_hash(fnv_state_t *state, const char *k, cmph_uint32 keylen)
+cmph_uint32 fnv_hash(cmph_uint32 seed, const char *k, cmph_uint32 klen)
 {
 	const unsigned char *bp = (const unsigned char *)k;	
-	const unsigned char *be = bp + keylen;	
+	const unsigned char *be = bp + klen;	
 	static unsigned int hval = 0;	
 
 	while (bp < be) 
@@ -28,26 +16,4 @@ cmph_uint32 fnv_hash(fnv_state_t *state, const char *k, cmph_uint32 keylen)
 		hval ^= *bp++;
 	}
 	return hval;
-}
-
-
-void fnv_state_dump(fnv_state_t *state, char **buf, cmph_uint32 *buflen)
-{
-	*buf = NULL;
-	*buflen = 0;
-	return;
-}
-
-fnv_state_t * fnv_state_copy(fnv_state_t *src_state)
-{
-	fnv_state_t *dest_state = (fnv_state_t *)malloc(sizeof(fnv_state_t));
-	dest_state->hashfunc = src_state->hashfunc;
-	return dest_state;
-}
-
-fnv_state_t *fnv_state_load(const char *buf, cmph_uint32 buflen)
-{
-	fnv_state_t *state = (fnv_state_t *)malloc(sizeof(fnv_state_t));
-	state->hashfunc = CMPH_HASH_FNV;
-	return state;
 }

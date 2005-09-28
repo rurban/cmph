@@ -46,21 +46,17 @@ void hashtree_config_set_hashfuncs(cmph_config_t *mph, CMPH_HASH *hashfuncs)
 	}
 }
 
-cmph_t *hashtree_new(cmph_config_t *mph, float c)
+static cmph_uint8 assign_leaves(hashtree_config_data_t *config, hashtree_data_t *function );
+
+cmph_t *hashtree_new(cmph_config_t *mph)
 {
 	cmph_t *mphf = NULL;
-	hashtree_data_t *hashtreef = NULL;
+	hashtree_data_t *function = (hashtree_data_t *)malloc(hashtree_data_t);
+	hashtree_config_data_t *config = (hashtree_config_data_t *)mph->data;
 
-	cmph_uint32 i;
-	cmph_uint32 iterations = 20;
-	cmph_uint8 *visited = NULL;
-	hashtree_config_data_t *hashtree = (hashtree_config_data_t *)mph->data;
-	hashtree->m = mph->key_source->nkeys;	
-	hashtree->n = ceil(c * mph->key_source->nkeys);	
-	DEBUGP("m (edges): %u n (vertices): %u c: %f\n", hashtree->m, hashtree->n, c);
-	hashtree->graph = graph_new(hashtree->n, hashtree->m);
-	DEBUGP("Created graph\n");
+	if (!function) return 0;
 
+	//First, divide keys by leaves
 	hashtree->hashes = (hash_state_t **)malloc(sizeof(hash_state_t *)*3);
 	for(i = 0; i < 3; ++i) hashtree->hashes[i] = NULL;
 	//Mapping step
@@ -137,6 +133,56 @@ cmph_t *hashtree_new(cmph_config_t *mph, float c)
 	}
 	return mphf;
 }
+
+typedef struct
+{
+	uint32 h0;
+	uint8 h1;
+	uint8 h2;
+} leaf_key_t;
+
+//Distribute keys in subgroups for minimal perfect hash generation. Each subgroup
+//can have at most ceil(256/c) keys. The reason for this is that we can have at most
+//256 vertices in the graph we will generate in the next 
+//step (number of vertices = ceil(nkeys * c))
+static cmph_uint8 assign_leaves(hashtree_config_data_t *config, hashtree_data_t *function, int fd)
+{
+	int c = 0;
+	cmph_uint64 i = 0;
+	function->h0 = hash_state_new(config->hashfuncs[0], config->key_source->nkeys);
+	if (!function->h0) return 0; 
+	cmph_uint32 maxkeys = ceil(256 / config->c);
+	function->k = ceil(maxkeys * root_c);
+
+	c = ftruncate64(fd, sizeof(leaf_key_t) * ((cmph_uint64_t)config->key_source->nkeys));
+	if (c == -1) return 0;
+
+	for (i = 0; i < config->key_source->nkeys; ++i)
+	{
+		leaf_key_t leafkey;
+		cmph_uint32 keylen;
+		char *key;
+		mph->key_source->read(mph->key_source->data, &key, &keylen);
+		h1 = hash(hashtree->hashes[0], key, keylen) % hashtree->n;
+		h2 = hash(hashtree->hashes[1], key, keylen) % hashtree->n;
+		if (h1 == h2) if (++h2 >= hashtree->n) h2 = 0;
+		if (h1 == h2) 
+		{
+			if (mph->verbosity) fprintf(stderr, "Self loop for key %u\n", e);
+			mph->key_source->dispose(mph->key_source->data, key, keylen);
+			return 0;
+		}
+		DEBUGP("Adding edge: %u -> %u for key %s\n", h1, h2, key);
+		mph->key_source->dispose(mph->key_source->data, key, keylen);
+		graph_add_edge(hashtree->graph, h1, h2);
+	}
+	cycles = graph_is_cyclic(hashtree->graph);
+	if (mph->verbosity && cycles) fprintf(stderr, "Cyclic graph generated\n");
+	DEBUGP("Looking for cycles: %u\n", cycles);
+
+
+
+	
 
 static void hashtree_traverse(hashtree_config_data_t *hashtree, cmph_uint8 *visited, cmph_uint32 v)
 {

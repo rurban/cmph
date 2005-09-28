@@ -1,24 +1,21 @@
 #ifndef __CMPH_CHM_STRUCTS_H__
 #define __CMPH_CHM_STRUCTS_H__
 
-#include "hash_state.h"
-
-struct __chm_data_t
+#include "hash.h"
+struct __chm_t
 {
 	cmph_uint32 m; //edges (words) count
 	cmph_uint32 n; //vertex count
 	cmph_uint32 *g;
-	hash_state_t **hashes;
+	cmph_uint32 h1_seed;
+	cmph_uint32 h2_seed;
+	cmph_uint8 verbosity;
 };
 
-struct __chm_config_data_t
+struct __chm_config_t
 {
-	CMPH_HASH hashfuncs[2];
-	cmph_uint32 m; //edges (words) count
-	cmph_uint32 n; //vertex count
-	graph_t *graph;
-	cmph_uint32 *g;
-	hash_state_t **hashes;
+	cmph_hashfunc_t hashfuncs[2];
+	float c;
 };
 
 #endif
