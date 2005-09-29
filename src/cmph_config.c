@@ -1,9 +1,8 @@
+#include <assert.h>
+
 #include "cmph.h"
 #include "cmph_structs.h"
 #include "chm.h"
-#include "bmz.h"
-#include "bmz8.h"
-#include "brz.h"
 
 cmph_config_t *cmph_config_new(CMPH_ALGO algo)
 {
@@ -11,16 +10,16 @@ cmph_config_t *cmph_config_new(CMPH_ALGO algo)
 	switch(algo)
 	{
 		case CMPH_BMZ:
-			config = bmz_config_new();
+			//config = bmz_config_new();
 			break;
 		case CMPH_BMZ8:
-			config = bmz8_config_new();
+			//config = bmz8_config_new();
 			break;
 		case CMPH_CHM:
 			config = chm_config_new();
 			break;
 		case CMPH_BRZ:
-			config = brz_config_new();
+			//config = brz_config_new();
 			break;
 		default:
 			assert(0);
@@ -37,13 +36,13 @@ void cmph_config_destroy(cmph_config_t *config)
 			chm_config_destroy(config);
 			break;
 		case CMPH_BMZ:
-			bmz_config_destroy(config);
+			//bmz_config_destroy(config);
 			break;
 		case CMPH_BMZ8: 
-	       	bmz8_config_destroy(config);
+	       	//bmz8_config_destroy(config);
 			break;
 		case CMPH_BRZ: 
-	       	brz_config_destroy(config);
+	       	//brz_config_destroy(config);
 			break;
 		default:
 			assert(0);
@@ -101,13 +100,13 @@ void cmph_config_set_hashfuncs(cmph_config_t *config, CMPH_HASH *hashfuncs)
 			chm_config_set_hashfuncs(config, hashfuncs);
 			break;
 		case CMPH_BMZ: 
-			bmz_config_set_hashfuncs(config, hashfuncs);
+			//bmz_config_set_hashfuncs(config, hashfuncs);
 			break;
 		case CMPH_BMZ8: 
-			bmz8_config_set_hashfuncs(config, hashfuncs);
+			//bmz8_config_set_hashfuncs(config, hashfuncs);
 			break;
 		case CMPH_BRZ: 
-			brz_config_set_hashfuncs(config, hashfuncs);
+			//brz_config_set_hashfuncs(config, hashfuncs);
 			break;
 		default:
 			break;
@@ -122,13 +121,13 @@ void cmph_config_set_graphsize(cmph_config_t *config, float c)
 			chm_config_set_graphsize(config, c);
 			break;
 		case CMPH_BMZ: 
-			bmz_config_set_graphsize(config, c);
+			//bmz_config_set_graphsize(config, c);
 			break;
 		case CMPH_BMZ8: 
-			bmz8_config_set_graphsize(config, c);
+			//bmz8_config_set_graphsize(config, c);
 			break;
 		case CMPH_BRZ: 
-			brz_config_set_graphsize(config, c);
+			//brz_config_set_graphsize(config, c);
 			break;
 		default:
 			break;

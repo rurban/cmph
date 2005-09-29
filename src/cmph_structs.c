@@ -1,6 +1,7 @@
 #include "cmph_structs.h"
 
 #include <string.h>
+#include <assert.h>
 
 //#define DEBUG
 #include "debug.h"
@@ -50,12 +51,12 @@ int cmph_dump(cmph_t *mphf, FILE *f)
 	{
 		case CMPH_CHM:
 			return chm_dump(mphf, f);
-		case CMPH_BMZ: /* included -- Fabiano */
-		        return bmz_dump(mphf, f);
-		case CMPH_BMZ8: /* included -- Fabiano */
-		        return bmz8_dump(mphf, f);
-		case CMPH_BRZ: /* included -- Fabiano */
-		        return brz_dump(mphf, f);
+		case CMPH_BMZ: 
+			//return bmz_dump(mphf, f);
+		case CMPH_BMZ8: 
+			//return bmz8_dump(mphf, f);
+		case CMPH_BRZ: 
+			//return brz_dump(mphf, f);
 		default:
 			assert(0);
 	}
@@ -75,17 +76,14 @@ cmph_t *cmph_load(FILE *f)
 		case CMPH_CHM:
 			chm_load(f, mphf);
 			break;
-		case CMPH_BMZ: /* included -- Fabiano */
-			DEBUGP("Loading bmz algorithm dependent parts\n");
-			bmz_load(f, mphf);
+		case CMPH_BMZ: 
+			//bmz_load(f, mphf);
 			break;
-		case CMPH_BMZ8: /* included -- Fabiano */
-			DEBUGP("Loading bmz8 algorithm dependent parts\n");
-			bmz8_load(f, mphf);
+		case CMPH_BMZ8: 
+			//bmz8_load(f, mphf);
 			break;
-		case CMPH_BRZ: /* included -- Fabiano */
-			DEBUGP("Loading brz algorithm dependent parts\n");
-			brz_load(f, mphf);
+		case CMPH_BRZ: 
+			//brz_load(f, mphf);
 			break;
 		default:
 			assert(0);
@@ -93,6 +91,4 @@ cmph_t *cmph_load(FILE *f)
 	DEBUGP("Loaded mphf\n");
 	return mphf;
 }
-
-
 

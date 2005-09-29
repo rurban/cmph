@@ -34,7 +34,9 @@ cmph_t *chm_new(const cmph_config_t *config, cmph_io_adapter_t *key_source)
 
 	mph->m = key_source->nkeys;	
 	mph->n = ceil(config->impl.chm.c * key_source->nkeys);	
-	DEBUGP("m (edges): %u n (vertices): %u c: %f\n", mph->m, mph->n, config->chm.c);
+	mph->hashfuncs[0] = config->impl.chm.hashfuncs[0];
+	mph->hashfuncs[1] = config->impl.chm.hashfuncs[1];
+	DEBUGP("m (edges): %u n (vertices): %u c: %f\n", mph->m, mph->n, config->impl.chm.c);
 	graph = graph_new(mph->n, mph->m);
 	DEBUGP("Created graph\n");
 
@@ -46,8 +48,9 @@ cmph_t *chm_new(const cmph_config_t *config, cmph_io_adapter_t *key_source)
 	while(1)
 	{
 		int ok;
-		mph->h1_seed = rand() % mph->n;
-		mph->h2_seed = rand() % mph->m;
+		mph->h1_seed = rand();
+		mph->h2_seed = rand();
+		DEBUGP("Chosen seeds are %u and %u\n", mph->h1_seed, mph->h2_seed);
 		ok = chm_gen_edges(config, key_source, mph, graph);
 		if (!ok)
 		{
@@ -149,6 +152,11 @@ static int chm_gen_edges(const cmph_config_t *config, cmph_io_adapter_t *key_sou
 	return ! cycles;
 }
 
+cmph_uint32 chm_size(const cmph_t *mphf)
+{
+	chm_t *mph = (chm_t *)mphf->impl;
+	return mph->m;
+}
 cmph_uint32 chm_search(const cmph_t *mphf, const char *key, cmph_uint32 keylen)
 {
 	chm_t *mph = (chm_t *)mphf->impl;

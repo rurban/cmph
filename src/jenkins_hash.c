@@ -90,6 +90,7 @@ cmph_uint32 jenkins_hash(cmph_uint32 seed, const char *k, cmph_uint32 klen)
 	cmph_uint32 a, b, c;
 	cmph_uint32 len, length;
 
+	DEBUGP("Hashing with seed %u\n", seed);
 	/* Set up the internal state */
 	length = klen;
 	len = length;

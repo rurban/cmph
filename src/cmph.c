@@ -1,9 +1,6 @@
 #include "cmph.h"
 #include "cmph_structs.h"
 #include "chm.h"
-#include "bmz.h"
-#include "bmz8.h" 
-#include "brz.h" 
 
 #include <stdlib.h>
 #include <assert.h>
@@ -93,13 +90,13 @@ void cmph_destroy(cmph_t *mphf)
 			chm_destroy(mphf);
 			return;
 		case CMPH_BMZ: 
-		        bmz_destroy(mphf);
+			//bmz_destroy(mphf);
 			return;
 		case CMPH_BMZ8: 
-		        bmz8_destroy(mphf);
+			//bmz8_destroy(mphf);
 			return;
 		case CMPH_BRZ: 
-		        brz_destroy(mphf);
+			//brz_destroy(mphf);
 			return;
 		default: 
 			assert(0);
