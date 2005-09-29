@@ -7,27 +7,25 @@
 
 cmph_config_t *cmph_config_new(CMPH_ALGO algo)
 {
-	cmph_config_t *config = (cmph_config_t *)malloc(sizeof(cmph_config_t));
-	if (!config) return NULL;
-	memset(config, 0, sizeof(cmph_config_t));
-	config->algo = algo; 
+	cmph_config_t *config = NULL;
 	switch(algo)
 	{
-		case CMPH_CHM:
-			config->data = chm_config_new();
-			break;
 		case CMPH_BMZ:
-			config->data = bmz_config_new();
+			config = bmz_config_new();
 			break;
 		case CMPH_BMZ8:
-			config->data = bmz8_config_new();
+			config = bmz8_config_new();
+			break;
+		case CMPH_CHM:
+			config = chm_config_new();
 			break;
 		case CMPH_BRZ:
-			config->data = brz_config_new();
+			config = brz_config_new();
 			break;
 		default:
 			assert(0);
 	}
+	if (config) config->algo = algo;
 	return config;
 }
 
@@ -36,16 +34,16 @@ void cmph_config_destroy(cmph_config_t *config)
 	switch (config->algo)
 	{
 		case CMPH_CHM:
-			chm_config_destroy(config->data);
+			chm_config_destroy(config);
 			break;
 		case CMPH_BMZ:
-			bmz_config_destroy(config->data);
+			bmz_config_destroy(config);
 			break;
 		case CMPH_BMZ8: 
-	       	bmz8_config_destroy(config->data);
+	       	bmz8_config_destroy(config);
 			break;
 		case CMPH_BRZ: 
-	       	brz_config_destroy(config->data);
+	       	brz_config_destroy(config);
 			break;
 		default:
 			assert(0);
@@ -92,6 +90,7 @@ void cmph_config_set_memory_availability(cmph_config_t *config, cmph_uint32 memo
 
 void cmph_config_set_verbosity(cmph_config_t *config, cmph_uint32 verbosity)
 {
+	config->verbosity = verbosity;
 }
 
 void cmph_config_set_hashfuncs(cmph_config_t *config, CMPH_HASH *hashfuncs)
@@ -120,16 +119,16 @@ void cmph_config_set_graphsize(cmph_config_t *config, float c)
 	switch (config->algo)
 	{
 		case CMPH_CHM:
-			chm_config_set_graphsize(config->data, c);
+			chm_config_set_graphsize(config, c);
 			break;
 		case CMPH_BMZ: 
-			bmz_config_set_graphsize(config->data, c);
+			bmz_config_set_graphsize(config, c);
 			break;
 		case CMPH_BMZ8: 
-			bmz8_config_set_graphsize(config->data, c);
+			bmz8_config_set_graphsize(config, c);
 			break;
 		case CMPH_BRZ: 
-			brz_config_set_graphsize(config->data, c);
+			brz_config_set_graphsize(config, c);
 			break;
 		default:
 			break;

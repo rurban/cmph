@@ -1,21 +1,21 @@
 #ifndef __CMPH_CHM_STRUCTS_H__
 #define __CMPH_CHM_STRUCTS_H__
 
-#include "hash.h"
-struct __chm_t
+#include "cmph.h"
+typedef struct 
 {
 	cmph_uint32 m; //edges (words) count
 	cmph_uint32 n; //vertex count
 	cmph_uint32 *g;
 	cmph_uint32 h1_seed;
 	cmph_uint32 h2_seed;
-};
+	CMPH_HASH hashfuncs[2];
+} chm_t;
 
-struct __chm_config_t
+typedef struct 
 {
-	cmph_hashfunc_t hashfuncs[2];
-	cmph_uint8 verbosity;
+	CMPH_HASH hashfuncs[2];
 	float c;
-};
+} chm_config_t;
 
 #endif

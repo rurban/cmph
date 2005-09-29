@@ -1,10 +1,11 @@
 #include "chm_structs.h"
 int chm_dump(cmph_t *mphf, FILE *fd)
 {
+#if 0
 	char *buf = NULL;
 	cmph_uint32 buflen;
 	cmph_uint32 two = 2; //number of hash functions
-	chm_data_t *data = (chm_data_t *)mphf->data;
+	chm_t *mph = (chm_t *)mphf->;
 	__cmph_dump(mphf, fd);
 
 	fwrite(&two, sizeof(cmph_uint32), 1, fd);
@@ -24,16 +25,13 @@ int chm_dump(cmph_t *mphf, FILE *fd)
 	fwrite(&(data->m), sizeof(cmph_uint32), 1, fd);
 	
 	fwrite(data->g, sizeof(cmph_uint32)*data->n, 1, fd);
-	#ifdef DEBUG
-	fprintf(stderr, "G: ");
-	for (i = 0; i < data->n; ++i) fprintf(stderr, "%u ", data->g[i]);
-	fprintf(stderr, "\n");
-	#endif
+#endif
 	return 1;
 }
 
 void chm_load(FILE *f, cmph_t *mphf)
 {
+#if 0
 	cmph_uint32 nhashes;
 	char *buf = NULL;
 	cmph_uint32 buflen;
@@ -64,11 +62,7 @@ void chm_load(FILE *f, cmph_t *mphf)
 
 	chm->g = (cmph_uint32 *)malloc(sizeof(cmph_uint32)*chm->n);
 	fread(chm->g, chm->n*sizeof(cmph_uint32), 1, f);
-	#ifdef DEBUG
-	fprintf(stderr, "G: ");
-	for (i = 0; i < chm->n; ++i) fprintf(stderr, "%u ", chm->g[i]);
-	fprintf(stderr, "\n");
-	#endif
+#endif
 	return;
 }
 	

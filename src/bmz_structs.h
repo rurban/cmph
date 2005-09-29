@@ -1,25 +1,22 @@
 #ifndef __CMPH_BMZ_STRUCTS_H__
 #define __CMPH_BMZ_STRUCTS_H__
 
-#include "hash_state.h"
+#include "cmph.h"
 
-struct __bmz_data_t
+typedef struct 
 {
 	cmph_uint32 m; //edges (words) count
 	cmph_uint32 n; //vertex count
 	cmph_uint32 *g;
-	hash_state_t **hashes;
-};
+	cmph_uint32 h1_seed;
+	cmph_uint32 h2_seed;
+} bmz_t;
 
 
-struct __bmz_config_data_t
+typedef struct 
 {
 	CMPH_HASH hashfuncs[2];
-	cmph_uint32 m; //edges (words) count
-	cmph_uint32 n; //vertex count
-	graph_t *graph;
-	cmph_uint32 *g;
-	hash_state_t **hashes;
-};
+	float c;
+} bmz_config_t;
 
 #endif

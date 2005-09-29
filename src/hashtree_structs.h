@@ -1,27 +1,24 @@
 #ifndef __CMPH_HASHTREE_STRUCTS_H__
 #define __CMPH_HASHTREE_STRUCTS_H__
 
-#include "hash_state.h"
-
-struct __hashtree_data_t
+typedef struct 
 {
-	cmph_float32 leaf_c; //constant c
-	cmph_float32 root_c;
-	cmph_uint8 *size; //size[i] stores the number of edges represented by g[i]
 	cmph_uint32 *offset; //offset[i] stores the sum size[0] + ... size[i - 1]
 	cmph_uint32 k; //number of components
-	hash_state_t *h0; //root hash function 
-	uint8 *seeds; //Seed used by leaf hash functions
+	cmph_uint8 h0_seed; //root hash function 
+	cmph_uint8 *h1_seed; //Seed used by leaf hash functions
+	cmph_uint8 *h2_seed; //Seed used by leaf hash functions
 	cmph_uint32 **g; //graph g for each leaf
-};
+} hashtree_t;
 
-struct __hashtree_config_data_t
+typedef struct 
 {
 	CMPH_ALGO leaf_algo;
 	CMPH_HASH hashfuncs[3];
-	cmph_uint8 *size; //size[i] stores the number of edges represented by g[i]
 	cmph_float32 c;
+	cmph_float32 leaf_c; //constant c
+	cmph_float32 root_c;
 	cmph_uint32 memory;
-};
+} hashtree_config_t;
 
 #endif

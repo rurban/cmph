@@ -22,7 +22,7 @@ cmph_t *cmph_new(const cmph_config_t *config, cmph_io_adapter_t *key_source)
 	switch (config->algo)	
 	{
 		case CMPH_CHM:
-			mphf->data = chm_new(config->data, key_source);
+			mphf->impl = chm_new(config, key_source);
 			break;
 		case CMPH_BMZ:
 			//mphf = bmz_new(config, c);
@@ -45,7 +45,7 @@ cmph_uint32 cmph_search(const cmph_t *mphf, const char *key, cmph_uint32 keylen)
 	switch(mphf->algo)
 	{
 		case CMPH_CHM:
-			return chm_search(mphf->data, key, keylen);
+			return chm_search(mphf, key, keylen);
 		case CMPH_BMZ: 
 			//DEBUGP("bmz algorithm search\n");		         
 			//return bmz_search(mphf->data, key, keylen);
@@ -67,7 +67,7 @@ cmph_uint32 cmph_size(const cmph_t *mphf)
 	switch(mphf->algo)
 	{
 		case CMPH_CHM:
-			chm_size(mphf->data);
+			chm_size(mphf);
 			return;
 		case CMPH_BMZ: 
 			//bmz_size(mphf->data);

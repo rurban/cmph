@@ -39,7 +39,7 @@ cmph_t *__cmph_load(FILE *f)
 	}
 	mphf = (cmph_t *)malloc(sizeof(cmph_t));
 	mphf->algo = algo;
-	mphf->data = NULL;
+	mphf->impl= NULL;
 	DEBUGP("Algorithm is %s\n", cmph_names[algo]);
 	return mphf;
 }

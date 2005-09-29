@@ -203,21 +203,19 @@ int main(int argc, char **argv)
 	}
 
 	if (seed == UINT_MAX) seed = (cmph_uint32)time(NULL);
-	if(nkeys == UINT_MAX) source = cmph_io_nlfile_adapter(keys_fd);
-	else source = cmph_io_nlnkfile_adapter(keys_fd, nkeys);
+	source = cmph_io_nlfile_adapter(keys_fd, nkeys);
 
 	if (generate)
 	{
 		//Create mphf
-		config = cmph_config_new(source);
-		cmph_config_set_algo(config, mph_algo);
+		config = cmph_config_new(mph_algo);
 		if (nhashes) cmph_config_set_hashfuncs(config, hashes);
 		cmph_config_set_verbosity(config, verbosity);
 		cmph_config_set_tmp_dir(config, tmp_dir);
 		cmph_config_set_memory_availability(config, memory_availability);
 		if(mph_algo == CMPH_BMZ && c >= 2.0) c=1.15;
 		if (c != 0) cmph_config_set_graphsize(config, c);
-		mphf = cmph_new(config);
+		mphf = cmph_new(config, source);
 
 		if (mphf == NULL)
 		{
