@@ -14,51 +14,17 @@
 //#define DEBUG
 #include "debug.h"
 
-hashtree_config_data_t *hashtree_config_new()
-{
-	hashtree_config_data_t *hashtree;
-	hashtree = (hashtree_config_data_t *)malloc(sizeof(hashtree_config_data_t));
-	if (!hashtree) return NULL;
-	memset(hashtree, 0, sizeof(hashtree_config_data_t));
-	hashtree->hashfuncs[0] = CMPH_HASH_JENKINS;
-	hashtree->hashfuncs[1] = CMPH_HASH_JENKINS;
-	hashtree->hashfuncs[2] = CMPH_HASH_JENKINS;
-	hashtree->memory = 32 * 1024 * 1024;
-	return hashtree;
-}
-void hashtree_config_destroy(cmph_config_t *mph)
-{
-	hashtree_config_data_t *data = (hashtree_config_data_t *)mph->data;
-	DEBUGP("Destroying algorithm dependent data\n");
-	free(data);
-}
-
-void hashtree_config_set_hashfuncs(cmph_config_t *mph, CMPH_HASH *hashfuncs)
-{
-	hashtree_config_data_t *hashtree = (hashtree_config_data_t *)mph->data;
-	CMPH_HASH *hashptr = hashfuncs;
-	cmph_uint32 i = 0;
-	while(*hashptr != CMPH_HASH_COUNT)
-	{
-		if (i >= 3) break; //hashtree only uses three hash functions
-		hashtree->hashfuncs[i] = *hashptr;	
-		++i, ++hashptr;
-	}
-}
-
-static cmph_uint8 assign_leaves(hashtree_config_data_t *config, hashtree_data_t *function );
+static cmph_int64 assign_leaves(const cmph_config_t *config, hashtree_t *mph, FILE *fd);
+static cmph_uint8 sort_keys(FILE *fd, cmph_uint32 nkeys);
 
 cmph_t *hashtree_new(cmph_config_t *mph)
 {
-	cmph_t *mphf = NULL;
-	hashtree_data_t *function = (hashtree_data_t *)malloc(hashtree_data_t);
-	hashtree_config_data_t *config = (hashtree_config_data_t *)mph->data;
-
-	if (!function) return 0;
+	cmph_t *ret = (cmph_t *)malloc(sizeof(cmph_t));
+	hashtree_t *mph = (hashtree_t *)malloc(hashtree_t);
+	if ((!ret) || (!mph)) return NULL;
 
 	//First, divide keys by leaves
-	hashtree->hashes = (hash_state_t **)malloc(sizeof(hash_state_t *)*3);
-	for(i = 0; i < 3; ++i) hashtree->hashes[i] = NULL;
+
 	//Mapping step
 	if (mph->verbosity)
 	{
@@ -136,183 +102,139 @@ cmph_t *hashtree_new(cmph_config_t *mph)
 
 typedef struct
 {
-	uint32 h0;
-	uint8 h1;
-	uint8 h2;
+	cmph_uint32 h0;
+	cmph_uint8 h1; //no mod applied
+	cmph_uint8 h2; //no mod applied
+	cmph_uint16 pad;
 } leaf_key_t;
 
 //Distribute keys in subgroups for minimal perfect hash generation. Each subgroup
 //can have at most ceil(256/c) keys. The reason for this is that we can have at most
 //256 vertices in the graph we will generate in the next 
 //step (number of vertices = ceil(nkeys * c))
-static cmph_uint8 assign_leaves(hashtree_config_data_t *config, hashtree_data_t *function, int fd)
+static cmph_int64 assign_leaves(const cmph_config_t *config, hashtree_t *mph, int fd)
 {
 	int c = 0;
 	cmph_uint64 i = 0;
-	function->h0 = hash_state_new(config->hashfuncs[0], config->key_source->nkeys);
-	if (!function->h0) return 0; 
-	cmph_uint32 maxkeys = ceil(256 / config->c);
-	function->k = ceil(maxkeys * root_c);
+	cmph_uint32 maxkeys = ceil(256 / config->leaf_c);
+	mph->k = ceil(maxkeys * config->root_c);
 
+	cmph_uint16 *size = (cmph_uint16 *)malloc(sizeof(cmph_uint16) * mph->k);
+	memset(size, 0, mph->k * sizeof(cmph_uint16));
+
+	DEBUGP("Assigning keys to %u leaves with at most %u keys each.\n", mph->k, maxkeys);
 	c = ftruncate64(fd, sizeof(leaf_key_t) * ((cmph_uint64_t)config->key_source->nkeys));
 	if (c == -1) return 0;
 
 	for (i = 0; i < config->key_source->nkeys; ++i)
 	{
-		leaf_key_t leafkey;
+		leaf_key_t leaf_key;
 		cmph_uint32 keylen;
 		char *key;
 		mph->key_source->read(mph->key_source->data, &key, &keylen);
-		h1 = hash(hashtree->hashes[0], key, keylen) % hashtree->n;
-		h2 = hash(hashtree->hashes[1], key, keylen) % hashtree->n;
-		if (h1 == h2) if (++h2 >= hashtree->n) h2 = 0;
-		if (h1 == h2) 
+		leaf_key.h0 = HASHKEY(mph->hash[0], mph->h0_seed, key, keylen) % mph->k;
+		leaf_key.h1 = HASHKEY(mph->hash[1], mph->h1_seed[leaf_key.h0], key, keylen);
+		leaf_key.h2 = HASHKEY(mph->hash[2], mph->h2_seed[leaf_key.h0], key, keylen);
+		if (size[leaf_key.h0] == maxkeys)
 		{
-			if (mph->verbosity) fprintf(stderr, "Self loop for key %u\n", e);
-			mph->key_source->dispose(mph->key_source->data, key, keylen);
+			free(size);
+			if (config->verbosity)
+			{
+				fprintf("Too many collisions at leaf %u\n", leaf_key.h0);
+			}
+			return -;
+		}
+		++(size[leaf_key.h0]);
+		c = fwrite(&leaf_key, 1, sizeof(leaf_key), fd);
+		if (c != sizeof(leaf_key))
+		{
+			free(size);
 			return 0;
 		}
-		DEBUGP("Adding edge: %u -> %u for key %s\n", h1, h2, key);
-		mph->key_source->dispose(mph->key_source->data, key, keylen);
-		graph_add_edge(hashtree->graph, h1, h2);
 	}
-	cycles = graph_is_cyclic(hashtree->graph);
-	if (mph->verbosity && cycles) fprintf(stderr, "Cyclic graph generated\n");
-	DEBUGP("Looking for cycles: %u\n", cycles);
-
-
-
-	
-
-static void hashtree_traverse(hashtree_config_data_t *hashtree, cmph_uint8 *visited, cmph_uint32 v)
-{
-
-	graph_iterator_t it = graph_neighbors_it(hashtree->graph, v);
-	cmph_uint32 neighbor = 0;
-	SETBIT(visited,v);
-	
-	DEBUGP("Visiting vertex %u\n", v);
-	while((neighbor = graph_next_neighbor(hashtree->graph, &it)) != GRAPH_NO_NEIGHBOR)
-	{
-		DEBUGP("Visiting neighbor %u\n", neighbor);
-		if(GETBIT(visited,neighbor)) continue;
-		DEBUGP("Visiting neighbor %u\n", neighbor);
-		DEBUGP("Visiting edge %u->%u with id %u\n", v, neighbor, graph_edge_id(hashtree->graph, v, neighbor));
-		hashtree->g[neighbor] = graph_edge_id(hashtree->graph, v, neighbor) - hashtree->g[v];
-		DEBUGP("g is %u (%u - %u mod %u)\n", hashtree->g[neighbor], graph_edge_id(hashtree->graph, v, neighbor), hashtree->g[v], hashtree->m);
-		hashtree_traverse(hashtree, visited, neighbor);
-	}
-}
-		
-static int hashtree_gen_edges(cmph_config_t *mph)
-{
-	cmph_uint32 e;
-	hashtree_config_data_t *hashtree = (hashtree_config_data_t *)mph->data;
-	int cycles = 0;
-
-	DEBUGP("Generating edges for %u vertices with hash functions %s and %s\n", hashtree->n, cmph_hash_names[hashtree->hashfuncs[0]], cmph_hash_names[hashtree->hashfuncs[1]]);
-	graph_clear_edges(hashtree->graph);	
-	mph->key_source->rewind(mph->key_source->data);
-	for (e = 0; e < mph->key_source->nkeys; ++e)
-	{
-		cmph_uint32 h1, h2;
-		cmph_uint32 keylen;
-		char *key;
-		mph->key_source->read(mph->key_source->data, &key, &keylen);
-		h1 = hash(hashtree->hashes[0], key, keylen) % hashtree->n;
-		h2 = hash(hashtree->hashes[1], key, keylen) % hashtree->n;
-		if (h1 == h2) if (++h2 >= hashtree->n) h2 = 0;
-		if (h1 == h2) 
-		{
-			if (mph->verbosity) fprintf(stderr, "Self loop for key %u\n", e);
-			mph->key_source->dispose(mph->key_source->data, key, keylen);
-			return 0;
-		}
-		DEBUGP("Adding edge: %u -> %u for key %s\n", h1, h2, key);
-		mph->key_source->dispose(mph->key_source->data, key, keylen);
-		graph_add_edge(hashtree->graph, h1, h2);
-	}
-	cycles = graph_is_cyclic(hashtree->graph);
-	if (mph->verbosity && cycles) fprintf(stderr, "Cyclic graph generated\n");
-	DEBUGP("Looking for cycles: %u\n", cycles);
-
-	return ! cycles;
-}
-
-int hashtree_dump(cmph_t *mphf, FILE *fd)
-{
-	char *buf = NULL;
-	cmph_uint32 buflen;
-	cmph_uint32 two = 2; //number of hash functions
-	hashtree_data_t *data = (hashtree_data_t *)mphf->data;
-	__cmph_dump(mphf, fd);
-
-	fwrite(&two, sizeof(cmph_uint32), 1, fd);
-	hash_state_dump(data->hashes[0], &buf, &buflen);
-	DEBUGP("Dumping hash state with %u bytes to disk\n", buflen);
-	fwrite(&buflen, sizeof(cmph_uint32), 1, fd);
-	fwrite(buf, buflen, 1, fd);
-	free(buf);
-
-	hash_state_dump(data->hashes[1], &buf, &buflen);
-	DEBUGP("Dumping hash state with %u bytes to disk\n", buflen);
-	fwrite(&buflen, sizeof(cmph_uint32), 1, fd);
-	fwrite(buf, buflen, 1, fd);
-	free(buf);
-
-	fwrite(&(data->n), sizeof(cmph_uint32), 1, fd);
-	fwrite(&(data->m), sizeof(cmph_uint32), 1, fd);
-	
-	fwrite(data->g, sizeof(cmph_uint32)*data->n, 1, fd);
-	#ifdef DEBUG
-	fprintf(stderr, "G: ");
-	for (i = 0; i < data->n; ++i) fprintf(stderr, "%u ", data->g[i]);
-	fprintf(stderr, "\n");
-	#endif
 	return 1;
 }
 
-void hashtree_load(FILE *f, cmph_t *mphf)
+static int leaf_key_compare(const void *a, const void *b) 
 {
-	cmph_uint32 nhashes;
-	char *buf = NULL;
-	cmph_uint32 buflen;
-	cmph_uint32 i;
-	hashtree_data_t *hashtree = (hashtree_data_t *)malloc(sizeof(hashtree_data_t));
-
-	DEBUGP("Loading hashtree mphf\n");
-	mphf->data = hashtree;
-	fread(&nhashes, sizeof(cmph_uint32), 1, f);
-	hashtree->hashes = (hash_state_t **)malloc(sizeof(hash_state_t *)*(nhashes + 1));
-	hashtree->hashes[nhashes] = NULL;
-	DEBUGP("Reading %u hashes\n", nhashes);
-	for (i = 0; i < nhashes; ++i)
-	{
-		hash_state_t *state = NULL;
-		fread(&buflen, sizeof(cmph_uint32), 1, f);
-		DEBUGP("Hash state has %u bytes\n", buflen);
-		buf = (char *)malloc(buflen);
-		fread(buf, buflen, 1, f);
-		state = hash_state_load(buf, buflen);
-		hashtree->hashes[i] = state;
-		free(buf);
-	}
-
-	DEBUGP("Reading m and n\n");
-	fread(&(hashtree->n), sizeof(cmph_uint32), 1, f);	
-	fread(&(hashtree->m), sizeof(cmph_uint32), 1, f);	
-
-	hashtree->g = (cmph_uint32 *)malloc(sizeof(cmph_uint32)*hashtree->n);
-	fread(hashtree->g, hashtree->n*sizeof(cmph_uint32), 1, f);
-	#ifdef DEBUG
-	fprintf(stderr, "G: ");
-	for (i = 0; i < hashtree->n; ++i) fprintf(stderr, "%u ", hashtree->g[i]);
-	fprintf(stderr, "\n");
-	#endif
-	return;
+	leaf_key_t *la = (leaf_key_t *)a;
+	leaf_key_t *lb = (leaf_key_t *)b;
+	return la->h0 - lb->h0;
 }
-		
+//Implements straight external mergesort using leaf id as key
+static cmph_uint8 sort_keys(const cmph_config_t *config, FILE *fd, cmph_uint64 nkeys)
+{
+	FILE *tmpfd;
+	int c = 0;
+	cmph_uint32 blocksize = floor(config->memory / ((double)sizeof(leaf_key_t)));
+	cmph_uint32 nblocks = ceil(nkeys / (double)blocksize);
+	cmph_uint64 sorted = 0;
+	leaf_key_t *block = (leaf_key_t *)malloc(sizeof(leaf_key_t) * blocksize);
+	cmph_uint32 *blockfill = (cmph_uint32 *)malloc(sizeof(cmph_uint32) * nblocks);
+	cmph_uint32 *blockhead = (cmph_uint32 *)malloc(sizeof(leaf_key_t) * nblocks);
+	cmph_uint32 current_block = 0;
+	if (!block || !blockfill || !blockhead) return 0;
+	rewind(fd);
 
+	//Sort blocks
+	while (1)
+	{
+		blockfill[current_block] = 0;
+		c = fread(block, sizeof(leaf_key_t), blocksize, fd);
+		if (c != blocksize && c != nkeys - sorted;) 
+		{
+			free(block);
+			free(blockfill);
+			return 0;
+		}
+		blockfill[current_block] = c;
+		qsort(block, blockfill[current_block], sizeof(leaf_key_t), leaf_key_compare);
+		c = fwrite(block, sizeof(leaf_key_t), blockfill[current_block], tmpfd);
+		free(block);
+		if (c != blockfill[current_block]) 
+		{
+			free(blockfill);
+			return 0;
+		}
+		sorted -= blockfill[current_block];
+		++current_block;
+	}
+	assert(sorted == nkeys);
+	sorted = 0;
+	//Merge Blocks
+	for (current_block = 0; current_block < nblocks; ++current_block)
+	{
+		blockhead[current_block].h0 = UINT_MAX;
+	}
+	while (sorted != nkeys)
+	{
+		leaf_key_t min;
+		min.h0 = UINT_MAX;
+		for (current_block = 0; current_block < nblocks; ++current_block)
+		{
+			if (blockhead[current_block].h0 < min.h0)
+			{
+				min = blockhead[current_block];
+				if (blockfill[current_block])
+				{
+					cmph_uint64 pos = current_block * blocksize;
+					pos += blockfill[current_block] - 1;
+					pos *= sizeof(leaf_key_t);
+					c = fseek64(tmpfd, pos, SEEK_SET);		
+					fread(&(blockhead[current_block]), 1, sizeof(blockhead[current_block]), tmpfd);
+					--blockfill[current_block];	
+				}
+				if (min.h0 != UINT_MAX) 
+				{
+					fwrite(&min, 1, sizeof(min), fd);
+					++sorted;
+				}
+			}
+		}
+	}
+	unlink(tmpfd);
+}
+	
 cmph_uint32 hashtree_search(cmph_t *mphf, const char *key, cmph_uint32 keylen)
 {
 	hashtree_data_t *hashtree = mphf->data;
