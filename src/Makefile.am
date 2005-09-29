@@ -16,7 +16,9 @@ libcmph_la_SOURCES = debug.h\
 				  cmph_structs.h cmph_structs.c\
 				  cmph_io_adapter.h cmph_io_adapter.c\
 				  chm.h chm.c chm_config.c\
-				  chm_structs.h chm_structs.c
+				  chm_structs.h chm_structs.c\
+				  bmz8.h bmz8.c bmz8_config.c\
+				  bmz8_structs.h bmz8_structs.c
 
 libcmph_la_LDFLAGS = -version-info 0:0:0
 

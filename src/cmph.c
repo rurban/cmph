@@ -19,16 +19,16 @@ cmph_t *cmph_new(const cmph_config_t *config, cmph_io_adapter_t *key_source)
 	switch (config->algo)	
 	{
 		case CMPH_CHM:
-			mphf->impl = chm_new(config, key_source);
+			mphf = chm_new(config, key_source);
 			break;
 		case CMPH_BMZ:
-			//mphf = bmz_new(config, c);
+			//mphf->impl = bmz_new(config, c);
 			break;
 		case CMPH_BMZ8: 
-			//mphf = bmz8_new(config, c);
+			mphf = bmz8_new(config, key_source);
 			break;
 		case CMPH_BRZ: 
-			//mphf = brz_new(config, c);
+			//mphf->impl = brz_new(config, c);
 			break;
 		default:
 			assert(0);
@@ -48,7 +48,7 @@ cmph_uint32 cmph_search(const cmph_t *mphf, const char *key, cmph_uint32 keylen)
 			//return bmz_search(mphf->data, key, keylen);
 		case CMPH_BMZ8: 
 			//DEBUGP("bmz8 algorithm search\n");		         
-			//return bmz8_search(mphf, key, keylen);
+			return bmz8_search(mphf, key, keylen);
 		case CMPH_BRZ: 
 			//DEBUGP("brz algorithm search\n");		         
 			//return brz_search(mphf, key, keylen);
@@ -64,17 +64,13 @@ cmph_uint32 cmph_size(const cmph_t *mphf)
 	switch(mphf->algo)
 	{
 		case CMPH_CHM:
-			chm_size(mphf);
-			return;
+			return chm_size(mphf);
 		case CMPH_BMZ: 
-			//bmz_size(mphf->data);
-			//return;
+			//return bmz_size(mphf->data);
 		case CMPH_BMZ8: 
-			//bmz8_size(mphf->data);
-			//return;
+			return bmz8_size(mphf);
 		case CMPH_BRZ: 
-			//brz_size(mphf->data);
-			//return;
+			//return brz_size(mphf->data);
 		default: 
 			assert(0);
 	}
@@ -93,7 +89,7 @@ void cmph_destroy(cmph_t *mphf)
 			//bmz_destroy(mphf);
 			return;
 		case CMPH_BMZ8: 
-			//bmz8_destroy(mphf);
+			bmz8_destroy(mphf);
 			return;
 		case CMPH_BRZ: 
 			//brz_destroy(mphf);

@@ -19,6 +19,8 @@
 #include "config.h"
 #endif
 
+//#define DEBUG
+#include "debug.h"
 
 void usage(const char *prg)
 {
@@ -61,7 +63,7 @@ int main(int argc, char **argv)
 	cmph_uint32 nhashes = 0;
 	cmph_uint32 i;
 	CMPH_ALGO mph_algo = CMPH_CHM;
-	float c = 2.09;
+	float c = 0;
 	cmph_config_t *config = NULL;
 	cmph_t *mphf = NULL;
 	cmph_uint8 * tmp_dir = NULL;
@@ -209,11 +211,18 @@ int main(int argc, char **argv)
 	{
 		//Create mphf
 		config = cmph_config_new(mph_algo);
+		if (!config) 
+		{
+			fprintf(stderr, "Failed to initialize configuration for algorithm %s\n", cmph_names[mph_algo]);
+			return -1;
+		}
 		if (nhashes) cmph_config_set_hashfuncs(config, hashes);
 		cmph_config_set_verbosity(config, verbosity);
 		cmph_config_set_tmp_dir(config, tmp_dir);
 		cmph_config_set_memory_availability(config, memory_availability);
-		if(mph_algo == CMPH_BMZ && c >= 2.0) c=1.15;
+		if(mph_algo == CMPH_BMZ && c >= 2.0) c = 1.15;
+		if(mph_algo == CMPH_BMZ8 && c >= 2.0) c = 1.15;
+		DEBUGP("cmph application setting graphsize to %f\n", c);
 		if (c != 0) cmph_config_set_graphsize(config, c);
 		mphf = cmph_new(config, source);
 

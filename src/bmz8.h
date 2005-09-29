@@ -3,16 +3,20 @@
 
 #include "cmph.h"
 
-typedef struct __bmz8_data_t bmz8_data_t;
-typedef struct __bmz8_config_data_t bmz8_config_data_t;
+/** Configuration API */
+cmph_config_t *bmz8_config_new();
+void cm_config_set_hashfuncs(cmph_config_t *config, CMPH_HASH *hashfuncs);
+void bmz8_config_set_graphsize(cmph_config_t *config, float c);
+void bmz8_config_destroy(cmph_config_t *config);
 
-bmz8_config_data_t *bmz8_config_new();
-void bmz8_config_set_hashfuncs(cmph_config_t *mph, CMPH_HASH *hashfuncs);
-void bmz8_config_destroy(cmph_config_t *mph);
-cmph_t *bmz8_new(cmph_config_t *mph, float c);
-
-void bmz8_load(FILE *f, cmph_t *mphf);
-int bmz8_dump(cmph_t *mphf, FILE *f);
+/** Minimal Perfect Hash API */
+cmph_t *bmz8_new(const cmph_config_t *config, cmph_io_adapter_t *key_source);
+cmph_uint32 bmz8_search(const cmph_t *mphf, const char *key, cmph_uint32 keylen);
+cmph_uint32 bmz8_size(const cmph_t *mphf);
 void bmz8_destroy(cmph_t *mphf);
-cmph_uint8 bmz8_search(cmph_t *mphf, const char *key, cmph_uint32 keylen);
+
+/** Serialization API */
+int bmz8_dump(cmph_t *mphf, FILE *f);
+cmph_t *bmz8_load(FILE *f);
+
 #endif

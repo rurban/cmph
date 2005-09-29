@@ -13,7 +13,7 @@ cmph_config_t *cmph_config_new(CMPH_ALGO algo)
 			//config = bmz_config_new();
 			break;
 		case CMPH_BMZ8:
-			//config = bmz8_config_new();
+			config = bmz8_config_new();
 			break;
 		case CMPH_CHM:
 			config = chm_config_new();
@@ -39,7 +39,7 @@ void cmph_config_destroy(cmph_config_t *config)
 			//bmz_config_destroy(config);
 			break;
 		case CMPH_BMZ8: 
-	       	//bmz8_config_destroy(config);
+	       	bmz8_config_destroy(config);
 			break;
 		case CMPH_BRZ: 
 	       	//brz_config_destroy(config);
@@ -103,7 +103,7 @@ void cmph_config_set_hashfuncs(cmph_config_t *config, CMPH_HASH *hashfuncs)
 			//bmz_config_set_hashfuncs(config, hashfuncs);
 			break;
 		case CMPH_BMZ8: 
-			//bmz8_config_set_hashfuncs(config, hashfuncs);
+			bmz8_config_set_hashfuncs(config, hashfuncs);
 			break;
 		case CMPH_BRZ: 
 			//brz_config_set_hashfuncs(config, hashfuncs);
@@ -124,7 +124,7 @@ void cmph_config_set_graphsize(cmph_config_t *config, float c)
 			//bmz_config_set_graphsize(config, c);
 			break;
 		case CMPH_BMZ8: 
-			//bmz8_config_set_graphsize(config, c);
+			bmz8_config_set_graphsize(config, c);
 			break;
 		case CMPH_BRZ: 
 			//brz_config_set_graphsize(config, c);

@@ -54,7 +54,7 @@ int cmph_dump(cmph_t *mphf, FILE *f)
 		case CMPH_BMZ: 
 			//return bmz_dump(mphf, f);
 		case CMPH_BMZ8: 
-			//return bmz8_dump(mphf, f);
+			return bmz8_dump(mphf, f);
 		case CMPH_BRZ: 
 			//return brz_dump(mphf, f);
 		default:
@@ -80,7 +80,7 @@ cmph_t *cmph_load(FILE *f)
 			//bmz_load(f, mphf);
 			break;
 		case CMPH_BMZ8: 
-			//bmz8_load(f, mphf);
+			bmz8_load(f, mphf);
 			break;
 		case CMPH_BRZ: 
 			//brz_load(f, mphf);
