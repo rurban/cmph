@@ -18,7 +18,10 @@ libcmph_la_SOURCES = debug.h\
 				  chm.h chm.c chm_config.c\
 				  chm_structs.h chm_structs.c\
 				  bmz8.h bmz8.c bmz8_config.c\
-				  bmz8_structs.h bmz8_structs.c
+				  bmz8_structs.h bmz8_structs.c\
+				  hashtree.h hashtree.c hashtree_config.c\
+				  hashtree_structs.h hashtree_structs.c\
+				  hashtree_io_adapter.h hashtree_io_adapter.c
 
 libcmph_la_LDFLAGS = -version-info 0:0:0
 

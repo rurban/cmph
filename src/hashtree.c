@@ -1,7 +1,8 @@
-#include "graph.h"
 #include "hashtree.h"
+#include "hashtree_io_adapter.h"
+#include "graph.h"
 #include "cmph_structs.h"
-#include "hastree_structs.h"
+#include "hashtree_structs.h"
 #include "hash.h"
 #include "bitbool.h"
 
@@ -99,14 +100,6 @@ cmph_t *hashtree_new(cmph_config_t *mph)
 	}
 	return mphf;
 }
-
-typedef struct
-{
-	cmph_uint32 h0;
-	cmph_uint8 h1; //no mod applied
-	cmph_uint8 h2; //no mod applied
-	cmph_uint16 pad;
-} leaf_key_t;
 
 //Distribute keys in subgroups for minimal perfect hash generation. Each subgroup
 //can have at most ceil(256/c) keys. The reason for this is that we can have at most

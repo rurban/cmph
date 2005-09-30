@@ -34,7 +34,7 @@ typedef struct
 	 * method in a efficient fashion. If you define read, set this to NULL.
 	 * \return 0 on failure, 1 otherwise
 	 */
-	int (*hash)(void *, cmph_hashfunc_t *hashfunc, cmph_uint32 seed, cmph_uint32 *hval);
+	int (*hash)(void *, cmph_hashfunc_t hashfunc, cmph_uint32 seed, cmph_uint32 *hval);
 	/** Advance stream position
 	 * This should be used only when you cannot implement the read
 	 * method in a efficient fashion. If you define read, set this to NULL.
