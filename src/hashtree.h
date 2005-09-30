@@ -3,17 +3,22 @@
 
 #include "cmph.h"
 
-typedef struct __hashtree_data_t hashtree_data_t;
-typedef struct __hashtree_config_data_t hashtree_config_data_t;
+/** Configuration API */
+cmph_config_t *hashtree_config_new();
+void hashtree_config_set_hashfuncs(cmph_config_t *config, CMPH_HASH *hashfuncs);
+void hashtree_config_set_root_c(cmph_config_t *config, float c);
+void hashtree_config_set_leaf_c(cmph_config_t *config, float c);
+void hashtree_config_set_leaf_algo(cmph_config_t *config, CMPH_ALGO algo);
+void hashtree_config_destroy(cmph_config_t *config);
 
-hashtree_config_data_t *hashtree_config_new();
-void hashtree_config_set_hashfuncs(cmph_config_t *mph, CMPH_HASH *hashfuncs);
-void hashtree_config_set_leaf_algo(cmph_config_t *mph, CMPH_ALGO leaf_algo);
-void hashtree_config_destroy(cmph_config_t *mph);
-cmph_t *hashtree_new(cmph_config_t *mph, float c);
-
-void hashtree_load(FILE *f, cmph_t *mphf);
-int hashtree_dump(cmph_t *mphf, FILE *f);
+/** Minimal Perfect Hash API */
+cmph_t *hashtree_new(const cmph_config_t *config, cmph_io_adapter_t *key_source);
+cmph_uint32 hashtree_search(const cmph_t *mphf, const char *key, cmph_uint32 keylen);
+cmph_uint32 hashtree_size(const cmph_t *mphf);
 void hashtree_destroy(cmph_t *mphf);
-cmph_uint32 hashtree_search(cmph_t *mphf, const char *key, cmph_uint32 keylen);
+
+/** Serialization API */
+int hashtree_dump(cmph_t *mphf, FILE *f);
+cmph_t *hashtree_load(FILE *f);
+
 #endif
