@@ -11,9 +11,10 @@ int main(int argc, char **argv)
 	cmph_io_adapter_t *source = cmph_io_vector_adapter(vector, nkeys);
 
 	//Create minimal perfect hash function using the default (chm) algorithm.
-	cmph_config_t *config = cmph_config_new(source);
-	cmph_t *hash = cmph_new(config);
+	cmph_config_t *config = cmph_config_new(CMPH_BMZ);
+	cmph_t *hash = cmph_new(config, source);
 	cmph_config_destroy(config);
+	cmph_io_vector_adapter_destroy(source);
    
 	//Find key
 	const char *key = "jjjjjjjjjj";
