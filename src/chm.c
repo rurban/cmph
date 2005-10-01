@@ -17,9 +17,6 @@
 static int chm_gen_edges(const cmph_config_t *config, cmph_io_adapter_t *key_source, chm_t *mph, graph_t *graph);
 static void chm_traverse(cmph_uint32 *g, graph_t *graph, cmph_uint8 *visited, cmph_uint32 v);
 
-#define HASHKEY(func, seed, key, keylen)\
-	(*(cmph_hashfuncs[func]))(seed, key, keylen)
-
 cmph_t *chm_new(const cmph_config_t *config, cmph_io_adapter_t *key_source)
 {
 	cmph_uint32 i;

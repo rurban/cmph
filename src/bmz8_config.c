@@ -11,6 +11,8 @@ cmph_config_t *bmz8_config_new()
 	config->impl.bmz8.hashfuncs[0] = CMPH_HASH_JENKINS;
 	config->impl.bmz8.hashfuncs[1] = CMPH_HASH_JENKINS;
 	config->impl.bmz8.c = 0.93;
+	config->impl.bmz8.custom_h1_seed = 0;
+	config->impl.bmz8.custom_h2_seed = 0;
 	return config;
 }
 void bmz8_config_destroy(cmph_config_t *config)
@@ -34,4 +36,21 @@ void bmz8_config_set_graphsize(cmph_config_t *config, float c)
 {
 	DEBUGP("Setting graphsize to %f\n", c);
 	config->impl.bmz8.c = c;
+}
+cmph_bool bmz8_config_set_seed1(cmph_config_t *config, cmph_uint32 seed)
+{
+	config->impl.bmz8.custom_h1_seed = 1;
+	config->impl.bmz8.h1_seed = seed;
+	return 1;
+}
+cmph_bool bmz8_config_set_seed2(cmph_config_t *config, cmph_uint32 seed)
+{
+	config->impl.bmz8.custom_h2_seed = 1;
+	config->impl.bmz8.h2_seed = seed;
+	return 1;
+}
+cmph_bool bmz8_config_set_iterations(cmph_config_t *config, cmph_uint32 iterations)
+{
+	config->impl.bmz8.iterations = iterations;
+	return 1;
 }

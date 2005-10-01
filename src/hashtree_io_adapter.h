@@ -7,5 +7,5 @@ typedef struct
 	cmph_uint16 pad;
 } leaf_key_t;
 
-cmph_io_adapter_t *hashtree_io_adapter(FILE *fd, cmph_uint64 offset, cmph_uint32 leaf_id, cmph_uint32 leaf_size, cmph_hashfunc_t f1, cmph_uint32 s1, cmph_hashfunc_t f2, cmph_uint32 s2);
+cmph_io_adapter_t *hashtree_io_adapter(int fd, cmph_uint64 offset, cmph_uint32 leaf_id, cmph_uint32 leaf_size, cmph_hashfunc_t f1, cmph_uint32 s1, cmph_hashfunc_t f2, cmph_uint32 s2);
 void hashtree_io_adapter_destroy(cmph_io_adapter_t *);

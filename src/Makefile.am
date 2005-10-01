@@ -4,6 +4,7 @@ include_HEADERS = cmph.h cmph_types.h
 libcmph_la_SOURCES = debug.h\
 				  bitbool.h bitbool.c\
 				  cmph_types.h\
+				  cmph_mkstemp.h cmph_mkstemp.c\
 				  hash.h  hash.c\
 				  jenkins_hash.h jenkins_hash.c\
 				  djb2_hash.h djb2_hash.c\

@@ -15,7 +15,7 @@ void chm_config_destroy(cmph_config_t *config)
 	free(config);
 }
 
-void chm_config_set_hashfuncs(cmph_config_t *config, CMPH_HASH *hashfuncs)
+cmph_bool chm_config_set_hashfuncs(cmph_config_t *config, CMPH_HASH *hashfuncs)
 {
 	CMPH_HASH *hashptr = hashfuncs;
 	cmph_uint32 i = 0;
@@ -25,9 +25,11 @@ void chm_config_set_hashfuncs(cmph_config_t *config, CMPH_HASH *hashfuncs)
 		config->impl.chm.hashfuncs[i] = *hashptr;
 		++i, ++hashptr;
 	}
+	return 1;
 }
 
-void chm_config_set_graphsize(cmph_config_t *config, float c)
+cmph_bool chm_config_set_graphsize(cmph_config_t *config, float c)
 {
 	config->impl.chm.c = c;
+	return 1;
 }

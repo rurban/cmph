@@ -15,9 +15,6 @@
 //#define DEBUG
 #include "debug.h"
 
-#define HASHKEY(func, seed, key, keylen)\
-	(*(cmph_hashfuncs[func]))(seed, key, keylen)
-
 typedef struct
 {
 	const cmph_config_t *config;
@@ -89,8 +86,11 @@ cmph_t *bmz8_new(const cmph_config_t *config, cmph_io_adapter_t *key_source)
 		{
 			int ok;
 			DEBUGP("hash function 1\n");
-			mph->seed[0] = rand() % mph->n;
-			mph->seed[1] = rand() % mph->n;
+			//Why is % mph->n needed?
+			if (config->impl.bmz8.custom_h1_seed) mph->seed[0] = config->impl.bmz8.h1_seed % mph->n;
+			else mph->seed[0] = rand() % mph->n;
+			if (config->impl.bmz8.custom_h2_seed) mph->seed[1] = config->impl.bmz8.h2_seed % mph->n;
+			else mph->seed[1] = rand() % mph->n;
 			DEBUGP("Generating edges\n");
 			ok = bmz8_gen_edges(state);
 			if (!ok)

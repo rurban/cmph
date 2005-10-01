@@ -3,7 +3,7 @@
 
 typedef struct
 {
-	FILE *fd;
+	int fd;
 	cmph_hashfunc_t f1;
 	cmph_uint32 s1;
 	cmph_hashfunc_t f2;
@@ -18,7 +18,7 @@ typedef struct
 void hashtree_rewind(void *data)
 {
 	leaf_source_t *leaf_source = (leaf_source_t *)data;
-	fseek64(leaf_source->fd, sizeof(leaf_key_t) * leaf_source->offset, SEEK_SET); 
+	lseek64(leaf_source->fd, sizeof(leaf_key_t) * leaf_source->offset, SEEK_SET); 
 }
 
 int hashtree_hash(void *data, cmph_hashfunc_t f, cmph_uint32 seed, cmph_uint32 *hval)
@@ -33,10 +33,10 @@ int hashtree_hash(void *data, cmph_hashfunc_t f, cmph_uint32 seed, cmph_uint32 *
 int hashtree_next(void *data)
 {
 	leaf_source_t *leaf_source = (leaf_source_t *)data;
-	int c = fread(&(leaf_source->current_key), sizeof(leaf_source->current_key), 1, leaf_source->fd);
-	return c == 1;
+	int c = read(leaf_source->fd, &(leaf_source->current_key), sizeof(leaf_source->current_key));
+	return c == sizeof(leaf_source->current_key);
 }
-cmph_io_adapter_t *hashtree_io_adapter(FILE *fd, cmph_uint64 offset, cmph_uint32 leaf_id, cmph_uint32 leaf_size, cmph_hashfunc_t f1, cmph_uint32 s1, cmph_hashfunc_t f2, cmph_uint32 s2)
+cmph_io_adapter_t *hashtree_io_adapter(int fd, cmph_uint64 offset, cmph_uint32 leaf_id, cmph_uint32 leaf_size, cmph_hashfunc_t f1, cmph_uint32 s1, cmph_hashfunc_t f2, cmph_uint32 s2)
 {
 	leaf_source_t *leaf_source = (leaf_source_t *)malloc(sizeof(leaf_source_t));
 	cmph_io_adapter_t *source = (cmph_io_adapter_t *)malloc(sizeof(cmph_io_adapter_t));

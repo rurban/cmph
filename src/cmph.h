@@ -25,11 +25,14 @@ extern const char *cmph_hash_names[];
 
 /** Hash configuration API **/
 cmph_config_t *cmph_config_new(CMPH_ALGO algo);
-void cmph_config_set_hashfuncs(cmph_config_t *config, CMPH_HASH *hashfuncs);
-void cmph_config_set_verbosity(cmph_config_t *config, cmph_uint32 verbosity);
-void cmph_config_set_graphsize(cmph_config_t *config, float c);
-void cmph_config_set_tmp_dir(cmph_config_t *config, const char *tmp_dir);
-void cmph_config_set_memory_availability(cmph_config_t *config, cmph_uint32 memory_availability);
+cmph_bool cmph_config_set_hashfuncs(cmph_config_t *config, CMPH_HASH *hashfuncs);
+cmph_bool cmph_config_set_verbosity(cmph_config_t *config, cmph_uint32 verbosity);
+cmph_bool cmph_config_set_graphsize(cmph_config_t *config, float c);
+cmph_bool cmph_config_set_tmp_dir(cmph_config_t *config, const char *tmp_dir);
+cmph_bool cmph_config_set_memory_availability(cmph_config_t *config, cmph_uint32 memory_availability);
+cmph_bool cmph_config_set_seed1(cmph_config_t *config, cmph_uint32 seed);
+cmph_bool cmph_config_set_seed2(cmph_config_t *config, cmph_uint32 seed);
+cmph_bool cmph_config_set_iterations(cmph_config_t *config, cmph_uint32 iterations);
 void cmph_config_destroy(cmph_config_t *config);
 
 /** Minimal Perfect Hash API **/

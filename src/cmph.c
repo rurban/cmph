@@ -1,6 +1,7 @@
 #include "cmph.h"
 #include "cmph_structs.h"
 #include "chm.h"
+#include "bmz8.h"
 
 #include <stdlib.h>
 #include <assert.h>

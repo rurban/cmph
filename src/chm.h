@@ -5,8 +5,8 @@
 
 /** Configuration API */
 cmph_config_t *chm_config_new();
-void chm_config_set_hashfuncs(cmph_config_t *config, CMPH_HASH *hashfuncs);
-void chm_config_set_graphsize(cmph_config_t *config, float c);
+cmph_bool chm_config_set_hashfuncs(cmph_config_t *config, CMPH_HASH *hashfuncs);
+cmph_bool chm_config_set_graphsize(cmph_config_t *config, float c);
 void chm_config_destroy(cmph_config_t *config);
 
 /** Minimal Perfect Hash API */

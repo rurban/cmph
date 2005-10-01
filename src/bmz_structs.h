@@ -17,6 +17,10 @@ typedef struct
 {
 	CMPH_HASH hashfuncs[2];
 	float c;
+	cmph_bool custom_h1_seed;
+	cmph_bool custom_h2_seed;
+	cmph_uint32 h1_seed;
+	cmph_uint32 h2_seed;
 } bmz_config_t;
 
 #endif

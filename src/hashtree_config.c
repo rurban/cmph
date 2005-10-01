@@ -10,6 +10,7 @@ cmph_config_t *hashtree_config_new()
 	config->impl.hashtree.hash[2] = CMPH_HASH_JENKINS;
 	config->impl.hashtree.leaf_c = 0.93;
 	config->impl.hashtree.root_c = 1.5;
+	config->impl.hashtree.iterations = 10;
 	return config;
 }
 void hashtree_config_destroy(cmph_config_t *config)

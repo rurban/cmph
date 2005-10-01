@@ -1,4 +1,5 @@
 #include "cmph_mkstemp.h"
+#include <stdlib.h>
 
 int cmph_mkstemp(char *tmpl)
 {
