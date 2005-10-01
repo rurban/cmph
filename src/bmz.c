@@ -41,7 +41,7 @@ void bmz_config_destroy(cmph_config_t *mph)
 	free(data);
 }
 
-void bmz_config_set_hashfuncs(cmph_config_t *mph, CMPH_HASH *hashfuncs)
+cmph_uint8 bmz_config_set_hashfuncs(cmph_config_t *mph, CMPH_HASH *hashfuncs)
 {
 	bmz_config_data_t *bmz = (bmz_config_data_t *)mph->data;
 	CMPH_HASH *hashptr = hashfuncs;
@@ -52,6 +52,7 @@ void bmz_config_set_hashfuncs(cmph_config_t *mph, CMPH_HASH *hashfuncs)
 		bmz->hashfuncs[i] = *hashptr;	
 		++i, ++hashptr;
 	}
+	return 1;
 }
 
 cmph_t *bmz_new(cmph_config_t *mph, float c)

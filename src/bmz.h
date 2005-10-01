@@ -5,8 +5,8 @@
 #include "bmz_structs.h"
 
 cmph_config_t *bmz_config_new();
-void bmz_config_set_hashfuncs(cmph_config_t *config, CMPH_HASH *hashfuncs);
-void bmz_config_destroy(cmph_config_t *config);
+cmph_uint8 bmz_config_set_hashfuncs(cmph_config_t *config, CMPH_HASH *hashfuncs);
+cmph_uint8 bmz_config_destroy(cmph_config_t *config);
 cmph_t *bmz_new(cmph_config_t *config, float c);
 
 void bmz_load(FILE *f, cmph_t *mphf);

@@ -138,7 +138,7 @@ int main(int argc, char **argv)
 				char valid = 0;
 				for (i = 0; i < CMPH_COUNT; ++i)
 				{
-					if (strcmp(cmph_names[i], optarg) == 0)
+					if (strcasecmp(cmph_names[i], optarg) == 0)
 					{
 						mph_algo = i;
 						valid = 1;

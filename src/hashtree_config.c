@@ -18,7 +18,7 @@ void hashtree_config_destroy(cmph_config_t *config)
 	free(config);
 }
 
-void hashtree_config_set_hashfuncs(cmph_config_t *config, CMPH_HASH *hashfuncs)
+cmph_bool hashtree_config_set_hashfuncs(cmph_config_t *config, CMPH_HASH *hashfuncs)
 {
 	CMPH_HASH *hashptr = hashfuncs;
 	cmph_uint32 i = 0;
@@ -28,13 +28,16 @@ void hashtree_config_set_hashfuncs(cmph_config_t *config, CMPH_HASH *hashfuncs)
 		config->impl.hashtree.hash[i] = *hashptr;
 		++i, ++hashptr;
 	}
+	return 1;
 }
 
-void hashtree_config_set_root_c(cmph_config_t *config, float c)
+cmph_bool hashtree_config_set_root_c(cmph_config_t *config, float c)
 {
 	config->impl.hashtree.root_c = c;
+	return 1;
 }
-void hashtree_config_set_leaf_c(cmph_config_t *config, float c)
+cmph_bool hashtree_config_set_leaf_c(cmph_config_t *config, float c)
 {
 	config->impl.hashtree.leaf_c = c;
+	return 1;
 }

@@ -5,11 +5,11 @@
 
 /** Configuration API */
 cmph_config_t *hashtree_config_new();
-void hashtree_config_set_hashfuncs(cmph_config_t *config, CMPH_HASH *hashfuncs);
-void hashtree_config_set_root_c(cmph_config_t *config, float c);
-void hashtree_config_set_leaf_c(cmph_config_t *config, float c);
-void hashtree_config_set_leaf_algo(cmph_config_t *config, CMPH_ALGO algo);
-void hashtree_config_destroy(cmph_config_t *config);
+cmph_bool hashtree_config_set_hashfuncs(cmph_config_t *config, CMPH_HASH *hashfuncs);
+cmph_bool hashtree_config_set_root_c(cmph_config_t *config, float c);
+cmph_bool hashtree_config_set_leaf_c(cmph_config_t *config, float c);
+cmph_bool hashtree_config_set_leaf_algo(cmph_config_t *config, CMPH_ALGO algo);
+cmph_bool hashtree_config_destroy(cmph_config_t *config);
 
 /** Minimal Perfect Hash API */
 cmph_t *hashtree_new(const cmph_config_t *config, cmph_io_adapter_t *key_source);

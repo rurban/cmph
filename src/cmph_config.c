@@ -3,6 +3,8 @@
 #include "cmph.h"
 #include "cmph_structs.h"
 #include "chm.h"
+#include "bmz8.h"
+#include "hashtree.h"
 
 cmph_config_t *cmph_config_new(CMPH_ALGO algo)
 {
@@ -20,6 +22,9 @@ cmph_config_t *cmph_config_new(CMPH_ALGO algo)
 			break;
 		case CMPH_BRZ:
 			//config = brz_config_new();
+			break;
+		case CMPH_HASHTREE:
+			config = hashtree_config_new();
 			break;
 		default:
 			assert(0);
@@ -44,6 +49,8 @@ void cmph_config_destroy(cmph_config_t *config)
 		case CMPH_BRZ: 
 	       	//brz_config_destroy(config);
 			break;
+		case CMPH_HASHTREE:
+			hashtree_config_destroy(config);
 		default:
 			assert(0);
 	}
@@ -62,6 +69,8 @@ cmph_bool cmph_config_set_tmp_dir(cmph_config_t *config, const char *tmp_dir)
 			break;
 		case CMPH_BRZ: 
 			//return brz_config_set_tmp_dir(config->data, tmp_dir);
+			break;
+		case CMPH_HASHTREE:
 			break;
 		default:
 			assert(0);
@@ -82,6 +91,8 @@ cmph_bool cmph_config_set_memory_availability(cmph_config_t *config, cmph_uint32
 		case CMPH_BRZ: 
 			//return brz_config_set_memory_availability(config->data, memory_availability);
 			break;
+		case CMPH_HASHTREE:
+			break;
 		default:
 			assert(0);
 	}
@@ -99,6 +110,8 @@ cmph_bool cmph_config_set_iterations(cmph_config_t *config, cmph_uint32 iteratio
 			return bmz8_config_set_iterations(config, iterations);
 		case CMPH_BRZ: 
 			//return brz_config_set_iterations(config->data, iterations);
+			break;
+		case CMPH_HASHTREE:
 			break;
 		default:
 			assert(0);
@@ -119,6 +132,8 @@ cmph_bool cmph_config_set_seed1(cmph_config_t *config, cmph_uint32 seed1)
 		case CMPH_BRZ: 
 			//return brz_config_set_seed1(config->data, seed1);
 			break;
+		case CMPH_HASHTREE:
+			break;
 		default:
 			assert(0);
 	}
@@ -136,6 +151,8 @@ cmph_bool cmph_config_set_seed2(cmph_config_t *config, cmph_uint32 seed2)
 			return bmz8_config_set_seed2(config, seed2);
 		case CMPH_BRZ: 
 			//return brz_config_set_seed2(config->data, seed2);
+			break;
+		case CMPH_HASHTREE:
 			break;
 		default:
 			assert(0);
@@ -164,6 +181,8 @@ cmph_bool cmph_config_set_hashfuncs(cmph_config_t *config, CMPH_HASH *hashfuncs)
 		case CMPH_BRZ: 
 			//brz_config_set_hashfuncs(config, hashfuncs);
 			break;
+		case CMPH_HASHTREE:
+			return hashtree_config_set_hashfuncs(config, hashfuncs);
 		default:
 			break;
 	}
@@ -181,6 +200,8 @@ cmph_bool cmph_config_set_graphsize(cmph_config_t *config, float c)
 			return bmz8_config_set_graphsize(config, c);
 		case CMPH_BRZ: 
 			//return brz_config_set_graphsize(config, c);
+		case CMPH_HASHTREE:
+			break;
 		default:
 			break;
 	}

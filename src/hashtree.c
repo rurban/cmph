@@ -348,3 +348,9 @@ void hashtree_destroy(cmph_t *mphf)
 	free(mph);
 	free(mphf);
 }
+
+cmph_uint32 hashtree_size(const cmph_t *mphf)
+{
+	hashtree_t *mph = (hashtree_t *)mphf->impl;
+	return mph->offset[mph->k - 1] + cmph_size(mph->leaf[mph->k - 1]);
+}

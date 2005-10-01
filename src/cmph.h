@@ -16,7 +16,7 @@ typedef struct __cmph_config_t cmph_config_t;
 typedef struct __cmph_t cmph_t;
 
 /** Minimal perfect hash algorithms available */
-typedef enum { CMPH_BMZ, CMPH_BMZ8, CMPH_CHM, CMPH_BRZ, CMPH_COUNT } CMPH_ALGO; // Always append new algorithms in the end!!
+typedef enum { CMPH_BMZ, CMPH_BMZ8, CMPH_CHM, CMPH_BRZ, CMPH_HASHTREE, CMPH_COUNT } CMPH_ALGO; // Always append new algorithms in the end!!
 extern const char *cmph_names[];
 
 /** Hash algorithms available */

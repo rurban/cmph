@@ -20,7 +20,7 @@ void bmz8_config_destroy(cmph_config_t *config)
 	free(config);
 }
 
-void bmz8_config_set_hashfuncs(cmph_config_t *config, CMPH_HASH *hashfuncs)
+cmph_bool bmz8_config_set_hashfuncs(cmph_config_t *config, CMPH_HASH *hashfuncs)
 {
 	CMPH_HASH *hashptr = hashfuncs;
 	cmph_uint32 i = 0;
@@ -30,12 +30,14 @@ void bmz8_config_set_hashfuncs(cmph_config_t *config, CMPH_HASH *hashfuncs)
 		config->impl.bmz8.hashfuncs[i] = *hashptr;
 		++i, ++hashptr;
 	}
+	return 1;
 }
 
-void bmz8_config_set_graphsize(cmph_config_t *config, float c)
+cmph_bool bmz8_config_set_graphsize(cmph_config_t *config, float c)
 {
 	DEBUGP("Setting graphsize to %f\n", c);
 	config->impl.bmz8.c = c;
+	return 1;
 }
 cmph_bool bmz8_config_set_seed1(cmph_config_t *config, cmph_uint32 seed)
 {
