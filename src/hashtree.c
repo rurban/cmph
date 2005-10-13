@@ -16,7 +16,7 @@
 #include <unistd.h>
 
 
-#define DEBUG
+//#define DEBUG
 #include "debug.h"
 
 typedef struct
@@ -111,6 +111,7 @@ cmph_t *hashtree_new(const cmph_config_t *config, cmph_io_adapter_t *source)
 	DEBUGP("\tmax leaf size: %hu\n", state->max_leaf_size);
 	DEBUGP("\tnumber of leaves: %hu\n", state->mph->k);
 	DEBUGP("\ttemporary file: %s\n", state->fname);
+	DEBUGP("\ttemporary file 2: %s\n", state->tmpfname);
 	DEBUGP("\tnumber of keys: %u\n", state->source->nkeys);
 	DEBUGP("\taverage number of keys: %f\n", state->source->nkeys / ((float)(state->mph->k)));
 
@@ -124,6 +125,10 @@ cmph_t *hashtree_new(const cmph_config_t *config, cmph_io_adapter_t *source)
 		
 		//divide keys by leaves
 		cmph_int64 keys_assigned = assign_leaves(state);
+		if (config->verbosity)
+		{
+			fprintf(stderr, "Creating mph for %llu remaining keys\n", keys_assigned);
+		}
 		if (keys_assigned <= 0) 
 		{
 			state->mph->h0_seed = rand();
@@ -186,6 +191,10 @@ cmph_t *hashtree_new(const cmph_config_t *config, cmph_io_adapter_t *source)
 		mph->offset[i] = mph->offset[i - 1] + state->leaf_size[i - 1];
 	}
 	free(state->leaf_size);
+	if (config->verbosity)
+	{
+		fprintf(stderr, "mph successfully generated\n");
+	}
 	return ret;
 }
 
@@ -202,7 +211,7 @@ static cmph_uint8 gen_seeds(state_t *state)
 			while (s2 == s1) s2 = rand() % 256;
 			state->h1_seed[i] = s1;
 			state->h2_seed[i] = s2;
-			//DEBUGP("Assigned seeds %u and %u for leaf %u\n", s1, s2, i);
+			DEBUGP("Assigned seeds %u and %u for leaf %u\n", s1, s2, i);
 		}
 	}
 	return 1;
@@ -359,22 +368,30 @@ static cmph_uint8 create_leaf_mph(state_t *state)
 	cmph_uint32 i = 0;
 	cmph_uint64 offset = 0;
 	cmph_uint32 failure = 0;
+	cmph_uint32 biggest_leaf = 0;
+	cmph_uint32 smallest_leaf = UINT_MAX;
 	for (i = 0; i < state->mph->k; ++i)
 	{
 		if (state->mph->leaf[i]) continue;
-		//
-		//DEBUGP("Creating mph for leaf %u with %u keys using algorithm %s\n", i, state->leaf_size[i], cmph_names[state->config->impl.hashtree.leaf_algo]);
+		
+		DEBUGP("Creating mph for leaf %u with %u keys using algorithm %s\n", i, state->leaf_size[i], cmph_names[state->config->impl.hashtree.leaf_algo]);
 		cmph_config_t *leaf_config = cmph_config_new(state->config->impl.hashtree.leaf_algo);
 		cmph_config_set_graphsize(leaf_config, state->config->impl.hashtree.leaf_c);
 		cmph_config_set_seed1(leaf_config, state->h1_seed[i]);
 		cmph_config_set_seed2(leaf_config, state->h2_seed[i]);
 		cmph_config_set_iterations(leaf_config, 1);
+		//cmph_config_set_verbosity(leaf_config, 1);
 
+		if (state->leaf_size[i] > biggest_leaf) biggest_leaf = state->leaf_size[i];
+		if (state->leaf_size[i] < smallest_leaf) smallest_leaf = state->leaf_size[i];
 		cmph_io_adapter_t *leaf_source = hashtree_io_adapter(state->fd, offset, i,state->leaf_size[i],
 				cmph_hashfuncs[state->config->impl.hashtree.hash[0]], state->h1_seed[i], 
 				cmph_hashfuncs[state->config->impl.hashtree.hash[1]], state->h2_seed[i]);
 		assert(leaf_source);
 
+		cmph_uint32 hval;
+		leaf_source->hash(leaf_source->data, cmph_hashfuncs[state->config->impl.hashtree.hash[0]], state->h1_seed[i], &hval);
+		DEBUGP("First hash: %u\n", hval);
 		cmph_t *leaf_mph = cmph_new(leaf_config, leaf_source);
 
 		hashtree_io_adapter_destroy(leaf_source);
@@ -385,7 +402,7 @@ static cmph_uint8 create_leaf_mph(state_t *state)
 		offset += state->leaf_size[i];
 		//DEBUGP("mph creation success: %d\n", state->mph->leaf[i] != NULL);
 	}
-	DEBUGP("mph creation failed for %u leaves\n", failure);
+	DEBUGP("mph creation failed for %u leaves. Biggest: %u Smallest: %u\n", failure, biggest_leaf, smallest_leaf);
 	return 0 == failure;
 }
 	

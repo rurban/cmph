@@ -77,7 +77,7 @@ cmph_t *bmz8_new(const cmph_config_t *config, cmph_io_adapter_t *key_source)
 		// Mapping step
 		state->biggest_g_value = 0;
 		state->biggest_edge_value = 1;
-		iterations = 100;
+		iterations = config->impl.bmz8.iterations; 
 		if (config->verbosity)
 		{
 			fprintf(stderr, "Entering mapping step for mph creation of %u keys with graph sized %u\n", mph->m, mph->n);
