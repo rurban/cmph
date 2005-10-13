@@ -16,7 +16,7 @@
 #include <unistd.h>
 
 
-//#define DEBUG
+#define DEBUG
 #include "debug.h"
 
 typedef struct
@@ -25,6 +25,8 @@ typedef struct
 	cmph_io_adapter_t *source;
 	int fd;
 	char *fname;
+	int tmpfd;
+	char *tmpfname;
 	cmph_uint8 *h1_seed;
 	cmph_uint8 *h2_seed;
 	hashtree_t *mph;
@@ -34,10 +36,10 @@ typedef struct
 
 static cmph_uint8 gen_seeds(state_t *state);
 static cmph_int64 assign_leaves(state_t *state);
-static cmph_uint8 sort_keys(const cmph_config_t *config, int fd, cmph_uint64 nkeys);
+static cmph_uint8 sort_keys(const cmph_config_t *config, int fd, int tmpfd, cmph_int64 nkeys);
 static cmph_uint8 create_leaf_mph(state_t *state);
 
-int hashtree_tmp_fd(const char *mask, char **fname)
+int hashtree_tmp_fd(const char *mask, char **fname, cmph_uint64 size)
 {
 	cmph_uint32 tmp_dir_len = strlen(cmph_get_tmp_dir());
 	char *tmpl = (char *)calloc(tmp_dir_len + strlen(mask)+ 2, 1);
@@ -51,6 +53,21 @@ int hashtree_tmp_fd(const char *mask, char **fname)
 	int fd = cmph_mkstemp(tmpl);
 	if (fname) *fname = tmpl;
 	else free(tmpl);
+	if (fd != -1)
+	{
+		int c = ftruncate64(fd, size);
+		if (c == -1) 
+		{
+			close(fd);
+			#ifdef WIN32
+			remove(*fname);
+			#else
+			unlink(*fname);
+			#endif
+			free(*fname);
+			return -1;
+		}
+	}
 	return fd;
 }
 
@@ -78,52 +95,48 @@ cmph_t *hashtree_new(const cmph_config_t *config, cmph_io_adapter_t *source)
 	state->mph->hash[1] = state->config->impl.hashtree.hash[1];
 	state->mph->hash[2] = state->config->impl.hashtree.hash[2];
 	memset(state->mph->leaf, 0, sizeof(cmph_t *) * state->mph->k);
-	state->fd = hashtree_tmp_fd("hashtree.XXXXXX", &(state->fname));
+	state->fd = hashtree_tmp_fd("hashtree.XXXXXX", &(state->fname), sizeof(leaf_key_t) * source->nkeys);
+	state->tmpfd = hashtree_tmp_fd("hashtree_sorted.XXXXXX", &(state->tmpfname), sizeof(leaf_key_t) * source->nkeys);
+	if (state->fd == -1 || state->tmpfd == -1)
+	{
+		if (config->verbosity)
+		{
+			fprintf(stderr, "Failed opening temp file at directory %s\n", cmph_get_tmp_dir());
+		}
+		free(ret);
+		free(mph);
+		return NULL;
+	}
 	DEBUGP("Hashtree params:\n");
 	DEBUGP("\tmax leaf size: %hu\n", state->max_leaf_size);
 	DEBUGP("\tnumber of leaves: %hu\n", state->mph->k);
 	DEBUGP("\ttemporary file: %s\n", state->fname);
 	DEBUGP("\tnumber of keys: %u\n", state->source->nkeys);
+	DEBUGP("\taverage number of keys: %f\n", state->source->nkeys / ((float)(state->mph->k)));
 
+	state->leaf_size = (cmph_uint16 *)calloc(sizeof(cmph_uint16), state->mph->k);
+
+	state->mph->h0_seed = rand();
 	while (iterations)
 	{
-		cmph_uint8 longbreak = 0;
 		gen_seeds(state);
-		if (state->fd == -1)
-		{
-			if (config->verbosity)
-			{
-				fprintf(stderr, "Failed opening temp file at directory %s\n", cmph_get_tmp_dir());
-			}
-			free(ret);
-			free(mph);
-			return NULL;
-		}
 		source->rewind(source->data);
-		mph->h0_seed = rand() % state->mph->k;
-		//First, divide keys by leaves
-		c = assign_leaves(state);
-		if (c <= 0) 
+		
+		//divide keys by leaves
+		cmph_int64 keys_assigned = assign_leaves(state);
+		if (keys_assigned <= 0) 
 		{
+			state->mph->h0_seed = rand();
 			--iterations;
 			continue;
 		}
 		//Now sort keys by assigned leaf
-		c = sort_keys(config, state->fd, source->nkeys);
+		c = sort_keys(config, state->fd, state->tmpfd, keys_assigned);
 
 		//Create minimal perfect hashes
-		while (iterations)
-		{
-			c = create_leaf_mph(state);
-			if (c)
-			{
-				longbreak = 1;
-				break;
-			}
-			--iterations;
-		}
-		if (longbreak) break;
-			
+		c = create_leaf_mph(state);
+		if (c) break;
+		--iterations;
 	}
 	
 	close(state->fd);
@@ -132,14 +145,36 @@ cmph_t *hashtree_new(const cmph_config_t *config, cmph_io_adapter_t *source)
 	#else
 	unlink(state->fname);
 	#endif
+	close(state->tmpfd);
+ 	#ifdef WIN32
+	remove(state->tmpfname);
+	#else
+	unlink(state->tmpfname);
+	#endif
+
 	free(state->h1_seed);
 	free(state->h2_seed);
+	if (iterations == 0)
+	{
+		for (i = 0; i < mph->k; ++i)
+		{
+			if (mph->leaf[i]) cmph_destroy(mph->leaf[i]);
+		}
+		free(state->leaf_size);
+		free(mph);
+		free(ret);
+		if (config->verbosity)
+		{
+			fprintf(stderr, "Failed generating mph\n");
+		}
+		return NULL;
+	}
 	mph->offset = (cmph_uint32 *)malloc(sizeof(cmph_uint32)*mph->k);
 	if (!mph->offset)
 	{
 		for (i = 0; i < mph->k; ++i)
 		{
-			cmph_destroy(mph->leaf[i]);
+			if (mph->leaf[i]) cmph_destroy(mph->leaf[i]);
 		}
 		free(state->leaf_size);
 		free(mph);
@@ -167,7 +202,7 @@ static cmph_uint8 gen_seeds(state_t *state)
 			while (s2 == s1) s2 = rand() % 256;
 			state->h1_seed[i] = s1;
 			state->h2_seed[i] = s2;
-			DEBUGP("Assigned seeds %u and %u for leaf %u\n", s1, s2, i);
+			//DEBUGP("Assigned seeds %u and %u for leaf %u\n", s1, s2, i);
 		}
 	}
 	return 1;
@@ -179,15 +214,12 @@ static cmph_uint8 gen_seeds(state_t *state)
 static cmph_int64 assign_leaves(state_t *state)
 {
 	int c = 0;
-	cmph_uint64 i = 0;
-
-	state->leaf_size = (cmph_uint16 *)realloc(state->leaf_size, sizeof(cmph_uint16) * state->mph->k);
-	memset(state->leaf_size, 0, state->mph->k * sizeof(cmph_uint16));
+	cmph_int64 i = 0;
+	cmph_int64 keys_assigned = 0;
 
 	DEBUGP("Assigning keys to %u leaves with at most %u keys each.\n", state->mph->k, state->max_leaf_size);
-	c = ftruncate64(state->fd, sizeof(leaf_key_t) * ((cmph_uint64)state->source->nkeys));
-	if (c == -1) return 0;
-
+	memset(state->leaf_size, 0, sizeof(cmph_uint16) * state->mph->k);
+	lseek64(state->fd, 0, SEEK_SET);
 	for (i = 0; i < state->source->nkeys; ++i)
 	{
 		leaf_key_t leaf_key;
@@ -195,6 +227,10 @@ static cmph_int64 assign_leaves(state_t *state)
 		char *key;
 		state->source->read(state->source->data, &key, &keylen);
 		leaf_key.h0 = HASHKEY(state->mph->hash[0], state->mph->h0_seed, key, keylen) % state->mph->k;
+		//Check if mph for this leaf is already ok
+		++(state->leaf_size[leaf_key.h0]);
+		if (state->mph->leaf[leaf_key.h0]) continue;
+
 		leaf_key.h1 = HASHKEY(state->mph->hash[1], state->h1_seed[leaf_key.h0], key, keylen);
 		leaf_key.h2 = HASHKEY(state->mph->hash[2], state->h2_seed[leaf_key.h0], key, keylen);
 		if (state->leaf_size[leaf_key.h0] == state->max_leaf_size)
@@ -205,15 +241,16 @@ static cmph_int64 assign_leaves(state_t *state)
 			}
 			return -1;
 		}
-		++(state->leaf_size[leaf_key.h0]);
-		DEBUGP("Writing entry %u:%hhu:%hhu\n", leaf_key.h0, leaf_key.h1, leaf_key.h2);
+		//DEBUGP("Writing entry %u:%hhu:%hhu\n", leaf_key.h0, leaf_key.h1, leaf_key.h2);
 		c = write(state->fd, &leaf_key, sizeof(leaf_key));
+		++keys_assigned;
 		if (c != sizeof(leaf_key))
 		{
 			return 0;
 		}
 	}
-	return 1;
+	DEBUGP("%lld keys assigned\n", keys_assigned);
+	return keys_assigned;
 }
 
 static int leaf_key_compare(const void *a, const void *b) 
@@ -223,20 +260,18 @@ static int leaf_key_compare(const void *a, const void *b)
 	return la->h0 - lb->h0;
 }
 //Implements straight external mergesort using leaf id as key
-static cmph_uint8 sort_keys(const cmph_config_t *config, int fd, cmph_uint64 nkeys)
+static cmph_uint8 sort_keys(const cmph_config_t *config, int fd, int tmpfd, cmph_int64 nkeys)
 {
-	char *fname = NULL;
-	int tmpfd = hashtree_tmp_fd("hashtree_sorted.XXXXXX", &fname);;
 	int c = 0;
 	cmph_uint32 blocksize = floor(config->impl.hashtree.memory / ((double)sizeof(leaf_key_t)));
 	cmph_uint32 nblocks = ceil(nkeys / (double)blocksize);
-	cmph_uint64 sorted = 0;
+	cmph_int64 sorted = 0;
 	leaf_key_t *block = (leaf_key_t *)malloc(sizeof(leaf_key_t) * blocksize);
 	cmph_uint32 *blockfill = (cmph_uint32 *)malloc(sizeof(cmph_uint32) * nblocks);
 	leaf_key_t *blockhead = (leaf_key_t *)malloc(sizeof(leaf_key_t) * nblocks);
 	cmph_uint32 current_block = 0;
 	if (!block || !blockfill || !blockhead || tmpfd == -1) return 0;
-	c = lseek(fd, 0, SEEK_SET);
+	c = lseek64(fd, 0, SEEK_SET);
 	if (c == -1 || config->impl.hashtree.memory < sizeof(leaf_key_t))
 	{
 		if (config->verbosity && c == -1)
@@ -295,7 +330,7 @@ static cmph_uint8 sort_keys(const cmph_config_t *config, int fd, cmph_uint64 nke
 		min.h0 = UINT_MAX;
 		for (current_block = 0; current_block < nblocks; ++current_block)
 		{
-			DEBUGP("Looking blockhead with value %u and min is %u\n", blockhead[current_block].h0, min.h0);
+			//DEBUGP("Looking blockhead with value %u and min is %u\n", blockhead[current_block].h0, min.h0);
 			if (blockhead[current_block].h0 <= min.h0)
 			{
 				min = blockhead[current_block];
@@ -316,12 +351,6 @@ static cmph_uint8 sort_keys(const cmph_config_t *config, int fd, cmph_uint64 nke
 			++sorted;
 		}
 	}
- 	#ifdef WIN32
-	remove(fname);
-	#else
-	unlink(fname);
-	#endif
-	free(fname);
 	DEBUGP("End of sort\n");
 	return 1;
 }
@@ -329,15 +358,12 @@ static cmph_uint8 create_leaf_mph(state_t *state)
 {
 	cmph_uint32 i = 0;
 	cmph_uint64 offset = 0;
-	cmph_uint8 failure = 0;
+	cmph_uint32 failure = 0;
 	for (i = 0; i < state->mph->k; ++i)
 	{
-		if (state->mph->leaf[i]) 
-		{
-			offset += state->leaf_size[i];
-			continue;
-		}
-		DEBUGP("Creating mph for leaf %u with %u keys using algorithm %s\n", i, state->leaf_size[i], cmph_names[state->config->impl.hashtree.leaf_algo]);
+		if (state->mph->leaf[i]) continue;
+		//
+		//DEBUGP("Creating mph for leaf %u with %u keys using algorithm %s\n", i, state->leaf_size[i], cmph_names[state->config->impl.hashtree.leaf_algo]);
 		cmph_config_t *leaf_config = cmph_config_new(state->config->impl.hashtree.leaf_algo);
 		cmph_config_set_graphsize(leaf_config, state->config->impl.hashtree.leaf_c);
 		cmph_config_set_seed1(leaf_config, state->h1_seed[i]);
@@ -353,11 +379,13 @@ static cmph_uint8 create_leaf_mph(state_t *state)
 
 		hashtree_io_adapter_destroy(leaf_source);
 		cmph_config_destroy(leaf_config);
-		if (!leaf_mph) failure = 1;
+		if (!leaf_mph) ++failure;
 		state->mph->leaf[i] = leaf_mph;
 
 		offset += state->leaf_size[i];
+		//DEBUGP("mph creation success: %d\n", state->mph->leaf[i] != NULL);
 	}
+	DEBUGP("mph creation failed for %u leaves\n", failure);
 	return 0 == failure;
 }
 	
