@@ -20,7 +20,7 @@ typedef enum { CMPH_BMZ, CMPH_BMZ8, CMPH_CHM, CMPH_BRZ, CMPH_HASHTREE, CMPH_COUN
 extern const char *cmph_names[];
 
 /** Hash algorithms available */
-typedef enum { CMPH_HASH_DJB2, CMPH_HASH_FNV, CMPH_HASH_JENKINS, CMPH_HASH_SDBM, CMPH_HASH_COUNT } CMPH_HASH;
+typedef enum { CMPH_HASH_DJB2, CMPH_HASH_FNV, CMPH_HASH_JENKINS, CMPH_HASH_SDBM, CMPH_HASH_COUNT } CMPH_HASH; //keep in sync with hash.c definitions
 extern const char *cmph_hash_names[];
 
 /** Hash configuration API **/

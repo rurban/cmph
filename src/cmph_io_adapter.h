@@ -3,7 +3,6 @@
 
 #include <stdio.h>
 #include "cmph_types.h"
-#include "hash.h"
 
 typedef struct 
 {

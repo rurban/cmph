@@ -5,11 +5,11 @@
 
 /** Configuration API */
 cmph_config_t *bmz8_config_new();
-cmph_bool cm_config_set_hashfuncs(cmph_config_t *config, CMPH_HASH *hashfuncs);
+cmph_bool bmz8_config_set_hashfuncs(cmph_config_t *config, CMPH_HASH *hashfuncs);
 cmph_bool bmz8_config_set_graphsize(cmph_config_t *config, float c);
-cmph_bool bmz8_set_seed1(cmph_config_t *config, cmph_uint32 s1);
-cmph_bool bmz8_set_seed2(cmph_config_t *config, cmph_uint32 s2);
-cmph_bool bmz8_set_iterations(cmph_config_t *config, cmph_uint32 iterations);
+cmph_bool bmz8_config_set_seed1(cmph_config_t *config, cmph_uint32 s1);
+cmph_bool bmz8_config_set_seed2(cmph_config_t *config, cmph_uint32 s2);
+cmph_bool bmz8_config_set_iterations(cmph_config_t *config, cmph_uint32 iterations);
 void bmz8_config_destroy(cmph_config_t *config);
 
 /** Minimal Perfect Hash API */

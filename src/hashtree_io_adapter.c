@@ -1,5 +1,11 @@
 #include "hashtree_io_adapter.h"
 #include <stdio.h>
+#include <sys/types.h>
+#include <unistd.h>
+#include <stdlib.h>
+
+//#define DEBUG
+#include "debug.h"
 
 typedef struct
 {
@@ -15,27 +21,38 @@ typedef struct
 	leaf_key_t current_key;
 } leaf_source_t;
 	
-void hashtree_rewind(void *data)
-{
-	leaf_source_t *leaf_source = (leaf_source_t *)data;
-	lseek64(leaf_source->fd, sizeof(leaf_key_t) * leaf_source->offset, SEEK_SET); 
-}
-
 int hashtree_hash(void *data, cmph_hashfunc_t f, cmph_uint32 seed, cmph_uint32 *hval)
 {
 	leaf_source_t *leaf_source = (leaf_source_t *)data;
 	if (leaf_source->f1 == f && leaf_source->s1 == seed) *hval = leaf_source->current_key.h1;
 	else if (leaf_source->f2 == f && leaf_source->s2 == seed) *hval = leaf_source->current_key.h2;
-	else return 0;
+	else 
+	{
+		DEBUGP("Requested hash value for key %u with seed %u not found\n", leaf_source->pos - 1, seed);
+		return 0;
+	}
+	DEBUGP("Hash value for key %u with seed %u is %u\n", leaf_source->pos - 1, seed, *hval);
 	return 1;
 }
+
 
 int hashtree_next(void *data)
 {
 	leaf_source_t *leaf_source = (leaf_source_t *)data;
+	DEBUGP("Reading hash values for key %u\n", leaf_source->pos);
 	int c = read(leaf_source->fd, &(leaf_source->current_key), sizeof(leaf_source->current_key));
+	++(leaf_source->pos);
 	return c == sizeof(leaf_source->current_key);
 }
+void hashtree_rewind(void *data)
+{
+	leaf_source_t *leaf_source = (leaf_source_t *)data;
+	lseek64(leaf_source->fd, sizeof(leaf_key_t) * leaf_source->offset, SEEK_SET); 
+	leaf_source->pos = 0;
+	hashtree_next(data);
+}
+
+
 cmph_io_adapter_t *hashtree_io_adapter(int fd, cmph_uint64 offset, cmph_uint32 leaf_id, cmph_uint32 leaf_size, cmph_hashfunc_t f1, cmph_uint32 s1, cmph_hashfunc_t f2, cmph_uint32 s2)
 {
 	leaf_source_t *leaf_source = (leaf_source_t *)malloc(sizeof(leaf_source_t));
@@ -58,7 +75,6 @@ cmph_io_adapter_t *hashtree_io_adapter(int fd, cmph_uint64 offset, cmph_uint32 l
 	source->hash = hashtree_hash;
 	source->next = hashtree_next;
 	hashtree_rewind(source->data);
-	hashtree_next(source->data);
 	return source;
 }
 

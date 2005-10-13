@@ -87,9 +87,9 @@ cmph_t *bmz8_new(const cmph_config_t *config, cmph_io_adapter_t *key_source)
 			int ok;
 			DEBUGP("hash function 1\n");
 			//Why is % mph->n needed?
-			if (config->impl.bmz8.custom_h1_seed) mph->seed[0] = config->impl.bmz8.h1_seed % mph->n;
+			if (config->impl.bmz8.custom_h1_seed) mph->seed[0] = config->impl.bmz8.h1_seed;
 			else mph->seed[0] = rand() % mph->n;
-			if (config->impl.bmz8.custom_h2_seed) mph->seed[1] = config->impl.bmz8.h2_seed % mph->n;
+			if (config->impl.bmz8.custom_h2_seed) mph->seed[1] = config->impl.bmz8.h2_seed;
 			else mph->seed[1] = rand() % mph->n;
 			DEBUGP("Generating edges\n");
 			ok = bmz8_gen_edges(state);
@@ -163,6 +163,7 @@ cmph_t *bmz8_new(const cmph_config_t *config, cmph_io_adapter_t *key_source)
 	} while(restart_mapping && iterations_map > 0);
 	graph_destroy(state->graph);	
 	state->graph = NULL;
+	free(state);
 	if (iterations_map == 0) 
 	{
 		return NULL;
@@ -397,16 +398,38 @@ static int bmz8_gen_edges(state_t *state)
 	cmph_uint8 multiple_edges = 0;
 	graph_clear_edges(state->graph);	
 	state->key_source->rewind(state->key_source->data);
+	DEBUGP("Custom h1 seed %s apply with value %u\n", state->config->impl.bmz8.custom_h1_seed ? "": "does not", state->config->impl.bmz8.h1_seed);
+	DEBUGP("Custom h2 seed %s apply with value %u\n", state->config->impl.bmz8.custom_h2_seed ? "": "does not", state->config->impl.bmz8.h2_seed);
+
 	for (e = 0; e < state->key_source->nkeys; ++e)
 	{
 		cmph_uint8 h1, h2;
 		cmph_uint32 keylen;
 		char *key = NULL;
-		state->key_source->read(state->key_source->data, &key, &keylen);
-		
-//		if (key == NULL)fprintf(stderr, "key = %s -- read BMZ\n", key);
-		h1 = HASHKEY(state->mph->hash[0], state->mph->seed[0], key, keylen) % state->mph->n;
-		h2 = HASHKEY(state->mph->hash[1], state->mph->seed[1], key, keylen) % state->mph->n;
+		if (state->key_source->read)
+		{
+			state->key_source->read(state->key_source->data, &key, &keylen);
+			h1 = HASHKEY(state->mph->hash[0], state->mph->seed[0], key, keylen) % state->mph->n;
+			h2 = HASHKEY(state->mph->hash[1], state->mph->seed[1], key, keylen) % state->mph->n;
+		} 
+		else if (state->key_source->hash && state->key_source->next)
+		{
+			cmph_uint32 h1full;
+			cmph_uint32 h2full;
+			DEBUGP("Getting h1 and h2 for key %hhu with seeds %u and %u\n", e, state->mph->seed[0], state->mph->seed[1]);
+			state->key_source->hash(state->key_source->data, 
+					cmph_hashfuncs[state->mph->hash[0]],
+					state->mph->seed[0],
+					&h1full);
+			state->key_source->hash(state->key_source->data, 
+					cmph_hashfuncs[state->mph->hash[1]],
+					state->mph->seed[1], 
+					&h2full);
+			state->key_source->next(state->key_source->data);
+			h1 = h1full % state->mph->n;
+			h2 = h2full % state->mph->n;
+		} else assert(0);
+
 		if (h1 == h2) if (++h2 >= state->mph->n) h2 = 0;
 		if (h1 == h2) 
 		{
@@ -415,7 +438,7 @@ static int bmz8_gen_edges(state_t *state)
 			return 0;
 		}
 		//DEBUGP("Adding edge: %u -> %u for key %s\n", h1, h2, key);
-		state->key_source->dispose(state->key_source->data, key, keylen);
+		if (state->key_source->dispose) state->key_source->dispose(state->key_source->data, key, keylen);
 //		fprintf(stderr, "key = %s -- dispose BMZ\n", key);
 		multiple_edges = graph_contains_edge(state->graph, h1, h2);
 		if (state->config->verbosity && multiple_edges) 

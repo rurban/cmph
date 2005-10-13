@@ -1,4 +1,7 @@
 #include "cmph_io_adapter.h"
+#include <string.h>
+#include <stdlib.h>
+
 //
 //#define DEBUG
 #include "debug.h"
@@ -83,7 +86,6 @@ cmph_io_adapter_t *cmph_io_nlfile_adapter(FILE * keys_fd, cmph_uint32 maxkeys)
 	DEBUGP("Counting number of keys in the input\n");
 	while (1)
 	{
-		int longbreak = 0;
 		int c = fread(nlfile_fd->buffer, 1, BUFSIZ - 1, nlfile_fd->fd);
 		if (c >= 0) nlfile_fd->buffer[c] = 0;
 		if (c < 0) 

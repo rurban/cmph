@@ -225,11 +225,11 @@ int main(int argc, char **argv)
 		DEBUGP("cmph application setting graphsize to %f\n", c);
 		if (c != 0) cmph_config_set_graphsize(config, c);
 		mphf = cmph_new(config, source);
+		cmph_config_destroy(config);
 
 		if (mphf == NULL)
 		{
 			fprintf(stderr, "Unable to create minimum perfect hashing function\n");
-			cmph_config_destroy(config);
 			free(mphf_file);
 			return -1;
 		}
@@ -293,9 +293,9 @@ int main(int argc, char **argv)
 		cmph_destroy(mphf);
 		free(hashtable);
 	}
+	cmph_io_nlfile_adapter_destroy(source);
 	fclose(keys_fd);
 	free(mphf_file);
 	free(tmp_dir);
-	free(source);
 	return ret;
 }

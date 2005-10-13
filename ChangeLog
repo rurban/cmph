@@ -1,3 +1,296 @@
+2005-10-10 14:43  fc_botelho
+
+	* examples/file_adapter_ex2.c, examples/vector_adapter_ex1.c,
+	src/cmph.c, src/cmph.h, tests/graph_tests.c: thread-safe vector
+	adapter
+
+2005-10-02 21:01  fc_botelho
+
+	* vldb/pt/relatedwork.tex: [no log message]
+
+2005-10-02 20:56  fc_botelho
+
+	* vldb/pt/: algorithms.tex, relatedwork.tex: trabalhei em trabalhos
+	relacionados
+
+2005-10-02 18:28  fc_botelho
+
+	* vldb/pt/: introduction.tex, relatedwork.tex: [no log message]
+
+2005-10-01 15:52  davi
+
+	* src/: bmz.c, bmz.h, bmz8.h, bmz8_config.c, cmph.c, cmph.h,
+	cmph_config.c, hashtree.c, hashtree.h, hashtree_config.c, main.c:
+	Hashtree inserted in the cmph application. Now need to test
+	everything.
+
+2005-10-01 15:23  davi
+
+	* src/hashtree_structs.c: Added missing file.
+
+2005-10-01 15:23  davi
+
+	* src/hashtree_structs.c: file hashtree_structs.c was initially
+	added on branch hashtree.
+
+2005-10-01 15:22  davi
+
+	* src/: Makefile.am, bmz8.c, bmz8.h, bmz8_config.c, bmz8_structs.h,
+	bmz_structs.h, chm.c, chm.h, chm_config.c, cmph.c, cmph.h,
+	cmph_config.c, cmph_mkstemp.c, cmph_types.h, hash.h, hashtree.c,
+	hashtree_config.c, hashtree_io_adapter.c, hashtree_io_adapter.h,
+	hashtree_structs.h: Hashtree algorithm already compiling.
+
+2005-09-30 19:57  davi
+
+	* src/: cmph_mkstemp.c, cmph_mkstemp.h: Added missing files.
+
+2005-09-30 19:57  davi
+
+	* src/cmph_mkstemp.c: file cmph_mkstemp.c was initially added on
+	branch hashtree.
+
+2005-09-30 19:57  davi
+
+	* src/cmph_mkstemp.h: file cmph_mkstemp.h was initially added on
+	branch hashtree.
+
+2005-09-30 19:07  davi
+
+	* src/: cmph_types.h, hashtree.c, hashtree_structs.h: Still going.
+
+2005-09-30 17:14  fc_botelho
+
+	* vldb/pt/: introduction.tex, references.bib, relatedwork.tex:
+	Alterei introducao e trabalhos relacionados
+
+2005-09-30 16:58  davi
+
+	* src/: Makefile.am, cmph_io_adapter.h, hashtree.c,
+	hashtree_io_adapter.c, hashtree_io_adapter.h: Added special
+	hashtree io adapter.
+
+2005-09-30 16:58  davi
+
+	* src/hashtree_io_adapter.c: file hashtree_io_adapter.c was
+	initially added on branch hashtree.
+
+2005-09-30 16:58  davi
+
+	* src/hashtree_io_adapter.h: file hashtree_io_adapter.h was
+	initially added on branch hashtree.
+
+2005-09-30 10:08  davi
+
+	* INSTALL, examples/file_adapter_ex2.c,
+	examples/vector_adapter_ex1.c, tests/graph_tests.c: Everything
+	compiling fine now.
+
+2005-09-30 10:00  davi
+
+	* src/bmz8_config.c: file bmz8_config.c was initially added on
+	branch hashtree.
+
+2005-09-30 09:59  davi
+
+	* src/: chm.h, cmph_io_adapter.c, hashtree.h, hashtree_config.c,
+	hashtree_structs.h, bmz8_config.c: Added missing file.
+
+2005-09-30 09:59  davi
+
+	* src/cmph_io_adapter.c: file cmph_io_adapter.c was initially added
+	on branch hashtree.
+
+2005-09-30 09:59  davi
+
+	* src/hashtree_config.c: file hashtree_config.c was initially added
+	on branch hashtree.
+
+2005-09-29 18:47  davi
+
+	* src/hashtree.c: Working on hashtree algorithm. Too many
+	implementation traps.
+
+2005-09-29 13:52  davi
+
+	* src/: Makefile.am, bmz8.c, bmz8.h, bmz8_structs.c,
+	bmz8_structs.h, cmph.c, cmph_config.c, cmph_structs.c, main.c: bmz8
+	algorithm already working.
+
+2005-09-29 13:52  davi
+
+	* src/bmz8_structs.c: file bmz8_structs.c was initially added on
+	branch hashtree.
+
+2005-09-29 03:32  davi
+
+	* src/: chm.c, cmph.c, cmph_config.c, cmph_structs.c,
+	jenkins_hash.c: Chm algorithm working fine with new code.
+
+2005-09-29 02:48  davi
+
+	* src/: bmz.h, bmz8_structs.h, bmz_structs.h, brz_structs.h, chm.c,
+	chm.h, chm_config.c, chm_structs.c, chm_structs.h, cmph.c,
+	cmph_config.c, cmph_structs.c, cmph_structs.h, hashtree_structs.h,
+	main.c: Things are starting to compile.
+
+2005-09-29 01:14  davi
+
+	* src/: chm_structs.h, cmph_io_adapter.h, hash.c: Better io
+	adapters.
+
+2005-09-28 19:38  davi
+
+	* src/: chm_config.c, chm_structs.c, cmph_config.c,
+	cmph_io_adapter.h: Added new files.
+
+2005-09-28 19:38  davi
+
+	* src/chm_config.c: file chm_config.c was initially added on branch
+	hashtree.
+
+2005-09-28 19:38  davi
+
+	* src/chm_structs.c: file chm_structs.c was initially added on
+	branch hashtree.
+
+2005-09-28 19:38  davi
+
+	* src/cmph_config.c: file cmph_config.c was initially added on
+	branch hashtree.
+
+2005-09-28 19:38  davi
+
+	* src/cmph_io_adapter.h: file cmph_io_adapter.h was initially added
+	on branch hashtree.
+
+2005-09-28 19:37  davi
+
+	* src/: Makefile.am, chm.c, chm.h, chm_structs.h, cmph.c, cmph.h,
+	cmph_structs.c, cmph_structs.h, cmph_types.h, djb2_hash.c,
+	djb2_hash.h, fnv_hash.c, fnv_hash.h, hash.c, hash.h, hash_state.h,
+	hashtree.c, hashtree_structs.h, jenkins_hash.c, jenkins_hash.h,
+	sdbm_hash.c, sdbm_hash.h: Lots.
+
+2005-09-28 18:37  fc_botelho
+
+	* vldb/: ingles/references.bib, pt/algorithms.tex,
+	pt/introduction.tex, pt/references.bib, pt/relatedwork.tex:
+	trabalhei na secao de trabalhos relacionados
+
+2005-09-27 12:11  fc_botelho
+
+	* vldb/: ingles/algorithms.tex, ingles/applications.tex,
+	ingles/conclusions.tex, ingles/experimentalresults.tex,
+	ingles/introduction.tex, ingles/makefile, ingles/references.bib,
+	ingles/relatedwork.tex, ingles/svglov2.clo, ingles/svjour2.cls,
+	ingles/vldb.tex, ingles/figs/brz.fig, ingles/figs/brz.ps,
+	ingles/figs/grafordering.fig, ingles/figs/grafordering2.fig,
+	ingles/figs/grafordering3.fig, ingles/figs/grafsearching.fig,
+	ingles/figs/grafsearching2.fig, ingles/figs/grafsearchingncv.fig,
+	ingles/figs/minimalperfecthash-ph-mph.fig,
+	ingles/figs/minimalperfecthash-ph-mph.ps, pt/algorithms.tex,
+	pt/applications.tex, pt/conclusions.tex,
+	pt/experimentalresults.tex, pt/introduction.tex, pt/makefile,
+	pt/references.bib, pt/relatedwork.tex, pt/svglov2.clo,
+	pt/svjour2.cls, pt/vldb.tex, pt/figs/brz.fig, pt/figs/brz.ps,
+	pt/figs/grafordering.fig, pt/figs/grafordering2.fig,
+	pt/figs/grafordering3.fig, pt/figs/grafsearching.fig,
+	pt/figs/grafsearching2.fig, pt/figs/grafsearchingncv.fig,
+	pt/figs/minimalperfecthash-ph-mph.fig,
+	pt/figs/minimalperfecthash-ph-mph.ps: added vldb jounal
+
+2005-09-26 15:45  davi
+
+	* examples/Makefile.in: Removed useless files.
+
+2005-09-26 01:30  davi
+
+	* COPYING, ChangeLog, INSTALL, README, examples/Makefile,
+	examples/Makefile.in, portage/dev-libs/cmph/ChangeLog,
+	portage/dev-libs/cmph/cmph-0.4.ebuild,
+	portage/dev-libs/cmph/metadata.xml, tests/graph_tests.c: Added
+	gentoo ebuild.
+
+2005-09-23 19:31  davi
+
+	* src/: hashtree.c, hashtree.h, hashtree_structs.h: Starting to
+	implement hashtree algorithm.
+
+2005-09-23 18:43  davi
+
+	* src/: hashtree.c, hashtree.h, hashtree_structs.h: Started to
+	implement new algorithm hashtree.
+
+2005-09-23 18:05  fc_botelho
+
+	* INSTALL, cmph.spec, examples/Makefile, examples/Makefile.in: [no
+	log message]
+
+2005-09-23 17:57  davi
+
+	* src/main.c: Fixed small main.cc bug when -m parameter was in use.
+
+2005-09-23 17:54  fc_botelho
+
+	* src/: Makefile.am, bmz.c, bmz8.c, brz.c, brz_structs.h, chm.c,
+	cmph.c, main.c: stable version of BRZ using extenal memory to flush
+	vector g
+
+2005-09-23 16:58  davi
+
+	* examples/.deps/: file_adapter_ex2.Po, vector_adapter_ex1.Po:
+	Removed useless files.
+
+2005-09-16 01:10  fc_botelho
+
+	* README, README.t2t: vesion 0.4. It was included the bmz8
+	algorithm to generate mphfs for small set of keys (at most 256
+	keys), the vector adpter and some bugs have been corrected.
+
+2005-09-15 23:53  fc_botelho
+
+	* INSTALL, configure.ac, examples/Makefile, examples/Makefile.in,
+	examples/.deps/file_adapter_ex2.Po,
+	examples/.deps/vector_adapter_ex1.Po, src/Makefile.am, src/cmph.c,
+	src/main.c: vesion 0.4. It was included the bmz8 algorithm to
+	generate mphfs for small set of keys (at most 256 keys), the vector
+	adpter and some bugs have been corrected.
+
+2005-09-12 18:58  fc_botelho
+
+	* COPYING: LGPL license included in the file COPYING
+
+2005-09-06 11:37  fc_botelho
+
+	* src/: brz.c, brz.h, cmph.c, cmph.h, main.c: Stable version of BRZ
+	algorithm with option -M (memory_availability)
+
+2005-09-06 11:11  fc_botelho
+
+	* INSTALL, examples/Makefile, examples/Makefile.in,
+	examples/.deps/file_adapter_ex2.Po,
+	examples/.deps/vector_adapter_ex1.Po, src/bmz.c, src/bmz8.c,
+	src/brz.c, src/brz_structs.h, src/cmph.c: Stable version of BRZ
+	algorithm
+
+2005-09-05 14:32  fc_botelho
+
+	* src/: Makefile.am, bmz.c, cmph.c, cmph_types.h, bmz8.c, bmz8.h,
+	bmz8_structs.h: BMZ8 - A 8 bit version of BMZ has been added
+
+2005-09-02 14:51  fc_botelho
+
+	* src/cmph_structs.c: Fixed: gcc 2.95 problem and initialzes memory
+
+2005-09-02 14:31  fc_botelho
+
+	* src/chm.c: Fixed: gcc 2.95 problem and initialzes memory
+
+2005-09-02 14:24  fc_botelho
+
+	* src/bmz.c: Fixed: gcc 2.95 problem and initialzes memory
+
 2005-08-08 18:34  fc_botelho
 
 	* INSTALL, examples/Makefile, examples/Makefile.in,
@@ -79,12 +372,12 @@
 2005-03-03 02:07  davi
 
 	* src/: bmz.c, chm.c, chm.h, chm_structs.h, cmph.c, cmph.h,
-	graph.c, graph.h, jenkins_hash.c, jenkins_hash.h, main.c (xgraph):
-	New f*cking cool algorithm works. Roughly implemented in chm.c
+	graph.c, graph.h, jenkins_hash.c, jenkins_hash.h, main.c: New
+	f*cking cool algorithm works. Roughly implemented in chm.c
 
 2005-03-02 20:55  davi
 
-	* src/xgraph.c (xgraph): xchmr working nice, but a bit slow
+	* src/xgraph.c: xchmr working nice, but a bit slow
 
 2005-03-02 02:01  davi
 
@@ -102,13 +395,13 @@
 2005-03-02 02:01  davi
 
 	* src/: Makefile.am, cmph.c, cmph_types.h, xchmr.c, xchmr.h,
-	xchmr_structs.h, xgraph.c, xgraph.h (xgraph): xchmr working fine
-	except for false positives on cyclic detection.
+	xchmr_structs.h, xgraph.c, xgraph.h: xchmr working fine except for
+	false positives on cyclic detection.
 
 2005-03-02 00:05  davi
 
-	* src/: Makefile.am, xgraph.c, xgraph.h (xgraph): Added external
-	graph functionality in branch xgraph.
+	* src/: Makefile.am, xgraph.c, xgraph.h: Added external graph
+	functionality in branch xgraph.
 
 2005-03-02 00:05  davi
 

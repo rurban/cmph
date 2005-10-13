@@ -50,17 +50,17 @@ int cmph_dump(cmph_t *mphf, FILE *f)
 	switch (mphf->algo)
 	{
 		case CMPH_CHM:
-			return chm_dump(mphf, f);
+			//return chm_dump(mphf, f);
 		case CMPH_BMZ: 
 			//return bmz_dump(mphf, f);
 		case CMPH_BMZ8: 
-			return bmz8_dump(mphf, f);
+			//return bmz8_dump(mphf, f);
 		case CMPH_BRZ: 
 			//return brz_dump(mphf, f);
 		default:
-			assert(0);
+			break;
 	}
-	assert(0);
+	//assert(0);
 	return 0;
 }
 cmph_t *cmph_load(FILE *f)
@@ -74,19 +74,19 @@ cmph_t *cmph_load(FILE *f)
 	switch (mphf->algo)
 	{
 		case CMPH_CHM:
-			chm_load(f, mphf);
+			//chm_load(f, mphf);
 			break;
 		case CMPH_BMZ: 
 			//bmz_load(f, mphf);
 			break;
 		case CMPH_BMZ8: 
-			bmz8_load(f, mphf);
+			//bmz8_load(f, mphf);
 			break;
 		case CMPH_BRZ: 
 			//brz_load(f, mphf);
 			break;
 		default:
-			assert(0);
+			break;
 	}
 	DEBUGP("Loaded mphf\n");
 	return mphf;

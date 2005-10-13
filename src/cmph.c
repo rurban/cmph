@@ -15,7 +15,7 @@ const char *cmph_names[] = { "bmz", "bmz8", "chm", "brz", "hashtree", NULL };
 
 cmph_t *cmph_new(const cmph_config_t *config, cmph_io_adapter_t *key_source)
 {
-	DEBUGP("Creating mph with algorithm %s\n", cmph_names[mph->algo]);
+	DEBUGP("Creating mph with algorithm %s\n", cmph_names[config->algo]);
 	switch (config->algo)	
 	{
 		case CMPH_CHM:
@@ -23,6 +23,7 @@ cmph_t *cmph_new(const cmph_config_t *config, cmph_io_adapter_t *key_source)
 		case CMPH_BMZ:
 			break;
 		case CMPH_BMZ8: 
+			return bmz8_new(config, key_source);
 			break;
 		case CMPH_BRZ: 
 			break;
@@ -74,7 +75,7 @@ cmph_uint32 cmph_size(const cmph_t *mphf)
 			assert(0);
 	}
 	assert(0);
-	return;
+	return 1;
 }
 	
 void cmph_destroy(cmph_t *mphf)
@@ -88,6 +89,7 @@ void cmph_destroy(cmph_t *mphf)
 			//bmz_destroy(mphf);
 			return;
 		case CMPH_BMZ8: 
+			DEBUGP("Destroy bmz8\n");
 			bmz8_destroy(mphf);
 			return;
 		case CMPH_BRZ: 

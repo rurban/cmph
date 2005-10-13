@@ -1,4 +1,5 @@
 #include "cmph_structs.h"
+#include <string.h>
 
 cmph_config_t *chm_config_new()
 {

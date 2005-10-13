@@ -12,6 +12,9 @@
 #include <stdio.h>
 #include <assert.h>
 #include <string.h>
+#include <sys/types.h>
+#include <unistd.h>
+
 
 //#define DEBUG
 #include "debug.h"
@@ -61,17 +64,26 @@ cmph_t *hashtree_new(const cmph_config_t *config, cmph_io_adapter_t *source)
 	state_t *state = (state_t *)malloc(sizeof(state_t));
 	if ((!ret) || (!mph) || (!state)) return NULL;
 
+	DEBUGP("Creating new mph with hashtree algorithm\n");
 	memset(state, 0, sizeof(state_t));
 	state->config = config;
 	state->source = source;
 	state->mph = mph;
 	state->max_leaf_size = ceil(256 / state->config->impl.hashtree.leaf_c);
-	state->mph->k = ceil(state->max_leaf_size * state->config->impl.hashtree.root_c);
+	state->mph->k = ceil(source->nkeys/ceil(state->max_leaf_size * state->config->impl.hashtree.root_c));
 	state->h1_seed = malloc(sizeof(cmph_uint16) * state->mph->k);
 	state->h2_seed = malloc(sizeof(cmph_uint16) * state->mph->k);
 	state->mph->leaf = (cmph_t **)malloc(sizeof(cmph_t *) * state->mph->k);
+	state->mph->hash[0] = state->config->impl.hashtree.hash[0];
+	state->mph->hash[1] = state->config->impl.hashtree.hash[1];
+	state->mph->hash[2] = state->config->impl.hashtree.hash[2];
 	memset(state->mph->leaf, 0, sizeof(cmph_t *) * state->mph->k);
 	state->fd = hashtree_tmp_fd("hashtree.XXXXXX", &(state->fname));
+	DEBUGP("Hashtree params:\n");
+	DEBUGP("\tmax leaf size: %hu\n", state->max_leaf_size);
+	DEBUGP("\tnumber of leaves: %hu\n", state->mph->k);
+	DEBUGP("\ttemporary file: %s\n", state->fname);
+	DEBUGP("\tnumber of keys: %u\n", state->source->nkeys);
 
 	while (iterations)
 	{
@@ -150,10 +162,15 @@ static cmph_uint8 gen_seeds(state_t *state)
 	{
 		if (!(state->mph->leaf[i]))
 		{
-			state->h1_seed[i] = rand() % 256;
-			state->h2_seed[i] = rand() % 256;
+			cmph_uint32 s1 = rand() % 256;
+			cmph_uint32 s2 = rand() % 256;
+			while (s2 == s1) s2 = rand() % 256;
+			state->h1_seed[i] = s1;
+			state->h2_seed[i] = s2;
+			DEBUGP("Assigned seeds %u and %u for leaf %u\n", s1, s2, i);
 		}
 	}
+	return 1;
 }
 //Distribute keys in subgroups for minimal perfect hash generation. Each subgroup
 //can have at most ceil(256/c) keys. The reason for this is that we can have at most
@@ -189,6 +206,7 @@ static cmph_int64 assign_leaves(state_t *state)
 			return -1;
 		}
 		++(state->leaf_size[leaf_key.h0]);
+		DEBUGP("Writing entry %u:%hhu:%hhu\n", leaf_key.h0, leaf_key.h1, leaf_key.h2);
 		c = write(state->fd, &leaf_key, sizeof(leaf_key));
 		if (c != sizeof(leaf_key))
 		{
@@ -219,11 +237,13 @@ static cmph_uint8 sort_keys(const cmph_config_t *config, int fd, cmph_uint64 nke
 	cmph_uint32 current_block = 0;
 	if (!block || !blockfill || !blockhead || tmpfd == -1) return 0;
 	c = lseek(fd, 0, SEEK_SET);
-	if (c == -1)
+	if (c == -1 || config->impl.hashtree.memory < sizeof(leaf_key_t))
 	{
-		if (config->verbosity)
+		if (config->verbosity && c == -1)
 		{
 			fprintf(stderr, "Failed rewinding file\n");
+		} else {
+			fprintf(stderr, "Not enough memory (%u bytes) for mergesort\n", config->impl.hashtree.memory);
 		}
 		free(blockfill);
 		free(blockhead);
@@ -233,9 +253,11 @@ static cmph_uint8 sort_keys(const cmph_config_t *config, int fd, cmph_uint64 nke
 
 
 	//Sort blocks
+	DEBUGP("Running internal sort in %u blocks with maximum size %u contaning %llu keys\n", nblocks, blocksize, nkeys);
 	while (1)
 	{
 		cmph_uint32 nkeys_read = blocksize > nkeys - sorted ? nkeys - sorted : blocksize;
+		DEBUGP("Sorting block %u with %u keys\n", current_block, nkeys_read);
 		blockfill[current_block] = 0;
 		c = read(fd, block, sizeof(leaf_key_t) * nkeys_read);
 		if (c != nkeys_read * sizeof(leaf_key_t)) 
@@ -247,15 +269,17 @@ static cmph_uint8 sort_keys(const cmph_config_t *config, int fd, cmph_uint64 nke
 		blockfill[current_block] = nkeys_read;
 		qsort(block, blockfill[current_block], sizeof(leaf_key_t), leaf_key_compare);
 		c = write(tmpfd, block, sizeof(leaf_key_t) * blockfill[current_block]);
-		free(block);
 		if (c != blockfill[current_block] * sizeof(leaf_key_t)) 
 		{
 			free(blockfill);
 			return 0;
 		}
-		sorted -= blockfill[current_block];
+		sorted += blockfill[current_block];
+		if (sorted == nkeys) break;
+		assert(sorted <= nkeys);
 		++current_block;
 	}
+	free(block);
 	assert(sorted == nkeys);
 	sorted = 0;
 	//Merge Blocks
@@ -263,13 +287,16 @@ static cmph_uint8 sort_keys(const cmph_config_t *config, int fd, cmph_uint64 nke
 	{
 		blockhead[current_block].h0 = UINT_MAX;
 	}
+	DEBUGP("Merging blocks\n");
+	//FIXME: use a heap for better performance
 	while (sorted != nkeys)
 	{
 		leaf_key_t min;
 		min.h0 = UINT_MAX;
 		for (current_block = 0; current_block < nblocks; ++current_block)
 		{
-			if (blockhead[current_block].h0 < min.h0)
+			DEBUGP("Looking blockhead with value %u and min is %u\n", blockhead[current_block].h0, min.h0);
+			if (blockhead[current_block].h0 <= min.h0)
 			{
 				min = blockhead[current_block];
 				if (blockfill[current_block])
@@ -277,16 +304,16 @@ static cmph_uint8 sort_keys(const cmph_config_t *config, int fd, cmph_uint64 nke
 					cmph_uint64 pos = current_block * blocksize;
 					pos += blockfill[current_block] - 1;
 					pos *= sizeof(leaf_key_t);
-					c = fseek64(tmpfd, pos, SEEK_SET);		
+					c = lseek64(tmpfd, pos, SEEK_SET);		
 					read(tmpfd, &(blockhead[current_block]), sizeof(blockhead[current_block]));
 					--blockfill[current_block];	
 				}
-				if (min.h0 != UINT_MAX) 
-				{
-					write(fd, &min, sizeof(min));
-					++sorted;
-				}
 			}
+		}
+		if (min.h0 != UINT_MAX) 
+		{
+			write(fd, &min, sizeof(min));
+			++sorted;
 		}
 	}
  	#ifdef WIN32
@@ -295,6 +322,8 @@ static cmph_uint8 sort_keys(const cmph_config_t *config, int fd, cmph_uint64 nke
 	unlink(fname);
 	#endif
 	free(fname);
+	DEBUGP("End of sort\n");
+	return 1;
 }
 static cmph_uint8 create_leaf_mph(state_t *state)
 {
@@ -308,6 +337,7 @@ static cmph_uint8 create_leaf_mph(state_t *state)
 			offset += state->leaf_size[i];
 			continue;
 		}
+		DEBUGP("Creating mph for leaf %u with %u keys using algorithm %s\n", i, state->leaf_size[i], cmph_names[state->config->impl.hashtree.leaf_algo]);
 		cmph_config_t *leaf_config = cmph_config_new(state->config->impl.hashtree.leaf_algo);
 		cmph_config_set_graphsize(leaf_config, state->config->impl.hashtree.leaf_c);
 		cmph_config_set_seed1(leaf_config, state->h1_seed[i]);
@@ -317,6 +347,7 @@ static cmph_uint8 create_leaf_mph(state_t *state)
 		cmph_io_adapter_t *leaf_source = hashtree_io_adapter(state->fd, offset, i,state->leaf_size[i],
 				cmph_hashfuncs[state->config->impl.hashtree.hash[0]], state->h1_seed[i], 
 				cmph_hashfuncs[state->config->impl.hashtree.hash[1]], state->h2_seed[i]);
+		assert(leaf_source);
 
 		cmph_t *leaf_mph = cmph_new(leaf_config, leaf_source);
 

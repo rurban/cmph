@@ -1,4 +1,6 @@
 #include "cmph_structs.h"
+#include <string.h>
+#include <stdlib.h>
 
 cmph_config_t *hashtree_config_new()
 {
@@ -9,8 +11,10 @@ cmph_config_t *hashtree_config_new()
 	config->impl.hashtree.hash[1] = CMPH_HASH_JENKINS;
 	config->impl.hashtree.hash[2] = CMPH_HASH_JENKINS;
 	config->impl.hashtree.leaf_c = 0.93;
-	config->impl.hashtree.root_c = 1.5;
+	config->impl.hashtree.root_c = 2.0;
 	config->impl.hashtree.iterations = 10;
+	config->impl.hashtree.memory = 4096 * 1024;
+	config->impl.hashtree.leaf_algo = CMPH_BMZ8;
 	return config;
 }
 void hashtree_config_destroy(cmph_config_t *config)

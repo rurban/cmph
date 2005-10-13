@@ -1,6 +1,7 @@
 #include <cmph.h>
 #include <stdio.h>
 #include <limits.h>
+#include <string.h>
 
  // Create minimal perfect hash function from in-disk keys using BMZ algorithm
 int main(int argc, char **argv)

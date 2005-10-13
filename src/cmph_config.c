@@ -51,10 +51,10 @@ void cmph_config_destroy(cmph_config_t *config)
 			break;
 		case CMPH_HASHTREE:
 			hashtree_config_destroy(config);
+			break;
 		default:
 			assert(0);
 	}
-	free(config);
 }
 
 cmph_bool cmph_config_set_tmp_dir(cmph_config_t *config, const char *tmp_dir)

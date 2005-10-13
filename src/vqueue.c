@@ -47,4 +47,5 @@ void vqueue_print(vqueue_t * q)
 void vqueue_destroy(vqueue_t *q)
 {
   free(q->values); q->values = NULL;
+  free(q);
 }

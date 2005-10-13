@@ -1,6 +1,7 @@
 #include "cmph_structs.h"
+#include <string.h>
 
-#define DEBUG
+//#define DEBUG
 #include "debug.h"
 
 cmph_config_t *bmz8_config_new()
@@ -17,6 +18,7 @@ cmph_config_t *bmz8_config_new()
 }
 void bmz8_config_destroy(cmph_config_t *config)
 {
+	DEBUGP("Freeing bmz8 config\n");
 	free(config);
 }
 
