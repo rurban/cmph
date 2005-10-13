@@ -39,7 +39,7 @@ cmph_t *bmz8_new(const cmph_config_t *config, cmph_io_adapter_t *key_source)
 	bmz8_t *mph = (bmz8_t *)malloc(sizeof(bmz8_t));
 	state_t *state = (state_t *)malloc(sizeof(state_t));
 	cmph_uint8 i;
-	cmph_uint8 iterations;
+	cmph_uint8 iterations = config->impl.bmz8.iterations;
 	cmph_uint8 iterations_map = 20;
 	cmph_uint8 restart_mapping = 0;
 	if ((!ret) || (!mph) || (!state))
@@ -77,7 +77,6 @@ cmph_t *bmz8_new(const cmph_config_t *config, cmph_io_adapter_t *key_source)
 		// Mapping step
 		state->biggest_g_value = 0;
 		state->biggest_edge_value = 1;
-		iterations = config->impl.bmz8.iterations; 
 		if (config->verbosity)
 		{
 			fprintf(stderr, "Entering mapping step for mph creation of %u keys with graph sized %u\n", mph->m, mph->n);
@@ -107,6 +106,7 @@ cmph_t *bmz8_new(const cmph_config_t *config, cmph_io_adapter_t *key_source)
 		}
 		if (iterations == 0)
 		{
+			DEBUGP("Tried all iterations\n");
 			graph_destroy(state->graph);
 			return NULL;
 		}
@@ -181,7 +181,7 @@ static cmph_uint8 bmz8_traverse_critical_nodes(state_t *state, cmph_uint8 v)
 	cmph_uint32 u;   /* Auxiliary vertex */
 	cmph_uint32 lav; /* lookahead vertex */
 	cmph_uint8 collision;
-	vqueue_t * q = vqueue_new((cmph_uint32)(graph_ncritical_nodes(state->graph)));
+	vqueue_t *q = vqueue_new((cmph_uint32)(graph_ncritical_nodes(state->graph)));
 	graph_iterator_t it, it1;
 
 	DEBUGP("Labelling critical vertices\n");
@@ -370,7 +370,7 @@ static void bmz8_traverse_non_critical_nodes(state_t *state)
 
 	cmph_uint8 i, v1, v2, unused_edge_index = 0;
 	DEBUGP("Labelling non critical vertices\n");
-	for(i = 0; i < state->mph->m; i++)
+	for(i = 0; i < state->mph->m; ++i)
 	{
 		v1 = graph_vertex_id(state->graph, i, 0);
 		v2 = graph_vertex_id(state->graph, i, 1);
@@ -380,7 +380,7 @@ static void bmz8_traverse_non_critical_nodes(state_t *state)
 
 	}
 
-	for(i = 0; i < state->mph->n; i++)
+	for(i = 0; i < state->mph->n; ++i)
 	{
 		if(!GETBIT(state->visited, i))
 		{ 	                        
@@ -434,7 +434,7 @@ static int bmz8_gen_edges(state_t *state)
 		if (h1 == h2) 
 		{
 			if (state->config->verbosity) fprintf(stderr, "Self loop for key %u\n", e);
-			state->key_source->dispose(state->key_source->data, key, keylen);
+			if (state->key_source->dispose) state->key_source->dispose(state->key_source->data, key, keylen);
 			return 0;
 		}
 		//DEBUGP("Adding edge: %u -> %u for key %s\n", h1, h2, key);
@@ -448,6 +448,7 @@ static int bmz8_gen_edges(state_t *state)
 		if (multiple_edges) return 0; // checking multiple edge restriction.
 		graph_add_edge(state->graph, h1, h2);
 	}
+	DEBUGP("Generated edges: multiple edges %u\n", multiple_edges);
 	return !multiple_edges;
 }
 

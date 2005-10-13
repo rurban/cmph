@@ -14,6 +14,7 @@ cmph_config_t *bmz8_config_new()
 	config->impl.bmz8.c = 0.93;
 	config->impl.bmz8.custom_h1_seed = 0;
 	config->impl.bmz8.custom_h2_seed = 0;
+	config->impl.bmz8.iterations = 20;
 	return config;
 }
 void bmz8_config_destroy(cmph_config_t *config)

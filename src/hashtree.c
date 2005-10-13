@@ -14,9 +14,10 @@
 #include <string.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include <errno.h>
 
 
-//#define DEBUG
+#define DEBUG
 #include "debug.h"
 
 typedef struct
@@ -129,15 +130,25 @@ cmph_t *hashtree_new(const cmph_config_t *config, cmph_io_adapter_t *source)
 		{
 			fprintf(stderr, "Creating mph for %llu remaining keys\n", keys_assigned);
 		}
-		if (keys_assigned <= 0) 
+		if (keys_assigned == 0) 
 		{
 			state->mph->h0_seed = rand();
 			--iterations;
 			continue;
+		} 
+		else if (keys_assigned == -1)
+		{
+			iterations = 0;
+			break;
 		}
 		//Now sort keys by assigned leaf
+		assert(state->fd != -1 && state->tmpfd != -1);
 		c = sort_keys(config, state->fd, state->tmpfd, keys_assigned);
-
+		if (!c)
+		{
+			iterations = 0;
+			break;
+		}
 		//Create minimal perfect hashes
 		c = create_leaf_mph(state);
 		if (c) break;
@@ -211,7 +222,7 @@ static cmph_uint8 gen_seeds(state_t *state)
 			while (s2 == s1) s2 = rand() % 256;
 			state->h1_seed[i] = s1;
 			state->h2_seed[i] = s2;
-			DEBUGP("Assigned seeds %u and %u for leaf %u\n", s1, s2, i);
+			//DEBUGP("Assigned seeds %u and %u for leaf %u\n", s1, s2, i);
 		}
 	}
 	return 1;
@@ -228,7 +239,13 @@ static cmph_int64 assign_leaves(state_t *state)
 
 	DEBUGP("Assigning keys to %u leaves with at most %u keys each.\n", state->mph->k, state->max_leaf_size);
 	memset(state->leaf_size, 0, sizeof(cmph_uint16) * state->mph->k);
-	lseek64(state->fd, 0, SEEK_SET);
+	c = lseek64(state->fd, 0, SEEK_SET);
+	if (c == -1)
+	{
+		DEBUGP("Failed rewinding file: %s\n", strerror(errno));
+		return -1;
+	}
+	
 	for (i = 0; i < state->source->nkeys; ++i)
 	{
 		leaf_key_t leaf_key;
@@ -236,26 +253,28 @@ static cmph_int64 assign_leaves(state_t *state)
 		char *key;
 		state->source->read(state->source->data, &key, &keylen);
 		leaf_key.h0 = HASHKEY(state->mph->hash[0], state->mph->h0_seed, key, keylen) % state->mph->k;
-		//Check if mph for this leaf is already ok
-		++(state->leaf_size[leaf_key.h0]);
-		if (state->mph->leaf[leaf_key.h0]) continue;
-
 		leaf_key.h1 = HASHKEY(state->mph->hash[1], state->h1_seed[leaf_key.h0], key, keylen);
 		leaf_key.h2 = HASHKEY(state->mph->hash[2], state->h2_seed[leaf_key.h0], key, keylen);
+		++(state->leaf_size[leaf_key.h0]);
+		state->source->dispose(state->source->data, key, keylen);
+
+		//Check if mph for this leaf is already ok
+		if (state->mph->leaf[leaf_key.h0]) continue;
+
 		if (state->leaf_size[leaf_key.h0] == state->max_leaf_size)
 		{
 			if (state->config->verbosity)
 			{
 				fprintf(stderr, "Too many collisions at leaf %u\n", leaf_key.h0);
 			}
-			return -1;
+			return 0;
 		}
 		//DEBUGP("Writing entry %u:%hhu:%hhu\n", leaf_key.h0, leaf_key.h1, leaf_key.h2);
 		c = write(state->fd, &leaf_key, sizeof(leaf_key));
 		++keys_assigned;
 		if (c != sizeof(leaf_key))
 		{
-			return 0;
+			return -1;
 		}
 	}
 	DEBUGP("%lld keys assigned\n", keys_assigned);
@@ -281,11 +300,12 @@ static cmph_uint8 sort_keys(const cmph_config_t *config, int fd, int tmpfd, cmph
 	cmph_uint32 current_block = 0;
 	if (!block || !blockfill || !blockhead || tmpfd == -1) return 0;
 	c = lseek64(fd, 0, SEEK_SET);
+	if (c != -1) c = lseek64(tmpfd, 0, SEEK_SET);
 	if (c == -1 || config->impl.hashtree.memory < sizeof(leaf_key_t))
 	{
 		if (config->verbosity && c == -1)
 		{
-			fprintf(stderr, "Failed rewinding file\n");
+			fprintf(stderr, "Failed rewinding file: %s\n", strerror(errno));
 		} else {
 			fprintf(stderr, "Not enough memory (%u bytes) for mergesort\n", config->impl.hashtree.memory);
 		}
@@ -380,7 +400,7 @@ static cmph_uint8 create_leaf_mph(state_t *state)
 		cmph_config_set_seed1(leaf_config, state->h1_seed[i]);
 		cmph_config_set_seed2(leaf_config, state->h2_seed[i]);
 		cmph_config_set_iterations(leaf_config, 1);
-		//cmph_config_set_verbosity(leaf_config, 1);
+		cmph_config_set_verbosity(leaf_config, 1);
 
 		if (state->leaf_size[i] > biggest_leaf) biggest_leaf = state->leaf_size[i];
 		if (state->leaf_size[i] < smallest_leaf) smallest_leaf = state->leaf_size[i];
