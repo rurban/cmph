@@ -106,6 +106,7 @@ void compressed_seq_generate(compressed_seq_t * cs, cmph_uint32 * vals_table, cm
 		lengths[i] = cs->total_length >> cs->rem_r;
 	};
 	
+	select_destroy(&cs->sel);
 	select_init(&cs->sel);
 	 
 	// FABIANO: before it was (cs->total_length >> cs->rem_r) + 1. But I wiped out the + 1 because

@@ -1,6 +1,6 @@
 bin_PROGRAMS = cmph
 lib_LTLIBRARIES = libcmph.la
-include_HEADERS = cmph.h cmph_types.h
+include_HEADERS = cmph.h cmph_types.h cmph_time.h
 libcmph_la_SOURCES =  hash.h hash.c \
 		      jenkins_hash.h jenkins_hash.c\
 		      hash_state.h debug.h \
@@ -21,6 +21,7 @@ libcmph_la_SOURCES =  hash.h hash.c \
 		      buffer_manager.h buffer_manager.c \
 		      buffer_entry.h buffer_entry.c\
 		      select.h select.c select_lookup_tables.h \
+		      faster_compressed_seq.h faster_compressed_seq.c \
 		      compressed_seq.h compressed_seq.c \
 		      compressed_rank.h compressed_rank.c \
 		      cmph_time.h

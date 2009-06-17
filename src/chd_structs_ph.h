@@ -2,11 +2,11 @@
 #define __CMPH_CHD_PH_STRUCTS_H__
 
 #include "hash_state.h"
-#include "compressed_seq.h"
+#include "faster_compressed_seq.h"
 
 struct __chd_ph_data_t
 {
-	compressed_seq_t * cs;	// compressed displacement values
+	faster_compressed_seq_t * cs;	// compressed displacement values
 	cmph_uint32 nbuckets;	// number of buckets
 	cmph_uint32 n;		// number of bins
 	hash_state_t *hl;	// linear hash function
@@ -15,7 +15,7 @@ struct __chd_ph_data_t
 struct __chd_ph_config_data_t
 {
 	CMPH_HASH hashfunc;	// linear hash function to be used
-	compressed_seq_t * cs;	// compressed displacement values
+	faster_compressed_seq_t * cs;	// compressed displacement values
 	cmph_uint32 nbuckets;	// number of buckets
 	cmph_uint32 n;		// number of bins
 	hash_state_t *hl;	// linear hash function

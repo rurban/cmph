@@ -774,9 +774,9 @@ cmph_t *chd_ph_new(cmph_config_t *mph, double c)
 	{
 		free(chd_ph->cs);
 	}
-	chd_ph->cs = (compressed_seq_t *) calloc(1, sizeof(compressed_seq_t));
-	compressed_seq_init(chd_ph->cs);
-	compressed_seq_generate(chd_ph->cs, disp_table, chd_ph->nbuckets);
+	chd_ph->cs = (faster_compressed_seq_t *) calloc(1, sizeof(faster_compressed_seq_t));
+	faster_compressed_seq_init(chd_ph->cs);
+	faster_compressed_seq_generate(chd_ph->cs, disp_table, chd_ph->nbuckets);
 	
 	#ifdef CMPH_TIMING
 	ELAPSED_TIME_IN_SECONDS(&construction_time);
@@ -851,8 +851,8 @@ void chd_ph_load(FILE *fd, cmph_t *mphf)
 	DEBUGP("Compressed sequence structure has %u bytes\n", buflen);
 	buf = (char *)malloc((size_t)buflen);
 	nbytes = fread(buf, (size_t)buflen, (size_t)1, fd);
-	chd_ph->cs = (compressed_seq_t *) calloc(1, sizeof(compressed_seq_t)); 
-	compressed_seq_load(chd_ph->cs, buf, buflen);
+	chd_ph->cs = (faster_compressed_seq_t *) calloc(1, sizeof(faster_compressed_seq_t)); 
+	faster_compressed_seq_load(chd_ph->cs, buf, buflen);
 	free(buf);
 	
 	// loading n and nbuckets
@@ -876,7 +876,7 @@ int chd_ph_dump(cmph_t *mphf, FILE *fd)
 	nbytes = fwrite(buf, (size_t)buflen, (size_t)1, fd);
 	free(buf);
 
-	compressed_seq_dump(data->cs, &buf, &buflen);
+	faster_compressed_seq_dump(data->cs, &buf, &buflen);
 	DEBUGP("Dumping compressed sequence structure with %u bytes to disk\n", buflen);
 	nbytes = fwrite(&buflen, sizeof(cmph_uint32), (size_t)1, fd);
 	nbytes = fwrite(buf, (size_t)buflen, (size_t)1, fd);
@@ -891,7 +891,7 @@ int chd_ph_dump(cmph_t *mphf, FILE *fd)
 void chd_ph_destroy(cmph_t *mphf)
 {
 	chd_ph_data_t *data = (chd_ph_data_t *)mphf->data;
-	compressed_seq_destroy(data->cs);
+	faster_compressed_seq_destroy(data->cs);
 	free(data->cs);
 	hash_state_destroy(data->hl);
 	free(data);
@@ -911,7 +911,7 @@ cmph_uint32 chd_ph_search(cmph_t *mphf, const char *key, cmph_uint32 keylen)
 	f = hl[1] % chd_ph->n;
 	h = hl[2] % (chd_ph->n-1) + 1;
 	
-	disp = compressed_seq_query(chd_ph->cs, g);
+	disp = faster_compressed_seq_query(chd_ph->cs, g);
 	probe0_num = disp % chd_ph->n;
 	probe1_num = disp/chd_ph->n;
 	position = (cmph_uint32)((f + ((cmph_uint64 )h)*probe0_num + probe1_num) % chd_ph->n);
@@ -941,8 +941,8 @@ void chd_ph_pack(cmph_t *mphf, void *packed_mphf)
 	ptr += sizeof(data->nbuckets);
 
 	// packing cs
-	compressed_seq_pack(data->cs, ptr);
-	//ptr += compressed_seq_packed_size(data->cs);
+	faster_compressed_seq_pack(data->cs, ptr);
+	//ptr += faster_compressed_seq_packed_size(data->cs);
 
 }
 
@@ -951,7 +951,7 @@ cmph_uint32 chd_ph_packed_size(cmph_t *mphf)
 	register chd_ph_data_t *data = (chd_ph_data_t *)mphf->data;
 	register CMPH_HASH hl_type = hash_get_type(data->hl); 
 	register cmph_uint32 hash_state_pack_size =  hash_state_packed_size(hl_type);
-	register cmph_uint32 cs_pack_size = compressed_seq_packed_size(data->cs);
+	register cmph_uint32 cs_pack_size = faster_compressed_seq_packed_size(data->cs);
 	
 	return (cmph_uint32)(sizeof(CMPH_ALGO) + hash_state_pack_size + cs_pack_size + 3*sizeof(cmph_uint32));
 
@@ -977,7 +977,7 @@ cmph_uint32 chd_ph_search_packed(void *packed_mphf, const char *key, cmph_uint32
 	f = hl[1] % n;
 	h = hl[2] % (n-1) + 1;
 	
-	disp = compressed_seq_query_packed(ptr, g);
+	disp = faster_compressed_seq_query_packed(ptr, g);
 	probe0_num = disp % n;
 	probe1_num = disp/n;
 	position = (cmph_uint32)((f + ((cmph_uint64 )h)*probe0_num + probe1_num) % n);
