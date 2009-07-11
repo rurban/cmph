@@ -56,6 +56,7 @@ void cmph_config_set_mphf_fd(cmph_config_t *mph, FILE *mphf_fd);
 void cmph_config_set_b(cmph_config_t *mph, cmph_uint32 b);
 void cmph_config_set_keys_per_bin(cmph_config_t *mph, cmph_uint32 keys_per_bin);
 void cmph_config_set_memory_availability(cmph_config_t *mph, cmph_uint32 memory_availability);
+void cmph_config_set_ncomponents(cmph_config_t *mph, cmph_uint32 K);
 void cmph_config_destroy(cmph_config_t *mph);
 
 /** Hash API **/

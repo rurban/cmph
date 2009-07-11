@@ -8,6 +8,7 @@ typedef struct __chm_config_data_t chm_config_data_t;
 
 chm_config_data_t *chm_config_new();
 void chm_config_set_hashfuncs(cmph_config_t *mph, CMPH_HASH *hashfuncs);
+void chm_config_set_ncomponents(cmph_config_t *mph, cmph_uint32 K);
 void chm_config_destroy(cmph_config_t *mph);
 cmph_t *chm_new(cmph_config_t *mph, double c);
 

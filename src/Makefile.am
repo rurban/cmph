@@ -1,3 +1,5 @@
+TESTS = xgraph_tests
+noinst_PROGRAMS = xgraph_tests
 bin_PROGRAMS = cmph
 lib_LTLIBRARIES = libcmph.la
 include_HEADERS = cmph.h cmph_types.h cmph_time.h
@@ -17,6 +19,8 @@ libcmph_la_SOURCES =  hash.h hash.c \
 		      fch_buckets.h fch_buckets.c \
 		      chd.h chd.c chd_structs.h \
 		      chd_ph.h chd_ph.c chd_structs_ph.h \
+                      xchmr.h xchmr_structs.h xchmr.c \
+                      xgraph.h xgraph.c \
 		      miller_rabin.h miller_rabin.c \
 		      buffer_manager.h buffer_manager.c \
 		      buffer_entry.h buffer_entry.c\
@@ -29,3 +33,6 @@ libcmph_la_LDFLAGS = -version-info 0:0:0
 
 cmph_SOURCES = 	main.c wingetopt.h wingetopt.c
 cmph_LDADD = libcmph.la
+
+xgraph_tests_SOURCES = xgraph_tests.c
+xgraph_tests_LDADD = libcmph.la

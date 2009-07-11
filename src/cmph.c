@@ -9,6 +9,7 @@
 #include "bdz_ph.h"
 #include "chd_ph.h"
 #include "chd.h"
+#include "xchmr.h"
 
 #include <stdlib.h>
 #include <assert.h>
@@ -16,7 +17,7 @@
 //#define DEBUG
 #include "debug.h"
 
-const char *cmph_names[] = {"bmz", "bmz8", "chm", "brz", "fch", "bdz", "bdz_ph", "chd_ph", "chd", NULL };
+const char *cmph_names[] = {"bmz", "bmz8", "chm", "brz", "fch", "bdz", "bdz_ph", "chd_ph", "chd", "xchmr", NULL };
 
 typedef struct 
 {
@@ -329,6 +330,9 @@ void cmph_config_set_algo(cmph_config_t *mph, CMPH_ALGO algo)
 			case CMPH_CHD:
 				chd_config_destroy(mph);
 				break;
+			case CMPH_XCHMR:
+				xchmr_config_destroy(mph->data);
+				break;
 			default:
 				assert(0);
 		}
@@ -360,6 +364,9 @@ void cmph_config_set_algo(cmph_config_t *mph, CMPH_ALGO algo)
 				break;
 			case CMPH_CHD:
 				mph->data = chd_config_new(mph);
+				break;
+			case CMPH_XCHMR:
+				mph->data = xchmr_config_new();
 				break;
 			default:
 				assert(0);
@@ -459,6 +466,9 @@ void cmph_config_destroy(cmph_config_t *mph)
 			case CMPH_CHD: /* included -- Fabiano */
 				chd_config_destroy(mph);
 				break;
+			case CMPH_XCHMR:
+				xchmr_config_destroy(mph);
+				break;
 			default:
 				assert(0);
 		}
@@ -478,7 +488,7 @@ void cmph_config_set_hashfuncs(cmph_config_t *mph, CMPH_HASH *hashfuncs)
 		case CMPH_CHM:
 			chm_config_set_hashfuncs(mph, hashfuncs);
 			break;
-		case CMPH_BMZ: /* included -- Fabiano */
+		case CMPH_BMZ: 
 			bmz_config_set_hashfuncs(mph, hashfuncs);
 			break;
 		case CMPH_BMZ8: /* included -- Fabiano */
@@ -501,7 +511,21 @@ void cmph_config_set_hashfuncs(cmph_config_t *mph, CMPH_HASH *hashfuncs)
 			break;
 		case CMPH_CHD: /* included -- Fabiano */
 			chd_config_set_hashfuncs(mph, hashfuncs);
+		case CMPH_XCHMR:
+			xchmr_config_set_hashfuncs(mph, hashfuncs);
 			break;
+		default:
+			break;
+	}
+	return;
+}
+
+void cmph_config_set_ncomponents(cmph_config_t *mph, cmph_uint32 K)
+{
+	switch (mph->algo)
+	{
+		case CMPH_CHM:
+			chm_config_set_ncomponents(mph, K);
 		default:
 			break;
 	}
@@ -525,7 +549,7 @@ cmph_t *cmph_new(cmph_config_t *mph)
 			DEBUGP("Creating chm hash\n");
 			mphf = chm_new(mph, c);
 			break;
-		case CMPH_BMZ: /* included -- Fabiano */
+		case CMPH_BMZ: 
 			DEBUGP("Creating bmz hash\n");
 			mphf = bmz_new(mph, c);
 			break;
@@ -559,6 +583,10 @@ cmph_t *cmph_new(cmph_config_t *mph)
 			DEBUGP("Creating chd hash\n");
 			mphf = chd_new(mph, c);
 			break;
+		case CMPH_XCHMR:
+			if (c == 0) c = 2.09;
+			mphf = xchmr_new(mph, c);
+			break;
 		default:
 			assert(0);
 	}
@@ -587,6 +615,13 @@ int cmph_dump(cmph_t *mphf, FILE *f)
 			return chd_ph_dump(mphf, f);
 		case CMPH_CHD: /* included -- Fabiano */
 			return chd_dump(mphf, f);
+			break;
+		case CMPH_BMZ: 
+			return bmz_dump(mphf, f);
+			break;
+		case CMPH_XCHMR:
+			return xchmr_dump(mphf, f);
+			break;
 		default:
 			assert(0);
 	}
@@ -606,7 +641,7 @@ cmph_t *cmph_load(FILE *f)
 		case CMPH_CHM:
 			chm_load(f, mphf);
 			break;
-		case CMPH_BMZ: /* included -- Fabiano */
+		case CMPH_BMZ: 
 			DEBUGP("Loading bmz algorithm dependent parts\n");
 			bmz_load(f, mphf);
 			break;
@@ -637,6 +672,8 @@ cmph_t *cmph_load(FILE *f)
 		case CMPH_CHD: /* included -- Fabiano */
 			DEBUGP("Loading chd algorithm dependent parts\n");
 			chd_load(f, mphf);
+		case CMPH_XCHMR:
+			xchmr_load(f, mphf);
 			break;
 		default:
 			assert(0);
@@ -677,6 +714,11 @@ cmph_uint32 cmph_search(cmph_t *mphf, const char *key, cmph_uint32 keylen)
 		case CMPH_CHD: /* included -- Fabiano */
 		        DEBUGP("chd algorithm search\n");		         
 		        return chd_search(mphf, key, keylen);
+		case CMPH_BMZ: 
+			DEBUGP("bmz algorithm search\n");		         
+			return bmz_search(mphf, key, keylen);
+		case CMPH_XCHMR:
+			return xchmr_search(mphf, key, keylen);
 		default:
 			assert(0);
 	}
@@ -719,6 +761,11 @@ void cmph_destroy(cmph_t *mphf)
 			return;
 		case CMPH_CHD: /* included -- Fabiano */
 			chd_destroy(mphf);
+		case CMPH_BMZ: 
+			bmz_destroy(mphf);
+			return;
+		case CMPH_XCHMR:
+			xchmr_destroy(mphf);
 			return;
 		default: 
 			assert(0);

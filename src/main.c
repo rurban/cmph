@@ -22,12 +22,12 @@
 
 void usage(const char *prg)
 {
-	fprintf(stderr, "usage: %s [-v] [-h] [-V] [-k nkeys] [-f hash_function] [-g [-c algorithm_dependent_value][-s seed] ] [-a algorithm] [-M memory_in_MB] [-b algorithm_dependent_value] [-t keys_per_bin] [-d tmp_dir] [-m file.mph]  keysfile\n", prg);   
+	fprintf(stderr, "usage: %s [-v] [-h] [-V] [-k nkeys] [-f hash_function] [-g [-c algorithm_dependent_value][-s seed] ] [-a algorithm] [-M memory_in_MB] [-b algorithm_dependent_value] [-t keys_per_bin] [-d tmp_dir] [-m file.mph] [ -k N ] keysfile\n", prg);   
 }
 void usage_long(const char *prg)
 {
 	cmph_uint32 i;
-	fprintf(stderr, "usage: %s [-v] [-h] [-V] [-k nkeys] [-f hash_function] [-g [-c algorithm_dependent_value][-s seed] ] [-a algorithm] [-M memory_in_MB] [-b algorithm_dependent_value] [-t keys_per_bin] [-d tmp_dir] [-m file.mph] keysfile\n", prg);   
+	usage(prg);
 	fprintf(stderr, "Minimum perfect hashing tool\n\n"); 
 	fprintf(stderr, "  -h\t print this help message\n");
 	fprintf(stderr, "  -c\t c value determines:\n");
@@ -41,6 +41,7 @@ void usage_long(const char *prg)
 	fprintf(stderr, "  -V\t print version number and exit\n");
 	fprintf(stderr, "  -v\t increase verbosity (may be used multiple times)\n");
 	fprintf(stderr, "  -k\t number of keys\n");
+	fprintf(stderr, "  -K\t divide graph in n components (supported by kchm)\n");
 	fprintf(stderr, "  -g\t generation mode\n");
 	fprintf(stderr, "  -s\t random seed\n");
 	fprintf(stderr, "  -m\t minimum perfect hash function file \n");
@@ -77,6 +78,7 @@ int main(int argc, char **argv)
 	CMPH_HASH *hashes = NULL;
 	cmph_uint32 nhashes = 0;
 	cmph_uint32 i;
+	cmph_uint32 K = 1;
 	CMPH_ALGO mph_algo = CMPH_CHM;
 	double c = 0;
 	cmph_config_t *config = NULL;
@@ -88,7 +90,7 @@ int main(int argc, char **argv)
 	cmph_uint32 keys_per_bin = 1;
 	while (1)
 	{
-		char ch = (char)getopt(argc, argv, "hVvgc:k:a:M:b:t:f:m:d:s:");
+		char ch = (char)getopt(argc, argv, "hVvgc:k:a:M:b:t:f:m:d:s:K:");
 		if (ch == -1) break;
 		switch (ch)
 		{
@@ -98,6 +100,16 @@ int main(int argc, char **argv)
 					seed = (cmph_uint32)strtoul(optarg, &cptr, 10);
 					if(*cptr != 0) {
 						fprintf(stderr, "Invalid seed %s\n", optarg);
+						exit(1);
+					}
+				}
+				break;
+			case 'K':
+				{
+					char *cptr;
+					K = strtoul(optarg, &cptr, 10);
+					if(*cptr != 0) {
+						fprintf(stderr, "Invalid number of components %s\n", optarg);
 						exit(1);
 					}
 				}
@@ -262,8 +274,8 @@ int main(int argc, char **argv)
 		//if((mph_algo == CMPH_BMZ || mph_algo == CMPH_BRZ) && c >= 2.0) c=1.15;
 		if(mph_algo == CMPH_BMZ  && c >= 2.0) c=1.15;
 		if (c != 0) cmph_config_set_graphsize(config, c);
+		cmph_config_set_ncomponents(config, K);
 		mphf = cmph_new(config);
-
 		cmph_config_destroy(config);
 		if (mphf == NULL)
 		{
@@ -279,8 +291,8 @@ int main(int argc, char **argv)
 			free(mphf_file);
 			return -1;
 		}
-		cmph_dump(mphf, mphf_fd); 
-		cmph_destroy(mphf);	
+		cmph_dump(mphf, mphf_fd);
+		cmph_destroy(mphf);
 		fclose(mphf_fd);
 	}
 	else

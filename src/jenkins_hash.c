@@ -6,6 +6,7 @@
 #include <math.h>
 #include <limits.h>
 #include <string.h>
+#include <assert.h>
 
 //#define DEBUG
 #include "debug.h"
