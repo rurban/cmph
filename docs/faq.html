@@ -35,7 +35,7 @@
 	</BLOCKQUOTE>
 
 <PRE>
-  	#sort input.txt | uniq &gt; input_uniq.txt
+  	sort input.txt | uniq &gt; input_uniq.txt
 </PRE>
 
 	<BLOCKQUOTE>
@@ -50,7 +50,7 @@ one is executed?
 	<BLOCKQUOTE>
 	- Probably you are you using the cmph_config_set_algo function after
 	  the cmph_config_set_hashfuncs. Therefore, the default hash function 
-	  is reset when you call the cmph_config_set_algo function. 
+	  is reset when you call the cmph_config_set_algo function.
 	</BLOCKQUOTE>
 
 <UL>
