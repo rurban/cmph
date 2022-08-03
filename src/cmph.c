@@ -443,28 +443,28 @@ void cmph_config_destroy(cmph_config_t *mph)
 			case CMPH_CHM:
 				chm_config_destroy(mph);
 				break;
-			case CMPH_BMZ: /* included -- Fabiano */
+			case CMPH_BMZ:
 				bmz_config_destroy(mph);
 				break;
-			case CMPH_BMZ8: /* included -- Fabiano */
+			case CMPH_BMZ8:
 				bmz8_config_destroy(mph);
 				break;
-			case CMPH_BRZ: /* included -- Fabiano */
+			case CMPH_BRZ:
 				brz_config_destroy(mph);
 				break;
-			case CMPH_FCH: /* included -- Fabiano */
+			case CMPH_FCH:
 				fch_config_destroy(mph);
 				break;
-			case CMPH_BDZ: /* included -- Fabiano */
+			case CMPH_BDZ:
 				bdz_config_destroy(mph);
 				break;
-			case CMPH_BDZ_PH: /* included -- Fabiano */
+			case CMPH_BDZ_PH:
 				bdz_ph_config_destroy(mph);
 				break;
-			case CMPH_CHD_PH: /* included -- Fabiano */
+			case CMPH_CHD_PH:
 				chd_ph_config_destroy(mph);
 				break;
-			case CMPH_CHD: /* included -- Fabiano */
+			case CMPH_CHD:
 				chd_config_destroy(mph);
 				break;
 			default:
@@ -486,28 +486,28 @@ void cmph_config_set_hashfuncs(cmph_config_t *mph, CMPH_HASH *hashfuncs)
 		case CMPH_CHM:
 			chm_config_set_hashfuncs(mph, hashfuncs);
 			break;
-		case CMPH_BMZ: /* included -- Fabiano */
+		case CMPH_BMZ:
 			bmz_config_set_hashfuncs(mph, hashfuncs);
 			break;
-		case CMPH_BMZ8: /* included -- Fabiano */
+		case CMPH_BMZ8:
 			bmz8_config_set_hashfuncs(mph, hashfuncs);
 			break;
-		case CMPH_BRZ: /* included -- Fabiano */
+		case CMPH_BRZ:
 			brz_config_set_hashfuncs(mph, hashfuncs);
 			break;
-		case CMPH_FCH: /* included -- Fabiano */
+		case CMPH_FCH:
 			fch_config_set_hashfuncs(mph, hashfuncs);
 			break;
-		case CMPH_BDZ: /* included -- Fabiano */
+		case CMPH_BDZ:
 			bdz_config_set_hashfuncs(mph, hashfuncs);
 			break;
-		case CMPH_BDZ_PH: /* included -- Fabiano */
+		case CMPH_BDZ_PH:
 			bdz_ph_config_set_hashfuncs(mph, hashfuncs);
 			break;
-		case CMPH_CHD_PH: /* included -- Fabiano */
+		case CMPH_CHD_PH:
 			chd_ph_config_set_hashfuncs(mph, hashfuncs);
 			break;
-		case CMPH_CHD: /* included -- Fabiano */
+		case CMPH_CHD:
 			chd_config_set_hashfuncs(mph, hashfuncs);
 			break;
 		default:
@@ -533,37 +533,37 @@ cmph_t *cmph_new(cmph_config_t *mph)
 			DEBUGP("Creating chm hash\n");
 			mphf = chm_new(mph, c);
 			break;
-		case CMPH_BMZ: /* included -- Fabiano */
+		case CMPH_BMZ:
 			DEBUGP("Creating bmz hash\n");
 			mphf = bmz_new(mph, c);
 			break;
-		case CMPH_BMZ8: /* included -- Fabiano */
+		case CMPH_BMZ8:
 			DEBUGP("Creating bmz8 hash\n");
 			mphf = bmz8_new(mph, c);
 			break;
-		case CMPH_BRZ: /* included -- Fabiano */
+		case CMPH_BRZ:
 			DEBUGP("Creating brz hash\n");
 			if (c >= 2.0) brz_config_set_algo(mph, CMPH_FCH);
 			else brz_config_set_algo(mph, CMPH_BMZ8);
 			mphf = brz_new(mph, c);
 			break;
-		case CMPH_FCH: /* included -- Fabiano */
+		case CMPH_FCH:
 			DEBUGP("Creating fch hash\n");
 			mphf = fch_new(mph, c);
 			break;
-		case CMPH_BDZ: /* included -- Fabiano */
+		case CMPH_BDZ:
 			DEBUGP("Creating bdz hash\n");
 			mphf = bdz_new(mph, c);
 			break;
-		case CMPH_BDZ_PH: /* included -- Fabiano */
+		case CMPH_BDZ_PH:
 			DEBUGP("Creating bdz_ph hash\n");
 			mphf = bdz_ph_new(mph, c);
 			break;
-		case CMPH_CHD_PH: /* included -- Fabiano */
+		case CMPH_CHD_PH:
 			DEBUGP("Creating chd_ph hash\n");
 			mphf = chd_ph_new(mph, c);
 			break;
-		case CMPH_CHD: /* included -- Fabiano */
+		case CMPH_CHD:
 			DEBUGP("Creating chd hash\n");
 			mphf = chd_new(mph, c);
 			break;
@@ -579,21 +579,21 @@ int cmph_dump(cmph_t *mphf, FILE *f)
 	{
 		case CMPH_CHM:
 			return chm_dump(mphf, f);
-		case CMPH_BMZ: /* included -- Fabiano */
+		case CMPH_BMZ:
 			return bmz_dump(mphf, f);
-		case CMPH_BMZ8: /* included -- Fabiano */
+		case CMPH_BMZ8:
 			return bmz8_dump(mphf, f);
-		case CMPH_BRZ: /* included -- Fabiano */
+		case CMPH_BRZ:
 			return brz_dump(mphf, f);
-		case CMPH_FCH: /* included -- Fabiano */
+		case CMPH_FCH:
 			return fch_dump(mphf, f);
-		case CMPH_BDZ: /* included -- Fabiano */
+		case CMPH_BDZ:
 			return bdz_dump(mphf, f);
-		case CMPH_BDZ_PH: /* included -- Fabiano */
+		case CMPH_BDZ_PH:
 			return bdz_ph_dump(mphf, f);
-		case CMPH_CHD_PH: /* included -- Fabiano */
+		case CMPH_CHD_PH:
 			return chd_ph_dump(mphf, f);
-		case CMPH_CHD: /* included -- Fabiano */
+		case CMPH_CHD:
 			return chd_dump(mphf, f);
 		default:
 			assert(0);
@@ -614,35 +614,35 @@ cmph_t *cmph_load(FILE *f)
 		case CMPH_CHM:
 			chm_load(f, mphf);
 			break;
-		case CMPH_BMZ: /* included -- Fabiano */
+		case CMPH_BMZ:
 			DEBUGP("Loading bmz algorithm dependent parts\n");
 			bmz_load(f, mphf);
 			break;
-		case CMPH_BMZ8: /* included -- Fabiano */
+		case CMPH_BMZ8:
 			DEBUGP("Loading bmz8 algorithm dependent parts\n");
 			bmz8_load(f, mphf);
 			break;
-		case CMPH_BRZ: /* included -- Fabiano */
+		case CMPH_BRZ:
 			DEBUGP("Loading brz algorithm dependent parts\n");
 			brz_load(f, mphf);
 			break;
-		case CMPH_FCH: /* included -- Fabiano */
+		case CMPH_FCH:
 			DEBUGP("Loading fch algorithm dependent parts\n");
 			fch_load(f, mphf);
 			break;
-		case CMPH_BDZ: /* included -- Fabiano */
+		case CMPH_BDZ:
 			DEBUGP("Loading bdz algorithm dependent parts\n");
 			bdz_load(f, mphf);
 			break;
-		case CMPH_BDZ_PH: /* included -- Fabiano */
+		case CMPH_BDZ_PH:
 			DEBUGP("Loading bdz_ph algorithm dependent parts\n");
 			bdz_ph_load(f, mphf);
 			break;
-		case CMPH_CHD_PH: /* included -- Fabiano */
+		case CMPH_CHD_PH:
 			DEBUGP("Loading chd_ph algorithm dependent parts\n");
 			chd_ph_load(f, mphf);
 			break;
-		case CMPH_CHD: /* included -- Fabiano */
+		case CMPH_CHD:
 			DEBUGP("Loading chd algorithm dependent parts\n");
 			chd_load(f, mphf);
 			break;
@@ -656,33 +656,33 @@ cmph_t *cmph_load(FILE *f)
 
 cmph_uint32 cmph_search(cmph_t *mphf, const char *key, cmph_uint32 keylen)
 {
-   	DEBUGP("mphf algorithm: %u \n", mphf->algo);
+	DEBUGP("mphf algorithm: %s (%u)\n", cmph_names[mphf->algo], mphf->algo);
 	switch(mphf->algo)
 	{
 		case CMPH_CHM:
 			return chm_search(mphf, key, keylen);
-		case CMPH_BMZ: /* included -- Fabiano */
+		case CMPH_BMZ:
 		        DEBUGP("bmz algorithm search\n");
 		        return bmz_search(mphf, key, keylen);
-		case CMPH_BMZ8: /* included -- Fabiano */
+		case CMPH_BMZ8:
 		        DEBUGP("bmz8 algorithm search\n");
 		        return bmz8_search(mphf, key, keylen);
-		case CMPH_BRZ: /* included -- Fabiano */
+		case CMPH_BRZ:
 		        DEBUGP("brz algorithm search\n");
 		        return brz_search(mphf, key, keylen);
-		case CMPH_FCH: /* included -- Fabiano */
+		case CMPH_FCH:
 		        DEBUGP("fch algorithm search\n");
 		        return fch_search(mphf, key, keylen);
-		case CMPH_BDZ: /* included -- Fabiano */
+		case CMPH_BDZ:
 		        DEBUGP("bdz algorithm search\n");
 		        return bdz_search(mphf, key, keylen);
-		case CMPH_BDZ_PH: /* included -- Fabiano */
+		case CMPH_BDZ_PH:
 		        DEBUGP("bdz_ph algorithm search\n");
 		        return bdz_ph_search(mphf, key, keylen);
-		case CMPH_CHD_PH: /* included -- Fabiano */
+		case CMPH_CHD_PH:
 		        DEBUGP("chd_ph algorithm search\n");
 		        return chd_ph_search(mphf, key, keylen);
-		case CMPH_CHD: /* included -- Fabiano */
+		case CMPH_CHD:
 		        DEBUGP("chd algorithm search\n");
 		        return chd_search(mphf, key, keylen);
 		default:
@@ -704,28 +704,28 @@ void cmph_destroy(cmph_t *mphf)
 		case CMPH_CHM:
 			chm_destroy(mphf);
 			return;
-		case CMPH_BMZ: /* included -- Fabiano */
+		case CMPH_BMZ:
 			bmz_destroy(mphf);
 			return;
-		case CMPH_BMZ8: /* included -- Fabiano */
+		case CMPH_BMZ8:
 			bmz8_destroy(mphf);
 			return;
-		case CMPH_BRZ: /* included -- Fabiano */
+		case CMPH_BRZ:
 			brz_destroy(mphf);
 			return;
-		case CMPH_FCH: /* included -- Fabiano */
+		case CMPH_FCH:
 			fch_destroy(mphf);
 			return;
-		case CMPH_BDZ: /* included -- Fabiano */
+		case CMPH_BDZ:
 			bdz_destroy(mphf);
 			return;
-		case CMPH_BDZ_PH: /* included -- Fabiano */
+		case CMPH_BDZ_PH:
 			bdz_ph_destroy(mphf);
 			return;
-		case CMPH_CHD_PH: /* included -- Fabiano */
+		case CMPH_CHD_PH:
 			chd_ph_destroy(mphf);
 			return;
-		case CMPH_CHD: /* included -- Fabiano */
+		case CMPH_CHD:
 			chd_destroy(mphf);
 			return;
 		default:
@@ -752,28 +752,28 @@ void cmph_pack(cmph_t *mphf, void *packed_mphf)
 		case CMPH_CHM:
 			chm_pack(mphf, ptr);
 			break;
-		case CMPH_BMZ: /* included -- Fabiano */
+		case CMPH_BMZ:
 			bmz_pack(mphf, ptr);
 			break;
-		case CMPH_BMZ8: /* included -- Fabiano */
+		case CMPH_BMZ8:
 			bmz8_pack(mphf, ptr);
 			break;
-		case CMPH_BRZ: /* included -- Fabiano */
+		case CMPH_BRZ:
 			brz_pack(mphf, ptr);
 			break;
-		case CMPH_FCH: /* included -- Fabiano */
+		case CMPH_FCH:
 			fch_pack(mphf, ptr);
 			break;
-		case CMPH_BDZ: /* included -- Fabiano */
+		case CMPH_BDZ:
 			bdz_pack(mphf, ptr);
 			break;
-		case CMPH_BDZ_PH: /* included -- Fabiano */
+		case CMPH_BDZ_PH:
 			bdz_ph_pack(mphf, ptr);
 			break;
-		case CMPH_CHD_PH: /* included -- Fabiano */
+		case CMPH_CHD_PH:
 			chd_ph_pack(mphf, ptr);
 			break;
-		case CMPH_CHD: /* included -- Fabiano */
+		case CMPH_CHD:
 			chd_pack(mphf, ptr);
 			break;
 		default:
@@ -793,21 +793,21 @@ cmph_uint32 cmph_packed_size(cmph_t *mphf)
 	{
 		case CMPH_CHM:
 			return chm_packed_size(mphf);
-		case CMPH_BMZ: /* included -- Fabiano */
+		case CMPH_BMZ:
 			return bmz_packed_size(mphf);
-		case CMPH_BMZ8: /* included -- Fabiano */
+		case CMPH_BMZ8:
 			return bmz8_packed_size(mphf);
-		case CMPH_BRZ: /* included -- Fabiano */
+		case CMPH_BRZ:
 			return brz_packed_size(mphf);
-		case CMPH_FCH: /* included -- Fabiano */
+		case CMPH_FCH:
 			return fch_packed_size(mphf);
-		case CMPH_BDZ: /* included -- Fabiano */
+		case CMPH_BDZ:
 			return bdz_packed_size(mphf);
-		case CMPH_BDZ_PH: /* included -- Fabiano */
+		case CMPH_BDZ_PH:
 			return bdz_ph_packed_size(mphf);
-		case CMPH_CHD_PH: /* included -- Fabiano */
+		case CMPH_CHD_PH:
 			return chd_ph_packed_size(mphf);
-		case CMPH_CHD: /* included -- Fabiano */
+		case CMPH_CHD:
 			return chd_packed_size(mphf);
 		default:
 			assert(0);
@@ -830,21 +830,21 @@ cmph_uint32 cmph_search_packed(void *packed_mphf, const char *key, cmph_uint32 k
 	{
 		case CMPH_CHM:
 			return chm_search_packed(++ptr, key, keylen);
-		case CMPH_BMZ: /* included -- Fabiano */
+		case CMPH_BMZ:
 			return bmz_search_packed(++ptr, key, keylen);
-		case CMPH_BMZ8: /* included -- Fabiano */
+		case CMPH_BMZ8:
 			return bmz8_search_packed(++ptr, key, keylen);
-		case CMPH_BRZ: /* included -- Fabiano */
+		case CMPH_BRZ:
 			return brz_search_packed(++ptr, key, keylen);
-		case CMPH_FCH: /* included -- Fabiano */
+		case CMPH_FCH:
 			return fch_search_packed(++ptr, key, keylen);
-		case CMPH_BDZ: /* included -- Fabiano */
+		case CMPH_BDZ:
 			return bdz_search_packed(++ptr, key, keylen);
-		case CMPH_BDZ_PH: /* included -- Fabiano */
+		case CMPH_BDZ_PH:
 			return bdz_ph_search_packed(++ptr, key, keylen);
-		case CMPH_CHD_PH: /* included -- Fabiano */
+		case CMPH_CHD_PH:
 			return chd_ph_search_packed(++ptr, key, keylen);
-		case CMPH_CHD: /* included -- Fabiano */
+		case CMPH_CHD:
 			return chd_search_packed(++ptr, key, keylen);
 		default:
 			assert(0);
