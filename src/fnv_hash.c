@@ -1,6 +1,8 @@
 #include "fnv_hash.h"
 #include <stdlib.h>
 #include <string.h>
+#include <limits.h>
+#include "debug.h"
 
 fnv_state_t *fnv_state_new()
 {
@@ -36,8 +38,15 @@ cmph_uint32 fnv_hash(const cmph_uint32 seed, const char *k, cmph_uint32 keylen)
 
 void fnv_state_dump(fnv_state_t *state, char **buf, cmph_uint32 *buflen)
 {
-	*buf = NULL;
-	*buflen = 0;
+	*buflen = sizeof(cmph_uint32);
+	*buf = (char *)malloc(sizeof(cmph_uint32));
+	if (!*buf)
+	{
+		*buflen = UINT_MAX;
+		return;
+	}
+	memcpy(*buf, &(state->seed), sizeof(cmph_uint32));
+	DEBUGP("Dumped fnv state with seed %u\n", state->seed);
 	return;
 }
 

@@ -216,7 +216,8 @@ static cmph_uint8 searching(fch_config_data_t *fch, fch_buckets_t *buckets, cmph
 					keylen = fch_buckets_get_keylength(buckets, sorted_indexes[i], j);
 					h2 = hash(fch->h2, key, keylen) % fch->m;
 					index = (h2 + fch->g[sorted_indexes[i]]) % fch->m;
-					//DEBUGP("key:%s  keylen:%u  index: %u  h2:%u  bucketsize:%u\n", key, keylen, index, h2, bucketsize);
+					DEBUGP("key:%s  keylen:%u  index: %u  h2:%u  bucketsize:%u\n",
+                                               key, keylen, index, h2, bucketsize);
 					if (map_table[index] >= filled_count) {
 						cmph_uint32 y  = map_table[index];
 						cmph_uint32 ry = random_table[y];
@@ -256,10 +257,10 @@ cmph_t *fch_new(cmph_config_t *mph, double c)
 	cmph_uint32 * sorted_indexes = NULL;
 	fch_config_data_t *fch = (fch_config_data_t *)mph->data;
 	fch->m = mph->key_source->nkeys;
-	//DEBUGP("m: %f\n", fch->m);
+	DEBUGP("m: %u\n", fch->m);
 	if (c <= 2) c = 2.6; // validating restrictions over parameter c.
 	fch->c = c;
-	//DEBUGP("c: %f\n", fch->c);
+	DEBUGP("c: %f\n", fch->c);
 	fch->h1 = NULL;
 	fch->h2 = NULL;
 	fch->g = NULL;
@@ -304,7 +305,7 @@ cmph_t *fch_new(cmph_config_t *mph, double c)
 	fchf->m = fch->m;
 	mphf->data = fchf;
 	mphf->size = fch->m;
-	//DEBUGP("Successfully generated minimal perfect hash\n");
+	DEBUGP("Successfully generated minimal perfect hash\n");
 	if (mph->verbosity)
 	{
 		fprintf(stderr, "Successfully generated minimal perfect hash function\n");
@@ -316,35 +317,34 @@ int fch_dump(cmph_t *mphf, FILE *fd)
 {
 	char *buf = NULL;
 	cmph_uint32 buflen;
-	register size_t nbytes;
 
 	fch_data_t *data = (fch_data_t *)mphf->data;
 	__cmph_dump(mphf, fd);
 
 	hash_state_dump(data->h1, &buf, &buflen);
-	//DEBUGP("Dumping hash state with %u bytes to disk\n", buflen);
-	nbytes = fwrite(&buflen, sizeof(cmph_uint32), (size_t)1, fd);
-	nbytes = fwrite(buf, (size_t)buflen, (size_t)1, fd);
+	DEBUGP("Dumping hash state with %u bytes to disk\n", buflen);
+	CHK_FWRITE(&buflen, sizeof(cmph_uint32), (size_t)1, fd);
+	CHK_FWRITE(buf, (size_t)buflen, (size_t)1, fd);
 	free(buf);
 
 	hash_state_dump(data->h2, &buf, &buflen);
-	//DEBUGP("Dumping hash state with %u bytes to disk\n", buflen);
-	nbytes = fwrite(&buflen, sizeof(cmph_uint32), (size_t)1, fd);
-	nbytes = fwrite(buf, (size_t)buflen, (size_t)1, fd);
+	DEBUGP("Dumping hash state with %u bytes to disk\n", buflen);
+	CHK_FWRITE(&buflen, sizeof(cmph_uint32), (size_t)1, fd);
+	CHK_FWRITE(buf, (size_t)buflen, (size_t)1, fd);
 	free(buf);
 
-	nbytes = fwrite(&(data->m), sizeof(cmph_uint32), (size_t)1, fd);
-	nbytes = fwrite(&(data->c), sizeof(double), (size_t)1, fd);
-	nbytes = fwrite(&(data->b), sizeof(cmph_uint32), (size_t)1, fd);
-	nbytes = fwrite(&(data->p1), sizeof(double), (size_t)1, fd);
-	nbytes = fwrite(&(data->p2), sizeof(double), (size_t)1, fd);
-	nbytes = fwrite(data->g, sizeof(cmph_uint32)*(data->b), (size_t)1, fd);
-	#ifdef DEBUG
+	CHK_FWRITE(&(data->m), sizeof(cmph_uint32), (size_t)1, fd);
+	CHK_FWRITE(&(data->c), sizeof(double), (size_t)1, fd);
+	CHK_FWRITE(&(data->b), sizeof(cmph_uint32), (size_t)1, fd);
+	CHK_FWRITE(&(data->p1), sizeof(double), (size_t)1, fd);
+	CHK_FWRITE(&(data->p2), sizeof(double), (size_t)1, fd);
+	CHK_FWRITE(data->g, sizeof(cmph_uint32)*(data->b), (size_t)1, fd);
+#ifdef DEBUG
 	cmph_uint32 i;
 	fprintf(stderr, "G: ");
 	for (i = 0; i < data->b; ++i) fprintf(stderr, "%u ", data->g[i]);
 	fprintf(stderr, "\n");
-	#endif
+#endif
 	return 1;
 }
 
@@ -352,47 +352,45 @@ void fch_load(FILE *f, cmph_t *mphf)
 {
 	char *buf = NULL;
 	cmph_uint32 buflen;
-	register size_t nbytes;
 	fch_data_t *fch = (fch_data_t *)malloc(sizeof(fch_data_t));
 
-	//DEBUGP("Loading fch mphf\n");
+	DEBUGP("Loading fch mphf\n");
 	mphf->data = fch;
-	//DEBUGP("Reading h1\n");
+	DEBUGP("Reading h1\n");
 	fch->h1 = NULL;
-	nbytes = fread(&buflen, sizeof(cmph_uint32), (size_t)1, f);
-	//DEBUGP("Hash state of h1 has %u bytes\n", buflen);
+	CHK_FREAD(&buflen, sizeof(cmph_uint32), (size_t)1, f);
+	DEBUGP("Hash state of h1 has %u bytes\n", buflen);
 	buf = (char *)malloc((size_t)buflen);
-	nbytes = fread(buf, (size_t)buflen, (size_t)1, f);
+	CHK_FREAD(buf, (size_t)buflen, (size_t)1, f);
 	fch->h1 = hash_state_load(buf, buflen);
 	free(buf);
 
-	//DEBUGP("Loading fch mphf\n");
 	mphf->data = fch;
-	//DEBUGP("Reading h2\n");
+	DEBUGP("Reading h2\n");
 	fch->h2 = NULL;
-	nbytes = fread(&buflen, sizeof(cmph_uint32), (size_t)1, f);
-	//DEBUGP("Hash state of h2 has %u bytes\n", buflen);
+	CHK_FREAD(&buflen, sizeof(cmph_uint32), (size_t)1, f);
+	DEBUGP("Hash state of h2 has %u bytes\n", buflen);
 	buf = (char *)malloc((size_t)buflen);
-	nbytes = fread(buf, (size_t)buflen, (size_t)1, f);
+	CHK_FREAD(buf, (size_t)buflen, (size_t)1, f);
 	fch->h2 = hash_state_load(buf, buflen);
 	free(buf);
 
 
-	//DEBUGP("Reading m and n\n");
-	nbytes = fread(&(fch->m), sizeof(cmph_uint32), (size_t)1, f);
-	nbytes = fread(&(fch->c), sizeof(double), (size_t)1, f);
-	nbytes = fread(&(fch->b), sizeof(cmph_uint32), (size_t)1, f);
-	nbytes = fread(&(fch->p1), sizeof(double), (size_t)1, f);
-	nbytes = fread(&(fch->p2), sizeof(double), (size_t)1, f);
+	DEBUGP("Reading m and n\n");
+	CHK_FREAD(&(fch->m), sizeof(cmph_uint32), (size_t)1, f);
+	CHK_FREAD(&(fch->c), sizeof(double), (size_t)1, f);
+	CHK_FREAD(&(fch->b), sizeof(cmph_uint32), (size_t)1, f);
+	CHK_FREAD(&(fch->p1), sizeof(double), (size_t)1, f);
+	CHK_FREAD(&(fch->p2), sizeof(double), (size_t)1, f);
 
 	fch->g = (cmph_uint32 *)malloc(sizeof(cmph_uint32)*fch->b);
-	nbytes = fread(fch->g, fch->b*sizeof(cmph_uint32), (size_t)1, f);
-	#ifdef DEBUG
+	CHK_FREAD(fch->g, fch->b*sizeof(cmph_uint32), (size_t)1, f);
+#ifdef DEBUG
 	cmph_uint32 i;
 	fprintf(stderr, "G: ");
 	for (i = 0; i < fch->b; ++i) fprintf(stderr, "%u ", fch->g[i]);
 	fprintf(stderr, "\n");
-	#endif
+#endif
 	return;
 }
 
@@ -402,7 +400,7 @@ cmph_uint32 fch_search(cmph_t *mphf, const char *key, cmph_uint32 keylen)
 	cmph_uint32 h1 = hash(fch->h1, key, keylen) % fch->m;
 	cmph_uint32 h2 = hash(fch->h2, key, keylen) % fch->m;
 	h1 = mixh10h11h12 (fch->b, fch->p1, fch->p2, h1);
-	//DEBUGP("key: %s h1: %u h2: %u  g[h1]: %u\n", key, h1, h2, fch->g[h1]);
+	DEBUGP("key: %s h1: %u h2: %u  g[h1]: %u\n", key, h1, h2, fch->g[h1]);
 	return (h2 + fch->g[h1]) % fch->m;
 }
 void fch_destroy(cmph_t *mphf)

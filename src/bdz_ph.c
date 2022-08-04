@@ -436,6 +436,7 @@ static void bdz_ph_optimization(bdz_ph_config_data_t *bdz_ph)
 	cmph_uint8 * new_g = (cmph_uint8 *)calloc((size_t)sizeg, sizeof(cmph_uint8));
 	cmph_uint8 value;
 	cmph_uint32 idx;
+
 	for(i = 0; i < bdz_ph->n; i++)
 	{
             idx = i/5;
@@ -456,19 +457,20 @@ int bdz_ph_dump(cmph_t *mphf, FILE *fd)
 	cmph_uint32 sizeg = 0;
 	register size_t nbytes;
 	bdz_ph_data_t *data = (bdz_ph_data_t *)mphf->data;
+
 	__cmph_dump(mphf, fd);
 
 	hash_state_dump(data->hl, &buf, &buflen);
 	DEBUGP("Dumping hash state with %u bytes to disk\n", buflen);
-	nbytes = fwrite(&buflen, sizeof(cmph_uint32), (size_t)1, fd);
-	nbytes = fwrite(buf, (size_t)buflen, (size_t)1, fd);
+	CHK_FWRITE(&buflen, sizeof(cmph_uint32), (size_t)1, fd);
+	CHK_FWRITE(buf, (size_t)buflen, (size_t)1, fd);
 	free(buf);
 
-	nbytes = fwrite(&(data->n), sizeof(cmph_uint32), (size_t)1, fd);
-	nbytes = fwrite(&(data->m), sizeof(cmph_uint32), (size_t)1, fd);
-	nbytes = fwrite(&(data->r), sizeof(cmph_uint32), (size_t)1, fd);
+	CHK_FWRITE(&(data->n), sizeof(cmph_uint32), (size_t)1, fd);
+	CHK_FWRITE(&(data->m), sizeof(cmph_uint32), (size_t)1, fd);
+	CHK_FWRITE(&(data->r), sizeof(cmph_uint32), (size_t)1, fd);
 	sizeg = (cmph_uint32)ceil(data->n/5.0);
-	nbytes = fwrite(data->g, sizeof(cmph_uint8)*sizeg, (size_t)1, fd);
+	CHK_FWRITE(data->g, sizeof(cmph_uint8)*sizeg, (size_t)1, fd);
 
 #ifdef DEBUG
 	cmph_uint32 i;
@@ -490,21 +492,21 @@ void bdz_ph_load(FILE *f, cmph_t *mphf)
 	DEBUGP("Loading bdz_ph mphf\n");
 	mphf->data = bdz_ph;
 
-	nbytes = fread(&buflen, sizeof(cmph_uint32), (size_t)1, f);
+	CHK_FREAD(&buflen, sizeof(cmph_uint32), (size_t)1, f);
 	DEBUGP("Hash state has %u bytes\n", buflen);
 	buf = (char *)malloc((size_t)buflen);
-	nbytes = fread(buf, (size_t)buflen, (size_t)1, f);
+	CHK_FREAD(buf, (size_t)buflen, (size_t)1, f);
 	bdz_ph->hl = hash_state_load(buf, buflen);
 	free(buf);
 
 
 	DEBUGP("Reading m and n\n");
-	nbytes = fread(&(bdz_ph->n), sizeof(cmph_uint32), (size_t)1, f);
-	nbytes = fread(&(bdz_ph->m), sizeof(cmph_uint32), (size_t)1, f);
-	nbytes = fread(&(bdz_ph->r), sizeof(cmph_uint32), (size_t)1, f);
+	CHK_FREAD(&(bdz_ph->n), sizeof(cmph_uint32), (size_t)1, f);
+	CHK_FREAD(&(bdz_ph->m), sizeof(cmph_uint32), (size_t)1, f);
+	CHK_FREAD(&(bdz_ph->r), sizeof(cmph_uint32), (size_t)1, f);
 	sizeg = (cmph_uint32)ceil(bdz_ph->n/5.0);
 	bdz_ph->g = (cmph_uint8 *)calloc((size_t)sizeg, sizeof(cmph_uint8));
-	nbytes = fread(bdz_ph->g, sizeg*sizeof(cmph_uint8), (size_t)1, f);
+	CHK_FREAD(bdz_ph->g, sizeg*sizeof(cmph_uint8), (size_t)1, f);
 
 	return;
 }

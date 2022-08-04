@@ -459,27 +459,27 @@ int bmz_dump(cmph_t *mphf, FILE *fd)
 	cmph_uint32 buflen;
 	cmph_uint32 two = 2; //number of hash functions
 	bmz_data_t *data = (bmz_data_t *)mphf->data;
-	register size_t nbytes;
+
 	__cmph_dump(mphf, fd);
 
-	nbytes = fwrite(&two, sizeof(cmph_uint32), (size_t)1, fd);
+	CHK_FWRITE(&two, sizeof(cmph_uint32), (size_t)1, fd);
 
 	hash_state_dump(data->hashes[0], &buf, &buflen);
 	DEBUGP("Dumping hash state with %u bytes to disk\n", buflen);
-	nbytes = fwrite(&buflen, sizeof(cmph_uint32), (size_t)1, fd);
-	nbytes = fwrite(buf, (size_t)buflen, (size_t)1, fd);
+	CHK_FWRITE(&buflen, sizeof(cmph_uint32), (size_t)1, fd);
+	CHK_FWRITE(buf, (size_t)buflen, (size_t)1, fd);
 	free(buf);
 
 	hash_state_dump(data->hashes[1], &buf, &buflen);
 	DEBUGP("Dumping hash state with %u bytes to disk\n", buflen);
-	nbytes = fwrite(&buflen, sizeof(cmph_uint32), (size_t)1, fd);
-	nbytes = fwrite(buf, (size_t)buflen, (size_t)1, fd);
+	CHK_FWRITE(&buflen, sizeof(cmph_uint32), (size_t)1, fd);
+	CHK_FWRITE(buf, (size_t)buflen, (size_t)1, fd);
 	free(buf);
 
-	nbytes = fwrite(&(data->n), sizeof(cmph_uint32), (size_t)1, fd);
-	nbytes = fwrite(&(data->m), sizeof(cmph_uint32), (size_t)1, fd);
+	CHK_FWRITE(&(data->n), sizeof(cmph_uint32), (size_t)1, fd);
+	CHK_FWRITE(&(data->m), sizeof(cmph_uint32), (size_t)1, fd);
 
-	nbytes = fwrite(data->g, sizeof(cmph_uint32)*(data->n), (size_t)1, fd);
+	CHK_FWRITE(data->g, sizeof(cmph_uint32)*(data->n), (size_t)1, fd);
 #ifdef DEBUG
 	cmph_uint32 i;
 	fprintf(stderr, "G: ");
@@ -496,31 +496,30 @@ void bmz_load(FILE *f, cmph_t *mphf)
 	cmph_uint32 buflen;
 	cmph_uint32 i;
 	bmz_data_t *bmz = (bmz_data_t *)malloc(sizeof(bmz_data_t));
-	register size_t nbytes;
 	DEBUGP("Loading bmz mphf\n");
 	mphf->data = bmz;
-	nbytes = fread(&nhashes, sizeof(cmph_uint32), (size_t)1, f);
+	CHK_FREAD(&nhashes, sizeof(cmph_uint32), (size_t)1, f);
 	bmz->hashes = (hash_state_t **)malloc(sizeof(hash_state_t *)*(nhashes + 1));
 	bmz->hashes[nhashes] = NULL;
 	DEBUGP("Reading %u hashes\n", nhashes);
 	for (i = 0; i < nhashes; ++i)
 	{
 		hash_state_t *state = NULL;
-		nbytes = fread(&buflen, sizeof(cmph_uint32), (size_t)1, f);
+		CHK_FREAD(&buflen, sizeof(cmph_uint32), (size_t)1, f);
 		DEBUGP("Hash state has %u bytes\n", buflen);
 		buf = (char *)malloc((size_t)buflen);
-		nbytes = fread(buf, (size_t)buflen, (size_t)1, f);
+		CHK_FREAD(buf, (size_t)buflen, (size_t)1, f);
 		state = hash_state_load(buf, buflen);
 		bmz->hashes[i] = state;
 		free(buf);
 	}
 
 	DEBUGP("Reading m and n\n");
-	nbytes = fread(&(bmz->n), sizeof(cmph_uint32), (size_t)1, f);
-	nbytes = fread(&(bmz->m), sizeof(cmph_uint32), (size_t)1, f);
+	CHK_FREAD(&(bmz->n), sizeof(cmph_uint32), (size_t)1, f);
+	CHK_FREAD(&(bmz->m), sizeof(cmph_uint32), (size_t)1, f);
 
 	bmz->g = (cmph_uint32 *)malloc(sizeof(cmph_uint32)*bmz->n);
-	nbytes = fread(bmz->g, bmz->n*sizeof(cmph_uint32), (size_t)1, f);
+	CHK_FREAD(bmz->g, bmz->n*sizeof(cmph_uint32), (size_t)1, f);
 #ifdef DEBUG
 	fprintf(stderr, "G: ");
 	for (i = 0; i < bmz->n; ++i) fprintf(stderr, "%u ", bmz->g[i]);

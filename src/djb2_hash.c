@@ -1,6 +1,8 @@
 #include "djb2_hash.h"
 #include <stdlib.h>
 #include <string.h>
+#include <limits.h>
+#include "debug.h"
 
 djb2_state_t *djb2_state_new()
 {
@@ -31,8 +33,15 @@ cmph_uint32 djb2_hash(const cmph_uint32 seed, const char *k, cmph_uint32 keylen)
 
 void djb2_state_dump(djb2_state_t *state, char **buf, cmph_uint32 *buflen)
 {
-	*buf = NULL;
-	*buflen = 0;
+	*buflen = sizeof(cmph_uint32);
+	*buf = (char *)malloc(sizeof(cmph_uint32));
+	if (!*buf)
+	{
+		*buflen = UINT_MAX;
+		return;
+	}
+	memcpy(*buf, &(state->seed), sizeof(cmph_uint32));
+	DEBUGP("Dumped djb2 state with seed %u\n", state->seed);
 	return;
 }
 

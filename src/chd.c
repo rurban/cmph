@@ -175,38 +175,36 @@ cmph_t *chd_new(cmph_config_t *mph, double c)
 
 void chd_load(FILE *fd, cmph_t *mphf)
 {
-	register size_t nbytes;
 	chd_data_t *chd = (chd_data_t *)malloc(sizeof(chd_data_t));
 
 	DEBUGP("Loading chd mphf\n");
 	mphf->data = chd;
 
-	nbytes = fread(&chd->packed_chd_phf_size, sizeof(cmph_uint32), (size_t)1, fd);
+	CHK_FREAD(&chd->packed_chd_phf_size, sizeof(cmph_uint32), (size_t)1, fd);
 	DEBUGP("Loading CHD_PH perfect hash function with %u bytes to disk\n", chd->packed_chd_phf_size);
 	chd->packed_chd_phf = (cmph_uint8 *) calloc((size_t)chd->packed_chd_phf_size,(size_t)1);
-	nbytes = fread(chd->packed_chd_phf, chd->packed_chd_phf_size, (size_t)1, fd);
+	CHK_FREAD(chd->packed_chd_phf, chd->packed_chd_phf_size, (size_t)1, fd);
 
-	nbytes = fread(&chd->packed_cr_size, sizeof(cmph_uint32), (size_t)1, fd);
+	CHK_FREAD(&chd->packed_cr_size, sizeof(cmph_uint32), (size_t)1, fd);
 	DEBUGP("Loading Compressed rank structure, which has %u bytes\n", chd->packed_cr_size);
 	chd->packed_cr = (cmph_uint8 *) calloc((size_t)chd->packed_cr_size, (size_t)1);
-	nbytes = fread(chd->packed_cr, chd->packed_cr_size, (size_t)1, fd);
+	CHK_FREAD(chd->packed_cr, chd->packed_cr_size, (size_t)1, fd);
 }
 
 int chd_dump(cmph_t *mphf, FILE *fd)
 {
-	register size_t nbytes;
 	chd_data_t *data = (chd_data_t *)mphf->data;
 
 	__cmph_dump(mphf, fd);
 	// Dumping CHD_PH perfect hash function
 
 	DEBUGP("Dumping CHD_PH perfect hash function with %u bytes to disk\n", data->packed_chd_phf_size);
-	nbytes = fwrite(&data->packed_chd_phf_size, sizeof(cmph_uint32), (size_t)1, fd);
-	nbytes = fwrite(data->packed_chd_phf, data->packed_chd_phf_size, (size_t)1, fd);
+	CHK_FWRITE(&data->packed_chd_phf_size, sizeof(cmph_uint32), (size_t)1, fd);
+	CHK_FWRITE(data->packed_chd_phf, data->packed_chd_phf_size, (size_t)1, fd);
 
 	DEBUGP("Dumping compressed rank structure with %u bytes to disk\n", 1);
-	nbytes = fwrite(&data->packed_cr_size, sizeof(cmph_uint32), (size_t)1, fd);
-	nbytes = fwrite(data->packed_cr, data->packed_cr_size, (size_t)1, fd);
+	CHK_FWRITE(&data->packed_cr_size, sizeof(cmph_uint32), (size_t)1, fd);
+	CHK_FWRITE(data->packed_cr, data->packed_cr_size, (size_t)1, fd);
 
 	return 1;
 }
