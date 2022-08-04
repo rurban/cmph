@@ -1,0 +1,27 @@
+#!/bin/sh
+
+set -e
+N=100
+WORDS=/usr/share/dict/words
+
+test -e _words || head -n $N <${WORDS} >_words
+# BROKEN bmz8 chd chd_ph
+for a in bmz chm brz fch bdz bdz_ph; do
+    rm -f _words.mph
+    echo "** cmph -g -a $a _words"
+    ../src/cmph -g -a $a _words
+    echo "** cmph -a $a _words"
+    ../src/cmph _words
+    echo "** mphf_tests -a $a _words"
+    ./mphf_tests _words
+done
+for f in jenkins wyhash djb2 fnv; do
+    rm -f _words.mph
+    echo "** cmph -g -f $f _words"
+    ../src/cmph -g -f $f _words
+    echo "** cmph -f $f _words"
+    ../src/cmph _words
+    echo "** mphf_tests -f $f _words"
+    ./mphf_tests _words
+done
+rm -f _words _words.mph
