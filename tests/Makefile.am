@@ -1,8 +1,9 @@
 TESTS = $(check_PROGRAMS) cmph_tests
 check_PROGRAMS = graph_tests select_tests compressed_seq_tests compressed_rank_tests cmph_benchmark_test
 noinst_PROGRAMS = packed_mphf_tests mphf_tests
+EXTRA_DIST = cmph_tests
 
-AM_CPPFLAGS = -I../src/
+AM_CPPFLAGS = -I$(top_srcdir)/src
 
 cmph_tests: mphf_tests
 graph_tests_SOURCES = graph_tests.c

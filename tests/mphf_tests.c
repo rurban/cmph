@@ -10,8 +10,8 @@
 #include <time.h>
 #include <limits.h>
 #include <assert.h>
-#include <cmph.h>
 
+#include "cmph.h"
 #ifdef WIN32
 #define VERSION "0.8"
 #else

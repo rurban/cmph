@@ -1,5 +1,5 @@
 SUBDIRS = src tests examples man
-EXTRA_DIST = cmph.spec configure.ac cmph.pc.in cxxmph.pc.in LGPL-2 MPL-1.1 docs/*
+EXTRA_DIST = cmph.spec configure.ac cmph.pc.in cxxmph.pc.in LGPL-2 MPL-1.1
 pkgconfig_DATA = cmph.pc
 if USE_CXXMPH
   SUBDIRS += cxxmph
