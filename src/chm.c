@@ -44,7 +44,7 @@ void chm_config_set_hashfuncs(cmph_config_t *mph, CMPH_HASH *hashfuncs)
 	cmph_uint32 i = 0;
 	while(*hashptr != CMPH_HASH_COUNT)
 	{
-		if (i >= 2) break; //chm only uses two hash functions
+		if (i >= 2) break; //chm uses two hash functions
 		chm->hashfuncs[i] = *hashptr;
 		++i, ++hashptr;
 	}
@@ -169,7 +169,8 @@ static int chm_gen_edges(cmph_config_t *mph)
 	chm_config_data_t *chm = (chm_config_data_t *)mph->data;
 	int cycles = 0;
 
-	DEBUGP("Generating edges for %u vertices with hash functions %s and %s\n", chm->n, cmph_hash_names[chm->hashfuncs[0]], cmph_hash_names[chm->hashfuncs[1]]);
+	DEBUGP("Generating edges for %u vertices with hash functions %s and %s\n", chm->n,
+               cmph_hash_names[chm->hashfuncs[0]], cmph_hash_names[chm->hashfuncs[1]]);
 	graph_clear_edges(chm->graph);
 	mph->key_source->rewind(mph->key_source->data);
 	for (e = 0; e < mph->key_source->nkeys; ++e)

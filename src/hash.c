@@ -4,7 +4,7 @@
 #include <limits.h>
 #include <string.h>
 
-#define DEBUG
+//#define DEBUG
 #include "debug.h"
 
 const char *cmph_hash_names[] = { "jenkins", "wyhash", "djb2", "fnv", NULL };
@@ -88,15 +88,19 @@ void hash_state_dump(hash_state_t *state, char **buf, cmph_uint32 *buflen)
 	switch (state->hashfunc)
 	{
 		case CMPH_HASH_JENKINS:
+                        DEBUGP("Dump hash jenkins\n");
 			jenkins_state_dump((jenkins_state_t *)state, &algobuf, buflen);
 			break;
 		case CMPH_HASH_WYHASH:
+                        DEBUGP("Dump hash wyhash\n");
 			wyhash_state_dump((wyhash_state_t *)state, &algobuf, buflen);
 			break;
 		case CMPH_HASH_DJB2:
+                        DEBUGP("Dump hash djb2\n");
 			djb2_state_dump((djb2_state_t *)state, &algobuf, buflen);
 			break;
 		case CMPH_HASH_FNV:
+                        DEBUGP("Dump hash fnv\n");
 			fnv_state_dump((fnv_state_t *)state, &algobuf, buflen);
 			break;
 		default:
@@ -158,14 +162,19 @@ hash_state_t *hash_state_load(const char *buf, cmph_uint32 buflen)
 	switch (hashfunc)
 	{
 		case CMPH_HASH_JENKINS:
+                        DEBUGP("Hash is jenkins\n");
 			return (hash_state_t *)jenkins_state_load(buf + offset, buflen - offset);
 		case CMPH_HASH_WYHASH:
+                        DEBUGP("Hash is wyhash\n");
 			return (hash_state_t *)wyhash_state_load(buf + offset, buflen - offset);
 		case CMPH_HASH_DJB2:
+                        DEBUGP("Hash is djb2\n");
 			return (hash_state_t *)djb2_state_load(buf + offset, buflen - offset);
 		case CMPH_HASH_FNV:
+                        DEBUGP("Hash is fnv\n");
 			return (hash_state_t *)fnv_state_load(buf + offset, buflen - offset);
 		default:
+                        DEBUGP("Unknown Hash\n");
 			return NULL;
 	}
 	return NULL;

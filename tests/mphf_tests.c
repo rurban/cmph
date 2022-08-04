@@ -26,7 +26,7 @@ void usage(const char *prg)
 void usage_long(const char *prg)
 {
 	fprintf(stderr, "usage: %s [-v] [-h] [-V] [-k nkeys] [-m file.mph] keysfile\n", prg);   
-	fprintf(stderr, "Packed MPHFs testing tool\n\n"); 
+	fprintf(stderr, "MPHFs testing tool\n\n"); 
 	fprintf(stderr, "  -h\t print this help message\n");
 	fprintf(stderr, "  -V\t print version number and exit\n");
 	fprintf(stderr, "  -v\t increase verbosity (may be used multiple times)\n");
@@ -155,7 +155,6 @@ int main(int argc, char **argv)
 
 	fclose(keys_fd);
 	free(mphf_file);
-    cmph_io_nlfile_adapter_destroy(source);
+        cmph_io_nlfile_adapter_destroy(source);
 	return ret;
-  
 }
