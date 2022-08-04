@@ -75,18 +75,16 @@ cmph_t *bmz8_new(cmph_config_t *mph, double c)
 	bmz8->m = (cmph_uint8) mph->key_source->nkeys;
 	bmz8->n = (cmph_uint8) ceil(c * mph->key_source->nkeys);
 
-    if (bmz8->n < 5) // workaround for small key sets
-    {
-        bmz8->n = 5;
-    }
+	if (bmz8->n < 5) // workaround for small key sets
+	{
+		bmz8->n = 5;
+	}
 
 	DEBUGP("m (edges): %u n (vertices): %u c: %f\n", bmz8->m, bmz8->n, c);
 	bmz8->graph = graph_new(bmz8->n, bmz8->m);
 	DEBUGP("Created graph\n");
 
-	bmz8->hashes = (hash_state_t **)malloc(sizeof(hash_state_t *)*3);
-	for(i = 0; i < 3; ++i) bmz8->hashes[i] = NULL;
-
+	bmz8->hashes = (hash_state_t **)calloc(sizeof(hash_state_t *), 2);
 	do
 	{
 	  // Mapping step
@@ -100,6 +98,11 @@ cmph_t *bmz8_new(cmph_config_t *mph, double c)
 	  while(1)
 	  {
 		int ok;
+		if (bmz8->hashes[0])
+		{
+		    hash_state_destroy(bmz8->hashes[0]);
+		    hash_state_destroy(bmz8->hashes[1]);
+		}
 		DEBUGP("hash function 1\n");
 		bmz8->hashes[0] = hash_state_new(bmz8->hashfuncs[0], bmz8->n);
 		DEBUGP("hash function 2\n");
@@ -118,13 +121,19 @@ cmph_t *bmz8_new(cmph_config_t *mph, double c)
 			{
 				fprintf(stderr, "simple graph creation failure - %u iterations remaining\n", iterations);
 			}
-			if (iterations == 0) break;
+			if (iterations == 0)
+			    break;
 		}
-		else break;
+		else
+		    break;
 	  }
 	  if (iterations == 0)
 	  {
 		graph_destroy(bmz8->graph);
+		hash_state_destroy(bmz8->hashes[0]);
+		bmz8->hashes[0] = NULL;
+		hash_state_destroy(bmz8->hashes[1]);
+		bmz8->hashes[1] = NULL;
 		return NULL;
 	  }
 
@@ -154,9 +163,12 @@ cmph_t *bmz8_new(cmph_config_t *mph, double c)
 	  {
                 if (graph_node_is_critical(bmz8->graph, i) && (!GETBIT(visited,i)))
 		{
-		  if(c > 1.14) restart_mapping = bmz8_traverse_critical_nodes(bmz8, i, &biggest_g_value, &biggest_edge_value, used_edges, visited);
-		  else restart_mapping = bmz8_traverse_critical_nodes_heuristic(bmz8, i, &biggest_g_value, &biggest_edge_value, used_edges, visited);
-		  if(restart_mapping) break;
+		  if(c > 1.14)
+		      restart_mapping = bmz8_traverse_critical_nodes(bmz8, i, &biggest_g_value, &biggest_edge_value, used_edges, visited);
+		  else
+		      restart_mapping = bmz8_traverse_critical_nodes_heuristic(bmz8, i, &biggest_g_value, &biggest_edge_value, used_edges, visited);
+		  if(restart_mapping)
+		      break;
 		}
 	  }
 	  if(!restart_mapping)
@@ -176,7 +188,7 @@ cmph_t *bmz8_new(cmph_config_t *mph, double c)
 	  free(used_edges);
 	  free(visited);
 
-	}while(restart_mapping && iterations_map > 0);
+	} while(restart_mapping && iterations_map > 0);
 	graph_destroy(bmz8->graph);
 	bmz8->graph = NULL;
 	if (iterations_map == 0)
@@ -387,7 +399,7 @@ static void bmz8_traverse(bmz8_config_data_t *bmz8, cmph_uint8 * used_edges, cmp
 	while((neighbor = graph_next_neighbor(bmz8->graph, &it)) != GRAPH_NO_NEIGHBOR)
 	{
      	        if(GETBIT(visited,neighbor)) continue;
-		//DEBUGP("Visiting neighbor %u\n", neighbor);
+		DEBUGP("Visiting neighbor %u\n", neighbor);
 		*unused_edge_index = next_unused_edge(bmz8, used_edges, *unused_edge_index);
 		bmz8->g[neighbor] = (cmph_uint8)(*unused_edge_index - bmz8->g[v]);
 		//if (bmz8->g[neighbor] >= bmz8->m) bmz8->g[neighbor] += bmz8->m;
@@ -450,7 +462,7 @@ static int bmz8_gen_edges(cmph_config_t *mph)
 			mph->key_source->dispose(mph->key_source->data, key, keylen);
 			return 0;
 		}
-		//DEBUGP("Adding edge: %u -> %u for key %s\n", h1, h2, key);
+		DEBUGP("Adding edge: %u -> %u for key %s\n", h1, h2, key);
 		mph->key_source->dispose(mph->key_source->data, key, keylen);
 //		fprintf(stderr, "key = %s -- dispose BMZ\n", key);
 		multiple_edges = graph_contains_edge(bmz8->graph, h1, h2);

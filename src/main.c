@@ -342,6 +342,7 @@ int main(int argc, char **argv)
 	fclose(keys_fd);
 	free(mphf_file);
 	free(tmp_dir);
+        free(hashes);
         cmph_io_nlfile_adapter_destroy(source);
 	return ret;
 

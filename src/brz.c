@@ -245,7 +245,7 @@ static int brz_gen_mphf(cmph_config_t *mph)
 	cmph_uint8 **buffer_merge = NULL;
 	cmph_uint32 *buffer_h0 = NULL;
 	cmph_uint32 nflushes = 0;
-	cmph_uint32 h0;
+	cmph_uint32 h0 = 0;
 	FILE *  tmp_fd = NULL;
 	buffer_manager_t * buff_manager = NULL;
 	char *filename = NULL;
