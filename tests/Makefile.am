@@ -25,3 +25,6 @@ compressed_rank_tests_LDADD = ../src/libcmph.la
 
 cmph_benchmark_test_SOURCES = cmph_benchmark_test.c
 cmph_benchmark_test_LDADD = ../src/libcmph.la
+
+CLEANFILES = test-suite.log _words _words.mph TAGS
+
