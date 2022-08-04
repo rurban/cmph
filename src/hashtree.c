@@ -218,11 +218,11 @@ int hashtree_dump(cmph_t *mphf, FILE *fd)
 	fwrite(&(data->m), sizeof(cmph_uint32), 1, fd);
 
 	fwrite(data->g, sizeof(cmph_uint32)*data->n, 1, fd);
-	#ifdef DEBUG
+#ifdef DEBUG
 	fprintf(stderr, "G: ");
 	for (i = 0; i < data->n; ++i) fprintf(stderr, "%u ", data->g[i]);
 	fprintf(stderr, "\n");
-	#endif
+#endif
 	return 1;
 }
 
@@ -258,11 +258,11 @@ void hashtree_load(FILE *f, cmph_t *mphf)
 
 	hashtree->g = (cmph_uint32 *)malloc(sizeof(cmph_uint32)*hashtree->n);
 	fread(hashtree->g, hashtree->n*sizeof(cmph_uint32), 1, f);
-	#ifdef DEBUG
+#ifdef DEBUG
 	fprintf(stderr, "G: ");
 	for (i = 0; i < hashtree->n; ++i) fprintf(stderr, "%u ", hashtree->g[i]);
 	fprintf(stderr, "\n");
-	#endif
+#endif
 	return;
 }
 

@@ -637,11 +637,11 @@ cmph_t *chd_ph_new(cmph_config_t *mph, double c)
 	chd_ph_sorted_list_t * sorted_lists = NULL;
 	cmph_uint32 * disp_table = NULL;
 	register double space_lower_bound = 0;
-	#ifdef CMPH_TIMING
+#ifdef CMPH_TIMING
 	double construction_time_begin = 0.0;
 	double construction_time = 0.0;
 	ELAPSED_TIME_IN_SECONDS(&construction_time_begin);
-	#endif
+#endif
 
 
 	chd_ph->m = mph->key_source->nkeys;
@@ -760,17 +760,14 @@ cmph_t *chd_ph_new(cmph_config_t *mph, double c)
 		};
 	}
 
-	#ifdef DEBUG
-	{
-		if(!chd_ph_check_bin_hashing(chd_ph, buckets, items, disp_table,sorted_lists,max_bucket_size))
-		{
-
-			DEBUGP("Error for bin packing generation");
-			failure = 1;
-			goto cleanup;
-		}
-	}
-	#endif
+#ifdef DEBUG
+        if(!chd_ph_check_bin_hashing(chd_ph, buckets, items, disp_table,sorted_lists,max_bucket_size))
+        {
+		DEBUGP("Error for bin packing generation");
+                failure = 1;
+                goto cleanup;
+        }
+#endif
 
 	if (mph->verbosity)
 	{
@@ -785,11 +782,11 @@ cmph_t *chd_ph_new(cmph_config_t *mph, double c)
 	compressed_seq_init(chd_ph->cs);
 	compressed_seq_generate(chd_ph->cs, disp_table, chd_ph->nbuckets);
 
-	#ifdef CMPH_TIMING
+#ifdef CMPH_TIMING
 	ELAPSED_TIME_IN_SECONDS(&construction_time);
 	register double entropy = chd_ph_get_entropy(disp_table, chd_ph->nbuckets, max_probes);
 	DEBUGP("Entropy = %.4f\n", entropy/chd_ph->m);
-	#endif
+#endif
 
 cleanup:
 	chd_ph_bucket_destroy(buckets);
@@ -826,11 +823,11 @@ cleanup:
 		fprintf(stderr, "Successfully generated minimal perfect hash function\n");
 	}
 
-	#ifdef CMPH_TIMING
+#ifdef CMPH_TIMING
 	register cmph_uint32 space_usage = chd_ph_packed_size(mphf)*8;
 	construction_time = construction_time - construction_time_begin;
 	fprintf(stdout, "%u\t%.2f\t%u\t%.4f\t%.4f\t%.4f\t%.4f\n", chd_ph->m, load_factor, chd_ph->keys_per_bucket, construction_time, space_usage/(double)chd_ph->m, space_lower_bound, entropy/chd_ph->m);
-	#endif
+#endif
 
 	return mphf;
 }

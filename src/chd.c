@@ -80,11 +80,11 @@ cmph_t *chd_new(cmph_config_t *mph, double c)
 	register cmph_uint32 i, idx, nkeys, nvals, nbins;
 	cmph_uint32 * vals_table = NULL;
 	register cmph_uint32 * occup_table = NULL;
-	#ifdef CMPH_TIMING
+#ifdef CMPH_TIMING
 	double construction_time_begin = 0.0;
 	double construction_time = 0.0;
 	ELAPSED_TIME_IN_SECONDS(&construction_time_begin);
-	#endif
+#endif
 
 	cmph_config_set_verbosity(chd->chd_ph, mph->verbosity);
 	cmph_config_set_graphsize(chd->chd_ph, c);
@@ -163,12 +163,12 @@ cmph_t *chd_new(cmph_config_t *mph, double c)
 	{
 		fprintf(stderr, "Successfully generated minimal perfect hash function\n");
 	}
-	#ifdef CMPH_TIMING
+#ifdef CMPH_TIMING
 	ELAPSED_TIME_IN_SECONDS(&construction_time);
 	register cmph_uint32 space_usage =  chd_packed_size(mphf)*8;
 	construction_time = construction_time - construction_time_begin;
 	fprintf(stdout, "%u\t%.2f\t%u\t%.4f\t%.4f\n", nkeys, c, chd_ph->keys_per_bucket, construction_time, space_usage/(double)nkeys);
-	#endif
+#endif
 
 	return mphf;
 }
