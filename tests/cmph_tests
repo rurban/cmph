@@ -5,8 +5,7 @@ N=100
 WORDS=/usr/share/dict/words
 
 test -e _words || head -n $N <${WORDS} >_words
-# BROKEN bmz8 chd chd_ph
-for a in bmz chm brz fch bdz bdz_ph; do
+for a in bmz chm brz fch bdz bdz_ph bmz8 chd chd_ph; do
     rm -f _words.mph
     echo "** cmph -g -a $a _words"
     ../src/cmph -g -a $a _words
