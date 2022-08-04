@@ -35,9 +35,19 @@ typedef unsigned int cmph_uint32;
 typedef enum { CMPH_HASH_JENKINS, CMPH_HASH_WYHASH, CMPH_HASH_DJB2, CMPH_HASH_FNV,
                CMPH_HASH_COUNT } CMPH_HASH;
 extern const char *cmph_hash_names[];
-typedef enum { CMPH_BMZ, CMPH_BMZ8, CMPH_CHM, CMPH_BRZ, CMPH_FCH,
+typedef enum { CMPH_BMZ,
+#ifdef DEBUG
+               CMPH_BMZ8,
+#endif
+               CMPH_CHM, CMPH_BRZ, CMPH_FCH,
                CMPH_BDZ, CMPH_BDZ_PH,
-               CMPH_CHD_PH, CMPH_CHD, CMPH_COUNT } CMPH_ALGO;
+#ifdef DEBUG
+               CMPH_CHD_PH, CMPH_CHD,
+#endif
+               CMPH_COUNT } CMPH_ALGO;
+#ifndef DEBUG
+typedef enum { CMPH_BMZ8 = 8, CMPH_CHD_PH, CMPH_CHD } CMPH_DISABLED_ALGO;
+#endif
 extern const char *cmph_names[];
 
 #endif
