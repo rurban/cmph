@@ -868,6 +868,7 @@ int chd_ph_dump(cmph_t *mphf, FILE *fd)
 {
 	char *buf = NULL;
 	cmph_uint32 buflen;
+	register size_t nbytes;
 	chd_ph_data_t *data = (chd_ph_data_t *)mphf->data;
 
 	__cmph_dump(mphf, fd);
