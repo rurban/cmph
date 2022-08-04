@@ -27,9 +27,9 @@ static char * brz_copy_partial_bmz8_mphf(brz_config_data_t *brz, bmz8_data_t * b
 brz_config_data_t *brz_config_new(void)
 {
 	brz_config_data_t *brz = NULL;
-    brz = (brz_config_data_t *)malloc(sizeof(brz_config_data_t));
-    if (!brz) return NULL;
-    brz->algo = CMPH_FCH;
+        brz = (brz_config_data_t *)malloc(sizeof(brz_config_data_t));
+        if (!brz) return NULL;
+        brz->algo = CMPH_FCH;
 	brz->b = 128;
 	brz->hashfuncs[0] = CMPH_HASH_JENKINS;
 	brz->hashfuncs[1] = CMPH_HASH_JENKINS;
@@ -132,13 +132,13 @@ cmph_t *brz_new(cmph_config_t *mph, double c)
 	DEBUGP("c: %f\n", c);
 	brz_config_data_t *brz = (brz_config_data_t *)mph->data;
 
-    // Since we keep dumping partial pieces of the MPHF as it gets created
-    // the caller must set the file to store the resulting MPHF before calling
-    // this function.
-    if (brz->mphf_fd == NULL)
-    { 
-        return NULL;
-    }
+        // Since we keep dumping partial pieces of the MPHF as it gets created
+        // the caller must set the file to store the resulting MPHF before calling
+        // this function.
+        if (brz->mphf_fd == NULL)
+        { 
+            return NULL;
+        }
 
 	switch(brz->algo) // validating restrictions over parameter c.
 	{
@@ -153,10 +153,10 @@ cmph_t *brz_new(cmph_config_t *mph, double c)
 	}
 	brz->c = c;
 	brz->m = mph->key_source->nkeys;
-    if (brz->m < 5)
-    {
-        brz->c = 5;
-    }
+        if (brz->m < 5)
+        {
+        	brz->c = 5;
+        }
 
 	DEBUGP("m: %u\n", brz->m);
         brz->k = (cmph_uint32)ceil(brz->m/((double)brz->b));
@@ -460,7 +460,9 @@ static int brz_gen_mphf(cmph_config_t *mph)
 			mphf_tmp = cmph_new(config);
 			if (mphf_tmp == NULL)
 			{
-				if(mph->verbosity) fprintf(stderr, "ERROR: Can't generate MPHF for bucket %u out of %u\n", cur_bucket + 1, brz->k);
+				if(mph->verbosity)
+                                  fprintf(stderr, "ERROR: Can't generate MPHF for bucket %u out of %u\n",
+                                          cur_bucket + 1, brz->k);
 				error = 1;
 				cmph_config_destroy(config);
  				brz_destroy_keys_vd(keys_vd, nkeys_vd);
@@ -471,7 +473,8 @@ static int brz_gen_mphf(cmph_config_t *mph)
 			{
 			  if (cur_bucket % 1000 == 0)
   			  {
-			  	fprintf(stderr, "MPHF for bucket %u out of %u was generated.\n", cur_bucket + 1, brz->k);
+			  	fprintf(stderr, "MPHF for bucket %u out of %u was generated.\n",
+                                        cur_bucket + 1, brz->k);
 			  }
 			}
 			switch(brz->algo)
@@ -543,7 +546,8 @@ static char * brz_copy_partial_fch_mphf(brz_config_data_t *brz, fch_data_t * fch
 	memcpy(buf+sizeof(cmph_uint32), bufh1, (size_t)buflenh1);
 	memcpy(buf+sizeof(cmph_uint32)+buflenh1, &buflenh2, sizeof(cmph_uint32));
 	memcpy(buf+2*sizeof(cmph_uint32)+buflenh1, bufh2, (size_t)buflenh2);
-	for (i = 0; i < n; i++) memcpy(buf+2*sizeof(cmph_uint32)+buflenh1+buflenh2+i,(fchf->g + i), (size_t)1);
+	for (i = 0; i < n; i++)
+        	memcpy(buf+2*sizeof(cmph_uint32)+buflenh1+buflenh2+i,(fchf->g + i), (size_t)1);
 	free(bufh1);
 	free(bufh2);
 	return buf;
@@ -670,7 +674,8 @@ static cmph_uint32 brz_bmz8_search(brz_data_t *brz, const char *key, cmph_uint32
 	if (h1 == h2 && ++h2 >= n) h2 = 0;
 	mphf_bucket = (cmph_uint8)(brz->g[h0][h1] + brz->g[h0][h2]);
 	DEBUGP("key: %s h1: %u h2: %u h0: %u\n", key, h1, h2, h0);
-	DEBUGP("key: %s g[h1]: %u g[h2]: %u offset[h0]: %u edges: %u\n", key, brz->g[h0][h1], brz->g[h0][h2], brz->offset[h0], brz->m);
+	DEBUGP("key: %s g[h1]: %u g[h2]: %u offset[h0]: %u edges: %u\n", key,
+               brz->g[h0][h1], brz->g[h0][h2], brz->offset[h0], brz->m);
 	DEBUGP("Address: %u\n", mphf_bucket + brz->offset[h0]);
 	return (mphf_bucket + brz->offset[h0]);
 }
@@ -742,12 +747,12 @@ void brz_pack(cmph_t *mphf, void *packed_mphf)
 	cmph_uint8 * ptr = (cmph_uint8 *)packed_mphf;
 	cmph_uint32 i,n;
  
-    // This assumes that if one function pointer is NULL, 
-    // all the others will be as well.
-    if (data->h1 == NULL) 
-    {
-        return;
-    }
+        // This assumes that if one function pointer is NULL,
+        // all the others will be as well.
+        if (data->h1 == NULL)
+        {
+		return;
+        }
 	// packing internal algo type
 	memcpy(ptr, &(data->algo), sizeof(data->algo));
 	ptr += sizeof(data->algo);
