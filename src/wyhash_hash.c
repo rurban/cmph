@@ -1,4 +1,5 @@
 #include "wyhash_hash.h"
+#include "hash.h"
 #include <stdlib.h>
 #include <stdint.h>
 #ifdef WIN32
@@ -23,15 +24,15 @@ len     : the length of the key, counting by bytes
 initval : can be any 4-byte value
 --------------------------------------------------------------------
  */
-wyhash_state_t *wyhash_state_new(cmph_uint32 size) //size of hash table
+hash_state_t *wyhash_state_new(cmph_uint32 size) //size of hash table
 {
-	wyhash_state_t *state = (wyhash_state_t *)malloc(sizeof(wyhash_state_t));
+	hash_state_t *state = (hash_state_t *)malloc(sizeof(hash_state_t));
         if (!state) return NULL;
 	DEBUGP("Initializing wyhash hash\n");
 	state->seed = ((cmph_uint32)rand() % size);
 	return state;
 }
-void wyhash_state_destroy(wyhash_state_t *state)
+void wyhash_state_destroy(hash_state_t *state)
 {
 	free(state);
 }
@@ -78,19 +79,19 @@ static inline void __wyhash_hash_vector(cmph_uint32 seed, const unsigned char *k
         //wyhash(k, keylen, seed, (cmph_uint64*)hashes); // not enough hashes
 }
 
-cmph_uint32 wyhash_hash(wyhash_state_t *state, const char *k, cmph_uint32 keylen)
+cmph_uint32 wyhash_hash(hash_state_t *state, const char *k, cmph_uint32 keylen)
 {
 	cmph_uint32 hashes[3];
 	__wyhash_hash_vector(state->seed, (const unsigned char*)k, keylen, hashes);
 	return hashes[2];
 }
 
-void wyhash_hash_vector_(wyhash_state_t *state, const char *k, cmph_uint32 keylen, cmph_uint32 * hashes)
+void wyhash_hash_vector_(hash_state_t *state, const char *k, cmph_uint32 keylen, cmph_uint32 * hashes)
 {
 	__wyhash_hash_vector(state->seed, (const unsigned char*)k, keylen, hashes);
 }
 
-void wyhash_state_dump(wyhash_state_t *state, char **buf, cmph_uint32 *buflen)
+void wyhash_state_dump(hash_state_t *state, char **buf, cmph_uint32 *buflen)
 {
 	*buflen = sizeof(cmph_uint32);
 	*buf = (char *)malloc(sizeof(cmph_uint32));
@@ -104,30 +105,30 @@ void wyhash_state_dump(wyhash_state_t *state, char **buf, cmph_uint32 *buflen)
 	return;
 }
 
-wyhash_state_t *wyhash_state_copy(wyhash_state_t *src_state)
-{
-	wyhash_state_t *dest_state = (wyhash_state_t *)malloc(sizeof(wyhash_state_t));
-	dest_state->hashfunc = src_state->hashfunc;
-	dest_state->seed = src_state->seed;
-	return dest_state;
-}
+//hash_state_t *wyhash_state_copy(hash_state_t *src_state)
+//{
+//	hash_state_t *dest_state = (hash_state_t *)malloc(sizeof(hash_state_t));
+//	dest_state->hashfunc = src_state->hashfunc;
+//	dest_state->seed = src_state->seed;
+//	return dest_state;
+//}
 
-wyhash_state_t *wyhash_state_load(const char *buf, cmph_uint32 buflen)
+hash_state_t *wyhash_state_load(const char *buf, cmph_uint32 buflen)
 {
-	wyhash_state_t *state = (wyhash_state_t *)malloc(sizeof(wyhash_state_t));
+	hash_state_t *state = (hash_state_t *)malloc(sizeof(hash_state_t));
 	state->seed = *(cmph_uint32 *)buf;
-	state->hashfunc = CMPH_HASH_JENKINS;
+	state->hashfunc = CMPH_HASH_WYHASH;
 	DEBUGP("Loaded wyhash state with seed %u\n", state->seed);
 	return state;
 }
 
 
-/** \fn void wyhash_state_pack(wyhash_state_t *state, void *wyhash_packed);
+/** \fn void wyhash_state_pack(hash_state_t *state, void *wyhash_packed);
  *  \brief Support the ability to pack a wyhash function into a preallocated contiguous memory space pointed by wyhash_packed.
  *  \param state points to the wyhash function
  *  \param wyhash_packed pointer to the contiguous memory area used to store the wyhash function. The size of wyhash_packed must be at least wyhash_state_packed_size()
  */
-void wyhash_state_pack(wyhash_state_t *state, void *wyhash_packed)
+void wyhash_state_pack(hash_state_t *state, void *wyhash_packed)
 {
 	if (state && wyhash_packed)
 	{
@@ -135,7 +136,7 @@ void wyhash_state_pack(wyhash_state_t *state, void *wyhash_packed)
 	}
 }
 
-/** \fn cmph_uint32 wyhash_state_packed_size(wyhash_state_t *state);
+/** \fn cmph_uint32 wyhash_state_packed_size(hash_state_t *state);
  *  \brief Return the amount of space needed to pack a wyhash function.
  *  \return the size of the packed function or zero for failures
  */

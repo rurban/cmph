@@ -2,11 +2,11 @@ bin_PROGRAMS = cmph
 noinst_PROGRAMS = bm_numbers
 lib_LTLIBRARIES = libcmph.la
 include_HEADERS = cmph.h cmph_types.h cmph_time.h chd_ph.h
-libcmph_la_SOURCES =  hash.h hash.c \
+libcmph_la_SOURCES =  hash.h hash.c hash_state.h \
 		      jenkins_hash.h jenkins_hash.c \
 		      wyhash_hash.h wyhash_hash.c wyhash.h \
-		      djb2_hash.h djb2_hash.c fnv_hash.h fnv_hash.c \
-		      hash_state.h debug.h \
+		      djb2_hash.h djb2_hash.c fnv_hash.h fnv_hash.c sdbm_hash.h sdbm_hash.c \
+		      debug.h \
 		      vstack.h vstack.c vqueue.h vqueue.c\
 		      graph.h graph.c bitbool.h \
 		      cmph.h cmph.c cmph_structs.h cmph_structs.c\

@@ -1,13 +1,19 @@
-#include "hash_state.h"
+#include "hash.h"
 #include <stdlib.h>
 #include <assert.h>
 #include <limits.h>
 #include <string.h>
 
+#include "jenkins_hash.h"
+#include "wyhash_hash.h"
+#include "djb2_hash.h"
+#include "fnv_hash.h"
+#include "sdbm_hash.h"
+
 //#define DEBUG
 #include "debug.h"
 
-const char *cmph_hash_names[] = { "jenkins", "wyhash", "djb2", "fnv", NULL };
+const char *cmph_hash_names[] = { "jenkins", "wyhash", "djb2", "fnv", "sdbm", NULL };
 
 hash_state_t *hash_state_new(CMPH_HASH hashfunc, cmph_uint32 hashsize)
 {
@@ -16,23 +22,28 @@ hash_state_t *hash_state_new(CMPH_HASH hashfunc, cmph_uint32 hashsize)
 	{
 		case CMPH_HASH_JENKINS:
 	  		DEBUGP("Jenkins function - %u\n", hashsize);
-			state = (hash_state_t *)jenkins_state_new(hashsize);
+			state = jenkins_state_new(hashsize);
 	  		DEBUGP("Jenkins function created\n");
 			break;
 		case CMPH_HASH_WYHASH:
 	  		DEBUGP("Wyhash function - %u\n", hashsize);
-			state = (hash_state_t *)wyhash_state_new(hashsize);
+			state = wyhash_state_new(hashsize);
 	  		DEBUGP("Wyhash function created\n");
 			break;
 		case CMPH_HASH_DJB2:
 	  		DEBUGP("DJB2 function - %u\n", hashsize);
-			state = (hash_state_t *)djb2_state_new(hashsize);
+			state = djb2_state_new(hashsize);
 	  		DEBUGP("DJB2 function created\n");
 			break;
 		case CMPH_HASH_FNV:
 	  		DEBUGP("FNV function - %u\n", hashsize);
-			state = (hash_state_t *)fnv_state_new(hashsize);
+			state = fnv_state_new(hashsize);
 	  		DEBUGP("FNV function created\n");
+			break;
+		case CMPH_HASH_SDBM:
+	  		DEBUGP("SDBM function - %u\n", hashsize);
+			state = sdbm_state_new(hashsize);
+	  		DEBUGP("SDBM function created\n");
 			break;
 		default:
 			assert(0);
@@ -45,13 +56,15 @@ cmph_uint32 hash(hash_state_t *state, const char *key, cmph_uint32 keylen)
 	switch (state->hashfunc)
 	{
 		case CMPH_HASH_JENKINS:
-			return jenkins_hash((jenkins_state_t *)state, key, keylen);
+			return jenkins_hash(state, key, keylen);
 		case CMPH_HASH_WYHASH:
-			return wyhash_hash((wyhash_state_t *)state, key, keylen);
+			return wyhash_hash(state, key, keylen);
 		case CMPH_HASH_DJB2:
-			return djb2_hash(((djb2_state_t *)state)->seed, key, keylen);
+			return djb2_hash(state, key, keylen);
 		case CMPH_HASH_FNV:
-			return fnv_hash(((fnv_state_t *)state)->seed, key, keylen);
+			return fnv_hash(state, key, keylen);
+		case CMPH_HASH_SDBM:
+			return sdbm_hash(state, key, keylen);
 		default:
 			assert(0);
 	}
@@ -64,16 +77,19 @@ void hash_vector(hash_state_t *state, const char *key, cmph_uint32 keylen, cmph_
 	switch (state->hashfunc)
 	{
 		case CMPH_HASH_JENKINS:
-			jenkins_hash_vector_((jenkins_state_t *)state, key, keylen, hashes);
+			jenkins_hash_vector_(state, key, keylen, hashes);
 			break;
 		case CMPH_HASH_WYHASH:
-			wyhash_hash_vector_((wyhash_state_t *)state, key, keylen, hashes);
+			wyhash_hash_vector_(state, key, keylen, hashes);
 			break;
 		case CMPH_HASH_DJB2:
-			djb2_hash_vector(((djb2_state_t *)state)->seed, key, keylen, hashes);
+			djb2_hash_vector(state, key, keylen, hashes);
 			break;
 		case CMPH_HASH_FNV:
-			fnv_hash_vector(((fnv_state_t *)state)->seed, key, keylen, hashes);
+			fnv_hash_vector(state, key, keylen, hashes);
+			break;
+		case CMPH_HASH_SDBM:
+			sdbm_hash_vector(state, key, keylen, hashes);
 			break;
 		default:
 			assert(0);
@@ -89,19 +105,23 @@ void hash_state_dump(hash_state_t *state, char **buf, cmph_uint32 *buflen)
 	{
 		case CMPH_HASH_JENKINS:
                         DEBUGP("Dump hash jenkins\n");
-			jenkins_state_dump((jenkins_state_t *)state, &algobuf, buflen);
+			jenkins_state_dump(state, &algobuf, buflen);
 			break;
 		case CMPH_HASH_WYHASH:
                         DEBUGP("Dump hash wyhash\n");
-			wyhash_state_dump((wyhash_state_t *)state, &algobuf, buflen);
+			wyhash_state_dump(state, &algobuf, buflen);
 			break;
 		case CMPH_HASH_DJB2:
                         DEBUGP("Dump hash djb2\n");
-			djb2_state_dump((djb2_state_t *)state, &algobuf, buflen);
+			djb2_state_dump(state, &algobuf, buflen);
 			break;
 		case CMPH_HASH_FNV:
                         DEBUGP("Dump hash fnv\n");
-			fnv_state_dump((fnv_state_t *)state, &algobuf, buflen);
+			fnv_state_dump(state, &algobuf, buflen);
+			break;
+		case CMPH_HASH_SDBM:
+                        DEBUGP("Dump hash sdbm\n");
+			sdbm_state_dump(state, &algobuf, buflen);
 			break;
 		default:
 			assert(0);
@@ -120,29 +140,29 @@ cmph_cleanup:
 	return;
 }
 
-hash_state_t * hash_state_copy(hash_state_t *src_state)
-{
-	hash_state_t *dest_state = NULL;
-	switch (src_state->hashfunc)
-	{
-		case CMPH_HASH_JENKINS:
-			dest_state = (hash_state_t *)jenkins_state_copy((jenkins_state_t *)src_state);
-			break;
-		case CMPH_HASH_WYHASH:
-			dest_state = (hash_state_t *)wyhash_state_copy((wyhash_state_t *)src_state);
-			break;
-		case CMPH_HASH_DJB2:
-			dest_state = (hash_state_t *)djb2_state_copy((djb2_state_t *)src_state);
-			break;
-		case CMPH_HASH_FNV:
-			dest_state = (hash_state_t *)fnv_state_copy((fnv_state_t *)src_state);
-			break;
-		default:
-			assert(0);
-	}
-	dest_state->hashfunc = src_state->hashfunc;
-	return dest_state;
-}
+//hash_state_t * hash_state_copy(hash_state_t *src_state)
+//{
+//	hash_state_t *dest_state = NULL;
+//	switch (src_state->hashfunc)
+//	{
+//		case CMPH_HASH_JENKINS:
+//			dest_state = (hash_state_t *)jenkins_state_copy(&src_state->jenkins);
+//			break;
+//		case CMPH_HASH_WYHASH:
+//			dest_state = (hash_state_t *)wyhash_state_copy(&src_state->wyhash);
+//			break;
+//		case CMPH_HASH_DJB2:
+//			dest_state = (hash_state_t *)djb2_state_copy(&src_state->djb2);
+//			break;
+//		case CMPH_HASH_FNV:
+//			dest_state = fnv_state_copy(&src_state->fnv);
+//			break;
+//		default:
+//			assert(0);
+//	}
+//	dest_state->hashfunc = src_state->hashfunc;
+//	return dest_state;
+//}
 
 hash_state_t *hash_state_load(const char *buf, cmph_uint32 buflen)
 {
@@ -163,16 +183,19 @@ hash_state_t *hash_state_load(const char *buf, cmph_uint32 buflen)
 	{
 		case CMPH_HASH_JENKINS:
                         DEBUGP("Hash is jenkins\n");
-			return (hash_state_t *)jenkins_state_load(buf + offset, buflen - offset);
+			return jenkins_state_load(buf + offset, buflen - offset);
 		case CMPH_HASH_WYHASH:
                         DEBUGP("Hash is wyhash\n");
-			return (hash_state_t *)wyhash_state_load(buf + offset, buflen - offset);
+			return wyhash_state_load(buf + offset, buflen - offset);
 		case CMPH_HASH_DJB2:
                         DEBUGP("Hash is djb2\n");
-			return (hash_state_t *)djb2_state_load(buf + offset, buflen - offset);
+			return djb2_state_load(buf + offset, buflen - offset);
 		case CMPH_HASH_FNV:
                         DEBUGP("Hash is fnv\n");
-			return (hash_state_t *)fnv_state_load(buf + offset, buflen - offset);
+			return fnv_state_load(buf + offset, buflen - offset);
+		case CMPH_HASH_SDBM:
+                        DEBUGP("Hash is sdbm\n");
+			return sdbm_state_load(buf + offset, buflen - offset);
 		default:
                         DEBUGP("Unknown Hash\n");
 			return NULL;
@@ -184,16 +207,19 @@ void hash_state_destroy(hash_state_t *state)
 	switch (state->hashfunc)
 	{
 		case CMPH_HASH_JENKINS:
-			jenkins_state_destroy((jenkins_state_t *)state);
+			jenkins_state_destroy(state);
 			break;
 		case CMPH_HASH_WYHASH:
-			wyhash_state_destroy((wyhash_state_t *)state);
+			wyhash_state_destroy(state);
 			break;
 		case CMPH_HASH_DJB2:
-			djb2_state_destroy((djb2_state_t *)state);
+			djb2_state_destroy(state);
 			break;
 		case CMPH_HASH_FNV:
-			fnv_state_destroy((fnv_state_t *)state);
+			fnv_state_destroy(state);
+			break;
+		case CMPH_HASH_SDBM:
+			sdbm_state_destroy(state);
 			break;
 		default:
 			assert(0);
@@ -214,18 +240,17 @@ void hash_state_pack(hash_state_t *state, void *hash_packed)
 	switch (state->hashfunc)
 	{
 		case CMPH_HASH_JENKINS:
-			// pack the jenkins hash function
-			jenkins_state_pack((jenkins_state_t *)state, hash_packed);
+			jenkins_state_pack(state, hash_packed);
 			break;
 		case CMPH_HASH_WYHASH:
-			// pack the wyhash hash function
-			wyhash_state_pack((wyhash_state_t *)state, hash_packed);
+			wyhash_state_pack(state, hash_packed);
 			break;
 		case CMPH_HASH_DJB2:
-			djb2_state_pack((djb2_state_t *)state, hash_packed);
+			djb2_state_pack(state, hash_packed);
 			break;
 		case CMPH_HASH_FNV:
-			fnv_state_pack((fnv_state_t *)state, hash_packed);
+                case CMPH_HASH_SDBM:
+			fnv_state_pack(state, hash_packed);
 			break;
 		default:
 			assert(0);
@@ -249,6 +274,7 @@ cmph_uint32 hash_state_packed_size(CMPH_HASH hashfunc)
 		case CMPH_HASH_DJB2:
 			return djb2_state_packed_size();
 		case CMPH_HASH_FNV:
+		case CMPH_HASH_SDBM:
 			return fnv_state_packed_size();
 		default:
 			assert(0);
@@ -275,6 +301,8 @@ cmph_uint32 hash_packed(void *hash_packed, CMPH_HASH hashfunc, const char *k, cm
 			return djb2_hash_packed(hash_packed, k, keylen);
 		case CMPH_HASH_FNV:
 			return fnv_hash_packed(hash_packed, k, keylen);
+                case CMPH_HASH_SDBM:
+			return sdbm_hash_packed(hash_packed, k, keylen);
 		default:
 			assert(0);
 	}
@@ -303,6 +331,9 @@ void hash_vector_packed(void *hash_packed, CMPH_HASH hashfunc, const char *k, cm
 			break;
 		case CMPH_HASH_FNV:
 			fnv_hash_vector_packed(hash_packed, k, keylen, hashes);
+			break;
+                case CMPH_HASH_SDBM:
+			sdbm_hash_vector_packed(hash_packed, k, keylen, hashes);
 			break;
 		default:
 			assert(0);

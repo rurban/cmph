@@ -7,11 +7,11 @@
 #include<limits.h>
 
 #include "cmph_structs.h"
+#include "hash.h"
 #include "chd_structs_ph.h"
 #include "chd_ph.h"
-#include"miller_rabin.h"
-#include"bitbool.h"
-
+#include "miller_rabin.h"
+#include "bitbool.h"
 
 //#define DEBUG
 #include "debug.h"
