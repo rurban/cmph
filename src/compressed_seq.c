@@ -202,36 +202,36 @@ void compressed_seq_dump(compressed_seq_t * cs, char ** buf, cmph_uint32 * bufle
 	DEBUGP("buflen_sel = %u\n", buflen_sel);
 
 	memcpy(*buf + pos, buf_sel, buflen_sel);
-	#ifdef DEBUG	
+#ifdef DEBUG
 	cmph_uint32 i = 0; 
 	for(i = 0; i < buflen_sel; i++)
 	{
 	    DEBUGP("pos = %u  -- buf_sel[%u] = %u\n", pos, i, *(*buf + pos + i));
 	}
-	#endif
+#endif
 	pos += buflen_sel;
 	
 	free(buf_sel);
 	
 	// dumping length_rems
 	memcpy(*buf + pos, cs->length_rems, length_rems_size);
-	#ifdef DEBUG	
+#ifdef DEBUG
 	for(i = 0; i < length_rems_size; i++)
 	{
 	    DEBUGP("pos = %u -- length_rems_size = %u  -- length_rems[%u] = %u\n", pos, length_rems_size, i, *(*buf + pos + i));
 	}
-	#endif
+#endif
 	pos += length_rems_size;
 
 	// dumping store_table
 	memcpy(*buf + pos, cs->store_table, store_table_size);
 
-	#ifdef DEBUG	
+#ifdef DEBUG
 	for(i = 0; i < store_table_size; i++)
 	{
 	    DEBUGP("pos = %u -- store_table_size = %u  -- store_table[%u] = %u\n", pos, store_table_size, i, *(*buf + pos + i));
 	}
-	#endif
+#endif
 	DEBUGP("Dumped compressed sequence structure with size %u bytes\n", *buflen);
 }
 
@@ -261,13 +261,13 @@ void compressed_seq_load(compressed_seq_t * cs, const char * buf, cmph_uint32 bu
 	DEBUGP("buflen_sel = %u\n", buflen_sel);
 
 	select_load(&cs->sel, buf + pos, buflen_sel);
-	#ifdef DEBUG	
+#ifdef DEBUG
 	cmph_uint32 i = 0;  
 	for(i = 0; i < buflen_sel; i++)
 	{
 	    DEBUGP("pos = %u  -- buf_sel[%u] = %u\n", pos, i, *(buf + pos + i));
 	}
-	#endif
+#endif
 	pos += buflen_sel;
 	
 	// loading length_rems
@@ -280,12 +280,12 @@ void compressed_seq_load(compressed_seq_t * cs, const char * buf, cmph_uint32 bu
 	length_rems_size *= 4;
 	memcpy(cs->length_rems, buf + pos, length_rems_size);
 	
-	#ifdef DEBUG	
+#ifdef DEBUG
 	for(i = 0; i < length_rems_size; i++)
 	{
 	    DEBUGP("pos = %u -- length_rems_size = %u  -- length_rems[%u] = %u\n", pos, length_rems_size, i, *(buf + pos + i));
 	}
-	#endif
+#endif
 	pos += length_rems_size;
 
 	// loading store_table
@@ -298,12 +298,12 @@ void compressed_seq_load(compressed_seq_t * cs, const char * buf, cmph_uint32 bu
         store_table_size *= 4;
 	memcpy(cs->store_table, buf + pos, store_table_size);
 	
-	#ifdef DEBUG	
+#ifdef DEBUG
 	for(i = 0; i < store_table_size; i++)
 	{
 	    DEBUGP("pos = %u -- store_table_size = %u  -- store_table[%u] = %u\n", pos, store_table_size, i, *(buf + pos + i));
 	}
-	#endif
+#endif
 
 	DEBUGP("Loaded compressed sequence structure with size %u bytes\n", buflen);
 }

@@ -242,11 +242,11 @@ cmph_t *bdz_ph_new(cmph_config_t *mph, double c)
 	bdz_ph_queue_t edges;
 	bdz_ph_graph3_t graph3;
 	bdz_ph_config_data_t *bdz_ph = (bdz_ph_config_data_t *)mph->data;
-	#ifdef CMPH_TIMING
+#ifdef CMPH_TIMING
 	double construction_time_begin = 0.0;
 	double construction_time = 0.0;
 	ELAPSED_TIME_IN_SECONDS(&construction_time_begin);
-	#endif
+#endif
 
 
 	if (c == 0) c = 1.23; // validating restrictions over parameter c.
@@ -255,9 +255,9 @@ cmph_t *bdz_ph_new(cmph_config_t *mph, double c)
 	bdz_ph->r = (cmph_uint32)ceil((c * mph->key_source->nkeys)/3);
 	if ((bdz_ph->r % 2) == 0) bdz_ph->r += 1;
 
-    if (bdz_ph->r == 1) { // workaround for small key sets
-        bdz_ph->r = 3;
-    }
+        if (bdz_ph->r == 1) { // workaround for small key sets
+        	bdz_ph->r = 3;
+        }
 
 	bdz_ph->n = 3*bdz_ph->r;
 
@@ -321,9 +321,9 @@ cmph_t *bdz_ph_new(cmph_config_t *mph, double c)
 
 	bdz_ph_optimization(bdz_ph);
 
-	#ifdef CMPH_TIMING
+#ifdef CMPH_TIMING
 	ELAPSED_TIME_IN_SECONDS(&construction_time);
-	#endif
+#endif
 	mphf = (cmph_t *)malloc(sizeof(cmph_t));
 	mphf->algo = mph->algo;
 	bdz_phf = (bdz_ph_data_t *)malloc(sizeof(bdz_ph_data_t));
@@ -343,12 +343,12 @@ cmph_t *bdz_ph_new(cmph_config_t *mph, double c)
 		fprintf(stderr, "Successfully generated minimal perfect hash function\n");
 	}
 
-	#ifdef CMPH_TIMING
+#ifdef CMPH_TIMING
 	register cmph_uint32 space_usage = bdz_ph_packed_size(mphf)*8;
 	register cmph_uint32 keys_per_bucket = 1;
 	construction_time = construction_time - construction_time_begin;
 	fprintf(stdout, "%u\t%.2f\t%u\t%.4f\t%.4f\n", bdz_ph->m, bdz_ph->m/(double)bdz_ph->n, keys_per_bucket, construction_time, space_usage/(double)bdz_ph->m);
-	#endif
+#endif
 
 	return mphf;
 }
@@ -470,12 +470,12 @@ int bdz_ph_dump(cmph_t *mphf, FILE *fd)
 	sizeg = (cmph_uint32)ceil(data->n/5.0);
 	nbytes = fwrite(data->g, sizeof(cmph_uint8)*sizeg, (size_t)1, fd);
 
-	#ifdef DEBUG
+#ifdef DEBUG
 	cmph_uint32 i;
 	fprintf(stderr, "G: ");
 	for (i = 0; i < data->n; ++i) fprintf(stderr, "%u ", GETVALUE(data->g, i));
 	fprintf(stderr, "\n");
-	#endif
+#endif
 	return 1;
 }
 

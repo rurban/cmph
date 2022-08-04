@@ -175,11 +175,11 @@ cmph_t *bmz_new(cmph_config_t *mph, double c)
 	{
 		return NULL;
 	}
-        #ifdef DEBUG
+#ifdef DEBUG
         fprintf(stderr, "G: ");
         for (i = 0; i < bmz->n; ++i) fprintf(stderr, "%u ", bmz->g[i]);
         fprintf(stderr, "\n");
-        #endif
+#endif
 
 	mphf = (cmph_t *)malloc(sizeof(cmph_t));
 	mphf->algo = mph->algo;
@@ -480,12 +480,12 @@ int bmz_dump(cmph_t *mphf, FILE *fd)
 	nbytes = fwrite(&(data->m), sizeof(cmph_uint32), (size_t)1, fd);
 
 	nbytes = fwrite(data->g, sizeof(cmph_uint32)*(data->n), (size_t)1, fd);
-	#ifdef DEBUG
+#ifdef DEBUG
 	cmph_uint32 i;
 	fprintf(stderr, "G: ");
 	for (i = 0; i < data->n; ++i) fprintf(stderr, "%u ", data->g[i]);
 	fprintf(stderr, "\n");
-	#endif
+#endif
 	return 1;
 }
 
@@ -521,11 +521,11 @@ void bmz_load(FILE *f, cmph_t *mphf)
 
 	bmz->g = (cmph_uint32 *)malloc(sizeof(cmph_uint32)*bmz->n);
 	nbytes = fread(bmz->g, bmz->n*sizeof(cmph_uint32), (size_t)1, f);
-	#ifdef DEBUG
+#ifdef DEBUG
 	fprintf(stderr, "G: ");
 	for (i = 0; i < bmz->n; ++i) fprintf(stderr, "%u ", bmz->g[i]);
 	fprintf(stderr, "\n");
-	#endif
+#endif
 	return;
 }
 

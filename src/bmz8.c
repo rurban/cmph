@@ -488,11 +488,11 @@ int bmz8_dump(cmph_t *mphf, FILE *fd)
 	nbytes = fwrite(&(data->m), sizeof(cmph_uint8), (size_t)1, fd);
 
 	nbytes = fwrite(data->g, sizeof(cmph_uint8)*(data->n), (size_t)1, fd);
-/*	#ifdef DEBUG
+#ifdef DEBUG
 	fprintf(stderr, "G: ");
 	for (i = 0; i < data->n; ++i) fprintf(stderr, "%u ", data->g[i]);
 	fprintf(stderr, "\n");
-	#endif*/
+#endif
 	return 1;
 }
 
@@ -529,11 +529,11 @@ void bmz8_load(FILE *f, cmph_t *mphf)
 
 	bmz8->g = (cmph_uint8 *)malloc(sizeof(cmph_uint8)*bmz8->n);
 	nbytes = fread(bmz8->g, bmz8->n*sizeof(cmph_uint8), (size_t)1, f);
-	#ifdef DEBUG
+#ifdef DEBUG
 	fprintf(stderr, "G: ");
 	for (i = 0; i < bmz8->n; ++i) fprintf(stderr, "%u ", bmz8->g[i]);
 	fprintf(stderr, "\n");
-	#endif
+#endif
 	return;
 }
 

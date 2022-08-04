@@ -360,9 +360,9 @@ cmph_t *bdz_new(cmph_config_t *mph, double c)
                         bdz->m, bdz->n);
 	}
 	ranking(bdz);
-	#ifdef CMPH_TIMING
+#ifdef CMPH_TIMING
 	ELAPSED_TIME_IN_SECONDS(&construction_time);
-	#endif
+#endif
 	mphf = (cmph_t *)malloc(sizeof(cmph_t));
 	mphf->algo = mph->algo;
 	bdzf = (bdz_data_t *)malloc(sizeof(bdz_data_t));
@@ -434,7 +434,7 @@ static void assigning(bdz_config_data_t *bdz, bdz_graph3_t* graph3, bdz_queue_t 
 	cmph_uint32 v0,v1,v2;
         const size_t sizemv = (size_t)(bdz->n >> 3) + 1;
 	cmph_uint8 * marked_vertices = (cmph_uint8 *)malloc(sizemv);
-        cmph_uint32 sizeg = (cmph_uint32)ceil(bdz->n/4.0);
+        cmph_uint32 sizeg = (cmph_uint32)ceil(bdz->n/4.0); // 2bit per vertex
 	bdz->g = (cmph_uint8 *)calloc((size_t)(sizeg), sizeof(cmph_uint8));
 	memset(marked_vertices, 0, sizemv);
 	memset(bdz->g, 0xff, (size_t)(sizeg));
