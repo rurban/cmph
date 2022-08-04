@@ -20,4 +20,5 @@ jobs:
     - run: ./configure CFLAGS="${{ matrix.CFLAGS }}"
     - run: make
     - run: make check
-    - run: make distcheck
+    - if: matrix.CFLAGS == ''
+      run: make distcheck
