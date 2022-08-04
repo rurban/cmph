@@ -16,7 +16,15 @@
 // #define DEBUG
 #include "debug.h"
 
-const char *cmph_names[] = {"bmz", "bmz8", "chm", "brz", "fch", "bdz", "bdz_ph", "chd_ph", "chd", NULL };
+const char *cmph_names[] = {"bmz",
+#ifdef DEBUG
+                            "bmz8", // broken
+#endif
+                            "chm", "brz", "fch", "bdz", "bdz_ph",
+#ifdef DEBUG
+                            "chd_ph", "chd", // broken
+#endif
+                            NULL };
 
 typedef struct
 {
@@ -316,9 +324,6 @@ void cmph_config_set_algo(cmph_config_t *mph, CMPH_ALGO algo)
 			case CMPH_BMZ:
 				bmz_config_destroy(mph);
 				break;
-			case CMPH_BMZ8:
-				bmz8_config_destroy(mph);
-				break;
 			case CMPH_BRZ:
 				brz_config_destroy(mph);
 				break;
@@ -331,12 +336,17 @@ void cmph_config_set_algo(cmph_config_t *mph, CMPH_ALGO algo)
 			case CMPH_BDZ_PH:
 				bdz_ph_config_destroy(mph);
 				break;
+#ifdef DEBUG
+			case CMPH_BMZ8:
+				bmz8_config_destroy(mph);
+				break;
 			case CMPH_CHD_PH:
 				chd_ph_config_destroy(mph);
 				break;
 			case CMPH_CHD:
 				chd_config_destroy(mph);
 				break;
+#endif
 			default:
 				assert(0);
 		}
@@ -347,9 +357,6 @@ void cmph_config_set_algo(cmph_config_t *mph, CMPH_ALGO algo)
 				break;
 			case CMPH_BMZ:
 				mph->data = bmz_config_new();
-				break;
-			case CMPH_BMZ8:
-				mph->data = bmz8_config_new();
 				break;
 			case CMPH_BRZ:
 				mph->data = brz_config_new();
@@ -363,12 +370,17 @@ void cmph_config_set_algo(cmph_config_t *mph, CMPH_ALGO algo)
 			case CMPH_BDZ_PH:
 				mph->data = bdz_ph_config_new();
 				break;
+#ifdef DEBUG
+			case CMPH_BMZ8:
+				mph->data = bmz8_config_new();
+				break;
 			case CMPH_CHD_PH:
 				mph->data = chd_ph_config_new();
 				break;
 			case CMPH_CHD:
 				mph->data = chd_config_new(mph);
 				break;
+#endif
 			default:
 				assert(0);
 		}
@@ -403,6 +415,7 @@ void cmph_config_set_b(cmph_config_t *mph, cmph_uint32 b)
 	{
 		bdz_config_set_b(mph, b);
 	}
+#ifdef DEBUG
 	else if (mph->algo == CMPH_CHD_PH)
 	{
 		chd_ph_config_set_b(mph, b);
@@ -411,10 +424,12 @@ void cmph_config_set_b(cmph_config_t *mph, cmph_uint32 b)
 	{
 		chd_config_set_b(mph, b);
 	}
+#endif
 }
 
 void cmph_config_set_keys_per_bin(cmph_config_t *mph, cmph_uint32 keys_per_bin)
 {
+#ifdef DEBUG
 	if (mph->algo == CMPH_CHD_PH)
 	{
 		chd_ph_config_set_keys_per_bin(mph, keys_per_bin);
@@ -423,6 +438,7 @@ void cmph_config_set_keys_per_bin(cmph_config_t *mph, cmph_uint32 keys_per_bin)
 	{
 		chd_config_set_keys_per_bin(mph, keys_per_bin);
 	}
+#endif
 }
 
 void cmph_config_set_memory_availability(cmph_config_t *mph, cmph_uint32 memory_availability)
@@ -446,9 +462,6 @@ void cmph_config_destroy(cmph_config_t *mph)
 			case CMPH_BMZ:
 				bmz_config_destroy(mph);
 				break;
-			case CMPH_BMZ8:
-				bmz8_config_destroy(mph);
-				break;
 			case CMPH_BRZ:
 				brz_config_destroy(mph);
 				break;
@@ -461,12 +474,17 @@ void cmph_config_destroy(cmph_config_t *mph)
 			case CMPH_BDZ_PH:
 				bdz_ph_config_destroy(mph);
 				break;
+#ifdef DEBUG
+			case CMPH_BMZ8:
+				bmz8_config_destroy(mph);
+				break;
 			case CMPH_CHD_PH:
 				chd_ph_config_destroy(mph);
 				break;
 			case CMPH_CHD:
 				chd_config_destroy(mph);
 				break;
+#endif
 			default:
 				assert(0);
 		}
@@ -489,9 +507,6 @@ void cmph_config_set_hashfuncs(cmph_config_t *mph, CMPH_HASH *hashfuncs)
 		case CMPH_BMZ:
 			bmz_config_set_hashfuncs(mph, hashfuncs);
 			break;
-		case CMPH_BMZ8:
-			bmz8_config_set_hashfuncs(mph, hashfuncs);
-			break;
 		case CMPH_BRZ:
 			brz_config_set_hashfuncs(mph, hashfuncs);
 			break;
@@ -504,12 +519,17 @@ void cmph_config_set_hashfuncs(cmph_config_t *mph, CMPH_HASH *hashfuncs)
 		case CMPH_BDZ_PH:
 			bdz_ph_config_set_hashfuncs(mph, hashfuncs);
 			break;
+#ifdef DEBUG
+		case CMPH_BMZ8:
+			bmz8_config_set_hashfuncs(mph, hashfuncs);
+			break;
 		case CMPH_CHD_PH:
 			chd_ph_config_set_hashfuncs(mph, hashfuncs);
 			break;
 		case CMPH_CHD:
 			chd_config_set_hashfuncs(mph, hashfuncs);
 			break;
+#endif
 		default:
 			break;
 	}
@@ -537,10 +557,6 @@ cmph_t *cmph_new(cmph_config_t *mph)
 			DEBUGP("Creating bmz hash\n");
 			mphf = bmz_new(mph, c);
 			break;
-		case CMPH_BMZ8:
-			DEBUGP("Creating bmz8 hash\n");
-			mphf = bmz8_new(mph, c);
-			break;
 		case CMPH_BRZ:
 			DEBUGP("Creating brz hash\n");
 			if (c >= 2.0) brz_config_set_algo(mph, CMPH_FCH);
@@ -559,6 +575,11 @@ cmph_t *cmph_new(cmph_config_t *mph)
 			DEBUGP("Creating bdz_ph hash\n");
 			mphf = bdz_ph_new(mph, c);
 			break;
+#ifdef DEBUG
+		case CMPH_BMZ8:
+			DEBUGP("Creating bmz8 hash\n");
+			mphf = bmz8_new(mph, c);
+			break;
 		case CMPH_CHD_PH:
 			DEBUGP("Creating chd_ph hash\n");
 			mphf = chd_ph_new(mph, c);
@@ -567,6 +588,7 @@ cmph_t *cmph_new(cmph_config_t *mph)
 			DEBUGP("Creating chd hash\n");
 			mphf = chd_new(mph, c);
 			break;
+#endif
 		default:
 			assert(0);
 	}
@@ -581,8 +603,6 @@ int cmph_dump(cmph_t *mphf, FILE *f)
 			return chm_dump(mphf, f);
 		case CMPH_BMZ:
 			return bmz_dump(mphf, f);
-		case CMPH_BMZ8:
-			return bmz8_dump(mphf, f);
 		case CMPH_BRZ:
 			return brz_dump(mphf, f);
 		case CMPH_FCH:
@@ -591,10 +611,14 @@ int cmph_dump(cmph_t *mphf, FILE *f)
 			return bdz_dump(mphf, f);
 		case CMPH_BDZ_PH:
 			return bdz_ph_dump(mphf, f);
+#ifdef DEBUG
+		case CMPH_BMZ8:
+			return bmz8_dump(mphf, f);
 		case CMPH_CHD_PH:
 			return chd_ph_dump(mphf, f);
 		case CMPH_CHD:
 			return chd_dump(mphf, f);
+#endif
 		default:
 			assert(0);
 	}
@@ -618,10 +642,6 @@ cmph_t *cmph_load(FILE *f)
 			DEBUGP("Loading bmz algorithm dependent parts\n");
 			bmz_load(f, mphf);
 			break;
-		case CMPH_BMZ8:
-			DEBUGP("Loading bmz8 algorithm dependent parts\n");
-			bmz8_load(f, mphf);
-			break;
 		case CMPH_BRZ:
 			DEBUGP("Loading brz algorithm dependent parts\n");
 			brz_load(f, mphf);
@@ -638,6 +658,11 @@ cmph_t *cmph_load(FILE *f)
 			DEBUGP("Loading bdz_ph algorithm dependent parts\n");
 			bdz_ph_load(f, mphf);
 			break;
+#ifdef DEBUG
+		case CMPH_BMZ8:
+			DEBUGP("Loading bmz8 algorithm dependent parts\n");
+			bmz8_load(f, mphf);
+			break;
 		case CMPH_CHD_PH:
 			DEBUGP("Loading chd_ph algorithm dependent parts\n");
 			chd_ph_load(f, mphf);
@@ -646,6 +671,7 @@ cmph_t *cmph_load(FILE *f)
 			DEBUGP("Loading chd algorithm dependent parts\n");
 			chd_load(f, mphf);
 			break;
+#endif
 		default:
 			assert(0);
 	}
@@ -664,9 +690,6 @@ cmph_uint32 cmph_search(cmph_t *mphf, const char *key, cmph_uint32 keylen)
 		case CMPH_BMZ:
 		        DEBUGP("bmz algorithm search\n");
 		        return bmz_search(mphf, key, keylen);
-		case CMPH_BMZ8:
-		        DEBUGP("bmz8 algorithm search\n");
-		        return bmz8_search(mphf, key, keylen);
 		case CMPH_BRZ:
 		        DEBUGP("brz algorithm search\n");
 		        return brz_search(mphf, key, keylen);
@@ -679,12 +702,17 @@ cmph_uint32 cmph_search(cmph_t *mphf, const char *key, cmph_uint32 keylen)
 		case CMPH_BDZ_PH:
 		        DEBUGP("bdz_ph algorithm search\n");
 		        return bdz_ph_search(mphf, key, keylen);
+#ifdef DEBUG
+		case CMPH_BMZ8:
+		        DEBUGP("bmz8 algorithm search\n");
+		        return bmz8_search(mphf, key, keylen);
 		case CMPH_CHD_PH:
 		        DEBUGP("chd_ph algorithm search\n");
 		        return chd_ph_search(mphf, key, keylen);
 		case CMPH_CHD:
 		        DEBUGP("chd algorithm search\n");
 		        return chd_search(mphf, key, keylen);
+#endif
 		default:
 			assert(0);
 	}
@@ -707,9 +735,6 @@ void cmph_destroy(cmph_t *mphf)
 		case CMPH_BMZ:
 			bmz_destroy(mphf);
 			return;
-		case CMPH_BMZ8:
-			bmz8_destroy(mphf);
-			return;
 		case CMPH_BRZ:
 			brz_destroy(mphf);
 			return;
@@ -722,12 +747,17 @@ void cmph_destroy(cmph_t *mphf)
 		case CMPH_BDZ_PH:
 			bdz_ph_destroy(mphf);
 			return;
+#ifdef DEBUG
+		case CMPH_BMZ8:
+			bmz8_destroy(mphf);
+			return;
 		case CMPH_CHD_PH:
 			chd_ph_destroy(mphf);
 			return;
 		case CMPH_CHD:
 			chd_destroy(mphf);
 			return;
+#endif
 		default:
 			assert(0);
 	}
@@ -755,9 +785,6 @@ void cmph_pack(cmph_t *mphf, void *packed_mphf)
 		case CMPH_BMZ:
 			bmz_pack(mphf, ptr);
 			break;
-		case CMPH_BMZ8:
-			bmz8_pack(mphf, ptr);
-			break;
 		case CMPH_BRZ:
 			brz_pack(mphf, ptr);
 			break;
@@ -770,12 +797,17 @@ void cmph_pack(cmph_t *mphf, void *packed_mphf)
 		case CMPH_BDZ_PH:
 			bdz_ph_pack(mphf, ptr);
 			break;
+#ifdef DEBUG
+		case CMPH_BMZ8:
+			bmz8_pack(mphf, ptr);
+			break;
 		case CMPH_CHD_PH:
 			chd_ph_pack(mphf, ptr);
 			break;
 		case CMPH_CHD:
 			chd_pack(mphf, ptr);
 			break;
+#endif
 		default:
 			assert(0);
 	}
@@ -795,8 +827,6 @@ cmph_uint32 cmph_packed_size(cmph_t *mphf)
 			return chm_packed_size(mphf);
 		case CMPH_BMZ:
 			return bmz_packed_size(mphf);
-		case CMPH_BMZ8:
-			return bmz8_packed_size(mphf);
 		case CMPH_BRZ:
 			return brz_packed_size(mphf);
 		case CMPH_FCH:
@@ -805,10 +835,14 @@ cmph_uint32 cmph_packed_size(cmph_t *mphf)
 			return bdz_packed_size(mphf);
 		case CMPH_BDZ_PH:
 			return bdz_ph_packed_size(mphf);
+#ifdef DEBUG
+		case CMPH_BMZ8:
+			return bmz8_packed_size(mphf);
 		case CMPH_CHD_PH:
 			return chd_ph_packed_size(mphf);
 		case CMPH_CHD:
 			return chd_packed_size(mphf);
+#endif
 		default:
 			assert(0);
 	}
@@ -832,8 +866,6 @@ cmph_uint32 cmph_search_packed(void *packed_mphf, const char *key, cmph_uint32 k
 			return chm_search_packed(++ptr, key, keylen);
 		case CMPH_BMZ:
 			return bmz_search_packed(++ptr, key, keylen);
-		case CMPH_BMZ8:
-			return bmz8_search_packed(++ptr, key, keylen);
 		case CMPH_BRZ:
 			return brz_search_packed(++ptr, key, keylen);
 		case CMPH_FCH:
@@ -842,10 +874,14 @@ cmph_uint32 cmph_search_packed(void *packed_mphf, const char *key, cmph_uint32 k
 			return bdz_search_packed(++ptr, key, keylen);
 		case CMPH_BDZ_PH:
 			return bdz_ph_search_packed(++ptr, key, keylen);
+#ifdef DEBUG
+		case CMPH_BMZ8:
+			return bmz8_search_packed(++ptr, key, keylen);
 		case CMPH_CHD_PH:
 			return chd_ph_search_packed(++ptr, key, keylen);
 		case CMPH_CHD:
 			return chd_search_packed(++ptr, key, keylen);
+#endif
 		default:
 			assert(0);
 	}

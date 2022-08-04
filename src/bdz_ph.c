@@ -455,7 +455,6 @@ int bdz_ph_dump(cmph_t *mphf, FILE *fd)
 	char *buf = NULL;
 	cmph_uint32 buflen;
 	cmph_uint32 sizeg = 0;
-	register size_t nbytes;
 	bdz_ph_data_t *data = (bdz_ph_data_t *)mphf->data;
 
 	__cmph_dump(mphf, fd);
@@ -486,7 +485,6 @@ void bdz_ph_load(FILE *f, cmph_t *mphf)
 	char *buf = NULL;
 	cmph_uint32 buflen;
 	cmph_uint32 sizeg = 0;
-	register size_t nbytes;
 	bdz_ph_data_t *bdz_ph = (bdz_ph_data_t *)malloc(sizeof(bdz_ph_data_t));
 
 	DEBUGP("Loading bdz_ph mphf\n");
