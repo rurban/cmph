@@ -109,6 +109,8 @@ src/miller_rabin.lo
 src/miller_rabin.o
 src/select.lo
 src/select.o
+src/sdbm_hash.lo
+src/sdbm_hash.o
 src/vqueue.lo
 src/vqueue.o
 src/vstack.lo

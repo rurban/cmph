@@ -7,6 +7,8 @@
 #include <limits.h>
 #include <string.h>
 
+#include "hash.h"
+
 //#define DEBUG
 #include "debug.h"
 
@@ -84,16 +86,16 @@ Use for hash table lookup, or anything where one collision in 2^^32 is
 acceptable.  Do NOT use for cryptographic purposes.
 --------------------------------------------------------------------
  */
-jenkins_state_t *jenkins_state_new(cmph_uint32 size) //size of hash table
+hash_state_t *jenkins_state_new(cmph_uint32 size) //size of hash table
 {
-	jenkins_state_t *state = (jenkins_state_t *)malloc(sizeof(jenkins_state_t));
+	hash_state_t *state = (hash_state_t *)malloc(sizeof(hash_state_t));
 	if (!state) return NULL;
 	DEBUGP("Initializing jenkins hash\n");
 	if (size > 0) state->seed = ((cmph_uint32)rand() % size);
 	else state->seed = 0;
 	return state;
 }
-void jenkins_state_destroy(jenkins_state_t *state)
+void jenkins_state_destroy(hash_state_t *state)
 {
 	free(state);
 }
@@ -152,7 +154,7 @@ static inline void __jenkins_hash_vector(cmph_uint32 seed, const unsigned char *
 	mix(hashes[0],hashes[1],hashes[2]);
 }
 
-cmph_uint32 jenkins_hash(jenkins_state_t *state, const char *k, cmph_uint32 keylen)
+cmph_uint32 jenkins_hash(hash_state_t *state, const char *k, cmph_uint32 keylen)
 {
 	cmph_uint32 hashes[3];
 	__jenkins_hash_vector(state->seed, (const unsigned char*)k, keylen, hashes);
@@ -214,12 +216,12 @@ cmph_uint32 jenkins_hash(jenkins_state_t *state, const char *k, cmph_uint32 keyl
 	*/
 }
 
-void jenkins_hash_vector_(jenkins_state_t *state, const char *k, cmph_uint32 keylen, cmph_uint32 * hashes)
+void jenkins_hash_vector_(hash_state_t *state, const char *k, cmph_uint32 keylen, cmph_uint32 * hashes)
 {
 	__jenkins_hash_vector(state->seed, (const unsigned char*)k, keylen, hashes);
 }
 
-void jenkins_state_dump(jenkins_state_t *state, char **buf, cmph_uint32 *buflen)
+void jenkins_state_dump(hash_state_t *state, char **buf, cmph_uint32 *buflen)
 {
 	*buflen = sizeof(cmph_uint32);
 	*buf = (char *)malloc(sizeof(cmph_uint32));
@@ -233,30 +235,30 @@ void jenkins_state_dump(jenkins_state_t *state, char **buf, cmph_uint32 *buflen)
 	return;
 }
 
-jenkins_state_t *jenkins_state_copy(jenkins_state_t *src_state)
-{
-	jenkins_state_t *dest_state = (jenkins_state_t *)malloc(sizeof(jenkins_state_t));
-	dest_state->hashfunc = src_state->hashfunc;
-	dest_state->seed = src_state->seed;
-	return dest_state;
-}
+//hash_state_t *jenkins_state_copy(hash_state_t *src_state)
+//{
+//	hash_state_t *dest_state = (hash_state_t *)malloc(sizeof(hash_state_t));
+//	dest_state->hashfunc = src_state->hashfunc;
+//	dest_state->seed = src_state->seed;
+//	return dest_state;
+//}
 
-jenkins_state_t *jenkins_state_load(const char *buf, cmph_uint32 buflen)
+hash_state_t *jenkins_state_load(const char *buf, cmph_uint32 buflen)
 {
-	jenkins_state_t *state = (jenkins_state_t *)malloc(sizeof(jenkins_state_t));
-	state->seed = *(cmph_uint32 *)buf;
+	hash_state_t *state = (hash_state_t *)malloc(sizeof(hash_state_t));
 	state->hashfunc = CMPH_HASH_JENKINS;
+	state->seed = *(cmph_uint32 *)buf;
 	DEBUGP("Loaded jenkins state with seed %u\n", state->seed);
 	return state;
 }
 
 
-/** \fn void jenkins_state_pack(jenkins_state_t *state, void *jenkins_packed);
+/** \fn void jenkins_state_pack(hash_state_t *state, void *jenkins_packed);
  *  \brief Support the ability to pack a jenkins function into a preallocated contiguous memory space pointed by jenkins_packed.
  *  \param state points to the jenkins function
  *  \param jenkins_packed pointer to the contiguous memory area used to store the jenkins function. The size of jenkins_packed must be at least jenkins_state_packed_size()
  */
-void jenkins_state_pack(jenkins_state_t *state, void *jenkins_packed)
+void jenkins_state_pack(hash_state_t *state, void *jenkins_packed)
 {
 	if (state && jenkins_packed)
 	{
@@ -264,7 +266,7 @@ void jenkins_state_pack(jenkins_state_t *state, void *jenkins_packed)
 	}
 }
 
-/** \fn cmph_uint32 jenkins_state_packed_size(jenkins_state_t *state);
+/** \fn cmph_uint32 jenkins_state_packed_size(hash_state_t *state);
  *  \brief Return the amount of space needed to pack a jenkins function.
  *  \return the size of the packed function or zero for failures
  */
