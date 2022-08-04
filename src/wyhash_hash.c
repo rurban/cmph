@@ -74,7 +74,7 @@ static inline void __wyhash_hash_vector(cmph_uint32 seed, const unsigned char *k
                 a=_wyr8(p+i-16);  b=_wyr8(p+i-8);
         }
         hashes64[0] = _wymix(secret[1]^len,_wymix(a^secret[1], b^seed));
-        hashes64[1] = _wymix(b^secret[1], a^seed);
+        hashes[2] = (uint32_t)_wymix(b^secret[1], a^seed);
 
         //wyhash(k, keylen, seed, (cmph_uint64*)hashes); // not enough hashes
 }
