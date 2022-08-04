@@ -184,7 +184,10 @@ int main(int argc, char **argv)
 				}
 				if (!valid)
 				{
-					fprintf(stderr, "Invalid mph algorithm: %s. It is not available in version %s\n", optarg, VERSION);
+					fprintf(stderr, "Invalid mph algorithm: %s.\nValid algorithms are:", optarg);
+                                        for (i = 0; i < CMPH_COUNT; ++i)
+                                                fprintf(stderr, " %s", cmph_names[i]);
+                                        fprintf(stderr, "\n");
 					return -1;
 				}
 				}
@@ -206,7 +209,10 @@ int main(int argc, char **argv)
 				}
 				if (!valid)
 				{
-					fprintf(stderr, "Invalid hash function: %s\n", optarg);
+					fprintf(stderr, "Invalid hash function: %s\nValid names are:", optarg);
+                                        for (i = 0; i < CMPH_HASH_COUNT; ++i)
+                                                fprintf(stderr, " %s",cmph_hash_names[i]);
+                                        fprintf(stderr, "\n");
 					return -1;
 				}
 				}
