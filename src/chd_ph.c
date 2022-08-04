@@ -838,31 +838,30 @@ void chd_ph_load(FILE *fd, cmph_t *mphf)
 {
 	char *buf = NULL;
 	cmph_uint32 buflen;
-	register size_t nbytes;
 	chd_ph_data_t *chd_ph = (chd_ph_data_t *)malloc(sizeof(chd_ph_data_t));
 
 	DEBUGP("Loading chd_ph mphf\n");
 	mphf->data = chd_ph;
 
-	nbytes = fread(&buflen, sizeof(cmph_uint32), (size_t)1, fd);
+	CHK_FREAD(&buflen, sizeof(cmph_uint32), (size_t)1, fd);
 	DEBUGP("Hash state has %u bytes\n", buflen);
 	buf = (char *)malloc((size_t)buflen);
-	nbytes = fread(buf, (size_t)buflen, (size_t)1, fd);
+	CHK_FREAD(buf, (size_t)buflen, (size_t)1, fd);
 	chd_ph->hl = hash_state_load(buf, buflen);
 	free(buf);
 
-	nbytes = fread(&buflen, sizeof(cmph_uint32), (size_t)1, fd);
+	CHK_FREAD(&buflen, sizeof(cmph_uint32), (size_t)1, fd);
 	DEBUGP("Compressed sequence structure has %u bytes\n", buflen);
 	buf = (char *)malloc((size_t)buflen);
-	nbytes = fread(buf, (size_t)buflen, (size_t)1, fd);
+	CHK_FREAD(buf, (size_t)buflen, (size_t)1, fd);
 	chd_ph->cs = (compressed_seq_t *) calloc(1, sizeof(compressed_seq_t));
 	compressed_seq_load(chd_ph->cs, buf, buflen);
 	free(buf);
 
 	// loading n and nbuckets
 	DEBUGP("Reading n and nbuckets\n");
-	nbytes = fread(&(chd_ph->n), sizeof(cmph_uint32), (size_t)1, fd);
-	nbytes = fread(&(chd_ph->nbuckets), sizeof(cmph_uint32), (size_t)1, fd);
+	CHK_FREAD(&(chd_ph->n), sizeof(cmph_uint32), (size_t)1, fd);
+	CHK_FREAD(&(chd_ph->nbuckets), sizeof(cmph_uint32), (size_t)1, fd);
 }
 
 int chd_ph_dump(cmph_t *mphf, FILE *fd)
@@ -876,19 +875,19 @@ int chd_ph_dump(cmph_t *mphf, FILE *fd)
 
 	hash_state_dump(data->hl, &buf, &buflen);
 	DEBUGP("Dumping hash state with %u bytes to disk\n", buflen);
-	nbytes = fwrite(&buflen, sizeof(cmph_uint32), (size_t)1, fd);
-	nbytes = fwrite(buf, (size_t)buflen, (size_t)1, fd);
+	CHK_FWRITE(&buflen, sizeof(cmph_uint32), (size_t)1, fd);
+	CHK_FWRITE(buf, (size_t)buflen, (size_t)1, fd);
 	free(buf);
 
 	compressed_seq_dump(data->cs, &buf, &buflen);
 	DEBUGP("Dumping compressed sequence structure with %u bytes to disk\n", buflen);
-	nbytes = fwrite(&buflen, sizeof(cmph_uint32), (size_t)1, fd);
-	nbytes = fwrite(buf, (size_t)buflen, (size_t)1, fd);
+	CHK_FWRITE(&buflen, sizeof(cmph_uint32), (size_t)1, fd);
+	CHK_FWRITE(buf, (size_t)buflen, (size_t)1, fd);
 	free(buf);
 
 	// dumping n and nbuckets
-	nbytes = fwrite(&(data->n), sizeof(cmph_uint32), (size_t)1, fd);
-	nbytes = fwrite(&(data->nbuckets), sizeof(cmph_uint32), (size_t)1, fd);
+	CHK_FWRITE(&(data->n), sizeof(cmph_uint32), (size_t)1, fd);
+	CHK_FWRITE(&(data->nbuckets), sizeof(cmph_uint32), (size_t)1, fd);
 	return 1;
 }
 

@@ -104,7 +104,20 @@ cmph_uint32 cmph_search_packed(void *packed_mphf, const char *key, cmph_uint32 k
 // TIMING functions. To use the macro CMPH_TIMING must be defined
 #include "cmph_time.h"
 
+#define CHECK_FREAD(nmemb, size)                                        \
+  if (nmemb != size) {                                                  \
+    perror("fread");                                                    \
+    fprintf(stderr, "Read only %u of %u\n", (unsigned)(nmemb), (unsigned)(size)); \
+    abort(); }
+#define CHECK_FWRITE(nmemb, size)                                       \
+  if (nmemb != size) {                                                  \
+    perror("fwrite");                                                   \
+    fprintf(stderr, "Wrote only %u of %u\n", (unsigned)(nmemb), (unsigned)(size)); \
+    abort(); }
 
+#define CHK_FREAD(ptr,size,n,f) { size_t nread = fread(ptr, (size), (n), f); CHECK_FREAD(nread, n) }
+#define CHK_FWRITE(ptr,size,n,f) { size_t nwrite = fwrite(ptr, (size), (n), f); CHECK_FWRITE(nwrite, n) }
+  
 #ifdef __cplusplus
 }
 #endif
