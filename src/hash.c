@@ -7,7 +7,7 @@
 #define DEBUG
 #include "debug.h"
 
-const char *cmph_hash_names[] = { "jenkins", "wyhash", NULL };
+const char *cmph_hash_names[] = { "jenkins", "wyhash", "djb2", "fnv", NULL };
 
 hash_state_t *hash_state_new(CMPH_HASH hashfunc, cmph_uint32 hashsize)
 {
@@ -24,6 +24,16 @@ hash_state_t *hash_state_new(CMPH_HASH hashfunc, cmph_uint32 hashsize)
 			state = (hash_state_t *)wyhash_state_new(hashsize);
 	  		DEBUGP("Wyhash function created\n");
 			break;
+		case CMPH_HASH_DJB2:
+	  		DEBUGP("DJB2 function - %u\n", hashsize);
+			state = (hash_state_t *)djb2_state_new(hashsize);
+	  		DEBUGP("DJB2 function created\n");
+			break;
+		case CMPH_HASH_FNV:
+	  		DEBUGP("FNV function - %u\n", hashsize);
+			state = (hash_state_t *)fnv_state_new(hashsize);
+	  		DEBUGP("FNV function created\n");
+			break;
 		default:
 			assert(0);
 	}
@@ -38,6 +48,10 @@ cmph_uint32 hash(hash_state_t *state, const char *key, cmph_uint32 keylen)
 			return jenkins_hash((jenkins_state_t *)state, key, keylen);
 		case CMPH_HASH_WYHASH:
 			return wyhash_hash((wyhash_state_t *)state, key, keylen);
+		case CMPH_HASH_DJB2:
+			return djb2_hash(((djb2_state_t *)state)->seed, key, keylen);
+		case CMPH_HASH_FNV:
+			return fnv_hash(((fnv_state_t *)state)->seed, key, keylen);
 		default:
 			assert(0);
 	}
@@ -55,6 +69,12 @@ void hash_vector(hash_state_t *state, const char *key, cmph_uint32 keylen, cmph_
 		case CMPH_HASH_WYHASH:
 			wyhash_hash_vector_((wyhash_state_t *)state, key, keylen, hashes);
 			break;
+		case CMPH_HASH_DJB2:
+			djb2_hash_vector(((djb2_state_t *)state)->seed, key, keylen, hashes);
+			break;
+		case CMPH_HASH_FNV:
+			fnv_hash_vector(((fnv_state_t *)state)->seed, key, keylen, hashes);
+			break;
 		default:
 			assert(0);
 	}
@@ -69,19 +89,22 @@ void hash_state_dump(hash_state_t *state, char **buf, cmph_uint32 *buflen)
 	{
 		case CMPH_HASH_JENKINS:
 			jenkins_state_dump((jenkins_state_t *)state, &algobuf, buflen);
-			if (*buflen == UINT_MAX) {
-                                goto cmph_cleanup;
-                        }
 			break;
 		case CMPH_HASH_WYHASH:
 			wyhash_state_dump((wyhash_state_t *)state, &algobuf, buflen);
-			if (*buflen == UINT_MAX) {
-                                goto cmph_cleanup;
-                        }
+			break;
+		case CMPH_HASH_DJB2:
+			djb2_state_dump((djb2_state_t *)state, &algobuf, buflen);
+			break;
+		case CMPH_HASH_FNV:
+			fnv_state_dump((fnv_state_t *)state, &algobuf, buflen);
 			break;
 		default:
 			assert(0);
 	}
+        if (*buflen == UINT_MAX) {
+                goto cmph_cleanup;
+        }
 	*buf = (char *)malloc(strlen(cmph_hash_names[state->hashfunc]) + 1 + *buflen);
 	memcpy(*buf, cmph_hash_names[state->hashfunc], strlen(cmph_hash_names[state->hashfunc]) + 1);
 	DEBUGP("Algobuf is %u\n", *(cmph_uint32 *)algobuf);
@@ -103,6 +126,12 @@ hash_state_t * hash_state_copy(hash_state_t *src_state)
 			break;
 		case CMPH_HASH_WYHASH:
 			dest_state = (hash_state_t *)wyhash_state_copy((wyhash_state_t *)src_state);
+			break;
+		case CMPH_HASH_DJB2:
+			dest_state = (hash_state_t *)djb2_state_copy((djb2_state_t *)src_state);
+			break;
+		case CMPH_HASH_FNV:
+			dest_state = (hash_state_t *)fnv_state_copy((fnv_state_t *)src_state);
 			break;
 		default:
 			assert(0);
@@ -132,6 +161,10 @@ hash_state_t *hash_state_load(const char *buf, cmph_uint32 buflen)
 			return (hash_state_t *)jenkins_state_load(buf + offset, buflen - offset);
 		case CMPH_HASH_WYHASH:
 			return (hash_state_t *)wyhash_state_load(buf + offset, buflen - offset);
+		case CMPH_HASH_DJB2:
+			return (hash_state_t *)djb2_state_load(buf + offset, buflen - offset);
+		case CMPH_HASH_FNV:
+			return (hash_state_t *)fnv_state_load(buf + offset, buflen - offset);
 		default:
 			return NULL;
 	}
@@ -146,6 +179,12 @@ void hash_state_destroy(hash_state_t *state)
 			break;
 		case CMPH_HASH_WYHASH:
 			wyhash_state_destroy((wyhash_state_t *)state);
+			break;
+		case CMPH_HASH_DJB2:
+			djb2_state_destroy((djb2_state_t *)state);
+			break;
+		case CMPH_HASH_FNV:
+			fnv_state_destroy((fnv_state_t *)state);
 			break;
 		default:
 			assert(0);
@@ -173,6 +212,12 @@ void hash_state_pack(hash_state_t *state, void *hash_packed)
 			// pack the wyhash hash function
 			wyhash_state_pack((wyhash_state_t *)state, hash_packed);
 			break;
+		case CMPH_HASH_DJB2:
+			djb2_state_pack((djb2_state_t *)state, hash_packed);
+			break;
+		case CMPH_HASH_FNV:
+			fnv_state_pack((fnv_state_t *)state, hash_packed);
+			break;
 		default:
 			assert(0);
 	}
@@ -186,19 +231,20 @@ void hash_state_pack(hash_state_t *state, void *hash_packed)
  */
 cmph_uint32 hash_state_packed_size(CMPH_HASH hashfunc)
 {
-	cmph_uint32 size = 0;
 	switch (hashfunc)
 	{
 		case CMPH_HASH_JENKINS:
-			size += jenkins_state_packed_size();
-			break;
+			return jenkins_state_packed_size();
 		case CMPH_HASH_WYHASH:
-			size += wyhash_state_packed_size();
-			break;
+			return wyhash_state_packed_size();
+		case CMPH_HASH_DJB2:
+			return djb2_state_packed_size();
+		case CMPH_HASH_FNV:
+			return fnv_state_packed_size();
 		default:
 			assert(0);
 	}
-	return size;
+	return 0;
 }
 
 /** \fn cmph_uint32 hash_packed(void *hash_packed, CMPH_HASH hashfunc, const char *k, cmph_uint32 keylen)
@@ -216,6 +262,10 @@ cmph_uint32 hash_packed(void *hash_packed, CMPH_HASH hashfunc, const char *k, cm
 			return jenkins_hash_packed(hash_packed, k, keylen);
 		case CMPH_HASH_WYHASH:
 			return wyhash_hash_packed(hash_packed, k, keylen);
+		case CMPH_HASH_DJB2:
+			return djb2_hash_packed(hash_packed, k, keylen);
+		case CMPH_HASH_FNV:
+			return fnv_hash_packed(hash_packed, k, keylen);
 		default:
 			assert(0);
 	}
@@ -238,6 +288,12 @@ void hash_vector_packed(void *hash_packed, CMPH_HASH hashfunc, const char *k, cm
 			break;
 		case CMPH_HASH_WYHASH:
 			wyhash_hash_vector_packed(hash_packed, k, keylen, hashes);
+			break;
+		case CMPH_HASH_DJB2:
+			djb2_hash_vector_packed(hash_packed, k, keylen, hashes);
+			break;
+		case CMPH_HASH_FNV:
+			fnv_hash_vector_packed(hash_packed, k, keylen, hashes);
 			break;
 		default:
 			assert(0);

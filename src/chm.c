@@ -227,7 +227,7 @@ int chm_dump(cmph_t *mphf, FILE *fd)
 	nbytes = fwrite(data->g, sizeof(cmph_uint32)*data->n, (size_t)1, fd);
 #ifdef DEBUG
 	fprintf(stderr, "G: ");
-	for (i = 0; i < data->n; ++i) fprintf(stderr, "%u ", data->g[i]);
+	for (int i = 0; i < data->n; ++i) fprintf(stderr, "%u ", data->g[i]);
 	fprintf(stderr, "\n");
 #endif
 	return 1;
