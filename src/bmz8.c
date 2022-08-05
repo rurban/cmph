@@ -462,7 +462,7 @@ static int bmz8_gen_edges(cmph_config_t *mph)
 			mph->key_source->dispose(mph->key_source->data, key, keylen);
 			return 0;
 		}
-		DEBUGP("Adding edge: %u -> %u for key %s\n", h1, h2, key);
+		DEBUGP("Adding edge: %u -> %u for key %u\n", h1, h2, e);
 		mph->key_source->dispose(mph->key_source->data, key, keylen);
 //		fprintf(stderr, "key = %s -- dispose BMZ\n", key);
 		multiple_edges = graph_contains_edge(bmz8->graph, h1, h2);
