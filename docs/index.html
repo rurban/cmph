@@ -185,6 +185,19 @@ The CMPH Library encapsulates the newest and more efficient algorithms in an eas
 
 <hr class="light">
 
+<hr class="light">
+
+</section>
+<section>
+<h2>News for version 2.0.3</h2>
+
+<p>
+Fixed hash states, re-enabled the other hashes, added wyhash.
+This fixed bzm8, chd and chd_pc.
+Minor fixes for buffer overflows, leaks and unaligned accesses.
+Fixes for make distcheck.
+</p>
+
 </section>
 <section>
 <h2>News for version 2.0</h2>
@@ -194,10 +207,10 @@ Cleaned up most warnings for the c code.
 </p>
 <p>
 Experimental C++ interface (--enable-cxxmph) implementing the BDZ algorithm in
-a convenient interface, which serves as the basis
+a convenient SimpleMPHIndex interface, which serves as the basis
 for drop-in replacements for std::unordered_map, sparsehash::sparse_hash_map
-and sparsehash::dense_hash_map. Potentially faster lookup time at the expense
-of insertion time. See cxxmpph/mph_map.h and cxxmph/mph_index.h for details.
+and sparsehash::dense_hash_map. Faster lookup time at the expense of insertion
+time. See cxxmpph/mph_map.h and cxxmph/mph_index.h for details.
 </p>
 
 </section>
@@ -217,6 +230,8 @@ This is a bugfix only version, after which a revamp of the cmph code and
 algorithms will be done.
 </p>
 
+<hr class="light">
+
 </section>
 <section>
 <h2>News for version 0.9</h2>
@@ -229,6 +244,8 @@ algorithms will be done.
 <li>All reported bugs and suggestions have been corrected and included as well.
 </li>
 </ul>
+
+<hr class="light">
 
 </section>
 <section>
@@ -249,9 +266,115 @@ algorithms will be done.
 </li>
 </ul>
 
+<hr class="light">
+
+</section>
+<section>
+<h2>News for version 0.7</h2>
+
+<ul>
+<li>Added man pages and a pkgconfig file.
+</li>
+</ul>
+
+<hr class="light">
+
+</section>
+<section>
+<h2>News for version 0.6</h2>
+
+<ul>
+<li><a href="fch.html">An algorithm to generate MPHFs that require less than 4 bits per key to be stored</a>, which is referred to as FCH algorithm. The algorithm is only efficient for small sets.
+</li>
+<li>The FCH algorithm is integrated with <a href="brz.html">BRZ algorithm</a> so that you will be able to efficiently generate space-efficient MPHFs for sets in the order of billion keys.
+</li>
+<li>All reported bugs and suggestions have been corrected and included as well.
+</li>
+</ul>
+
+<hr class="light">
+
+</section>
+<section>
+<h2>News for version 0.5</h2>
+
+<ul>
+<li>A thread safe vector adapter has been added.
+</li>
+<li><a href="brz.html">A new algorithm for sets in the order of billion of keys that requires approximately 8.1 bits per key to store the resulting MPHFs.</a> 
+</li>
+<li>All reported bugs and suggestions have been corrected and included as well.
+</li>
+</ul>
+
+<hr class="light">
+
+</section>
+<section>
+<h2>News for version 0.4</h2>
+
+<ul>
+<li>Vector Adapter has been added.
+</li>
+<li>An optimized version of bmz (bmz8) for small set of keys (at most 256 keys) has been added.
+</li>
+<li>All reported bugs and suggestions have been corrected and included as well.
+</li>
+</ul>
+
+<hr class="light">
+
+</section>
+<section>
+<h2>News for version 0.3</h2>
+
+<ul>
+<li>New heuristic added to the bmz algorithm permits to generate a mphf with only
+  <em>24.80n + O(1)</em> bytes. The resulting function can be stored in <em>3.72n</em> bytes.
+<a href="bmz.html#heuristic">click here</a> for details.
+</li>
+</ul>
+
+<hr class="light">
+
+<table style="margin-left: auto; margin-right: auto;">
+<tr>
+<td><a href="index.html">Home</a></td>
+<td><a href="chd.html">CHD</a></td>
+<td><a href="bdz.html">BDZ</a></td>
+<td><a href="bmz.html">BMZ</a></td>
+<td><a href="chm.html">CHM</a></td>
+<td><a href="brz.html">BRZ</a></td>
+<td><a href="fch.html">FCH</a></td>
+</tr>
+</table>
+
+<hr class="light">
+
 <p>
-<a href="newslog.html">News log</a>
+Enjoy!
 </p>
+<p>
+<a href="mailto:davi@users.sourceforge.net">Davi de Castro Reis</a>
+</p>
+<p>
+<a href="mailto:db8192@users.sourceforge.net">Djamel Belazzougui</a>
+</p>
+<p>
+<a href="mailto:fc_botelho@users.sourceforge.net">Fabiano Cupertino Botelho</a>
+</p>
+<p>
+<a href="mailto:nivio@dcc.ufmg.br">Nivio Ziviani</a>
+</p>
+<script type="text/javascript">
+var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+</script>
+<script type="text/javascript">
+try {
+var pageTracker = _gat._getTracker("UA-7698683-2");
+pageTracker._trackPageview();
+} catch(err) {}</script>
 
 <hr class="light">
 
@@ -483,7 +606,7 @@ Enjoy!
 </p>
 <a href="http://sourceforge.net"><img src="http://sourceforge.net/sflogo.php?group_id=96251&type=1" width="88" height="31" border="0" alt="SourceForge.net Logo" /> </a>
 <p>
-Last Updated: Fri Aug  5 19:08:45 2022
+Last Updated: Fri Aug  5 19:31:35 2022
 </p>
 <script type="text/javascript">
 var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
@@ -499,5 +622,5 @@ pageTracker._trackPageview();
 </div>
 
 <!-- html code generated by txt2tags 3.3 (http://txt2tags.org) -->
-<!-- cmdline: txt2tags -t html -\-mask-email -i README.t2t -o docs/index.html -->
+<!-- cmdline: txt2tags -t html -\-mask-email -i README.t2t -o index.html -->
 </article></body></html>

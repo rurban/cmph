@@ -5,6 +5,23 @@ News Log
 
 ----------------------------------------
 
+==News for version 2.0.3==
+
+Fixed hash states, re-enabled the other hashes, added wyhash.
+This fixed bzm8, chd and chd_pc.
+Minor fixes for buffer overflows, leaks and unaligned accesses.
+Fixes for make distcheck.
+
+==News for version 2.0==
+
+Cleaned up most warnings for the c code.
+
+Experimental C++ interface (--enable-cxxmph) implementing the BDZ algorithm in
+a convenient SimpleMPHIndex interface, which serves as the basis
+for drop-in replacements for std::unordered_map, sparsehash::sparse_hash_map
+and sparsehash::dense_hash_map. Faster lookup time at the expense of insertion
+time. See cxxmpph/mph_map.h and cxxmph/mph_index.h for details.
+
 ==News for version 1.1==
 
 Fixed a bug in the chd_pc algorithm and reorganized tests.

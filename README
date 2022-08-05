@@ -83,6 +83,17 @@ The CMPH Library encapsulates the newest and more efficient algorithms in an eas
 
 ----------------------------------------
 
+----------------------------------------
+
+
+	News for version 2.0.3
+	======================
+
+Fixed hash states, re-enabled the other hashes, added wyhash.
+This fixed bzm8, chd and chd_pc.
+Minor fixes for buffer overflows, leaks and unaligned accesses.
+Fixes for make distcheck.
+
 
 	News for version 2.0
 	====================
@@ -90,10 +101,10 @@ The CMPH Library encapsulates the newest and more efficient algorithms in an eas
 Cleaned up most warnings for the c code.
 
 Experimental C++ interface (--enable-cxxmph) implementing the BDZ algorithm in
-a convenient interface, which serves as the basis
+a convenient SimpleMPHIndex interface, which serves as the basis
 for drop-in replacements for std::unordered_map, sparsehash::sparse_hash_map
-and sparsehash::dense_hash_map. Potentially faster lookup time at the expense
-of insertion time. See cxxmpph/mph_map.h and cxxmph/mph_index.h for details.
+and sparsehash::dense_hash_map. Faster lookup time at the expense of insertion
+time. See cxxmpph/mph_map.h and cxxmph/mph_index.h for details.
 
 
 	News for version 1.1
@@ -108,6 +119,8 @@ Fixed a bug in the chd_pc algorithm and reorganized tests.
 This is a bugfix only version, after which a revamp of the cmph code and
 algorithms will be done.
 
+----------------------------------------
+
 
 	News for version 0.9
 	====================
@@ -115,6 +128,8 @@ algorithms will be done.
 - The CHD algorithm (chd.html), which is an algorithm that can be tuned to generate MPHFs that require approximately 2.07 bits per key to be stored. The algorithm outperforms the BDZ algorithm (bdz.html) and therefore is the fastest one available in the literature for sets that can be treated in internal memory.
 - The CHD_PH algorithm (chd.html), which is an algorithm to generate PHFs with load factor up to 99 %. It is actually the CHD algorithm without the ranking step. If we set the load factor to 81 %, which is the maximum that can be obtained with the BDZ algorithm (bdz.html), the resulting functions can be stored in 1.40 bits per key. The space requirement increases with the load factor.
 - All reported bugs and suggestions have been corrected and included as well.
+
+----------------------------------------
 
 
 	News for version 0.8
@@ -127,7 +142,68 @@ algorithms will be done.
 - The hash functions djb2, fnv and sdbm were removed because they do not use random seeds and therefore are not useful for MPHFs algorithms.
 - All reported bugs and suggestions have been corrected and included as well.
 
-News log (newslog.html)
+----------------------------------------
+
+
+	News for version 0.7
+	====================
+
+- Added man pages and a pkgconfig file.
+
+----------------------------------------
+
+
+	News for version 0.6
+	====================
+
+- An algorithm to generate MPHFs that require less than 4 bits per key to be stored (fch.html), which is referred to as FCH algorithm. The algorithm is only efficient for small sets.
+- The FCH algorithm is integrated with BRZ algorithm (brz.html) so that you will be able to efficiently generate space-efficient MPHFs for sets in the order of billion keys.
+- All reported bugs and suggestions have been corrected and included as well.
+
+----------------------------------------
+
+
+	News for version 0.5
+	====================
+
+- A thread safe vector adapter has been added.
+- A new algorithm for sets in the order of billion of keys that requires approximately 8.1 bits per key to store the resulting MPHFs. (brz.html) 
+- All reported bugs and suggestions have been corrected and included as well.
+
+----------------------------------------
+
+
+	News for version 0.4
+	====================
+
+- Vector Adapter has been added.
+- An optimized version of bmz (bmz8) for small set of keys (at most 256 keys) has been added.
+- All reported bugs and suggestions have been corrected and included as well.
+
+----------------------------------------
+
+
+	News for version 0.3
+	====================
+
+- New heuristic added to the bmz algorithm permits to generate a mphf with only
+  24.80n + O(1) bytes. The resulting function can be stored in 3.72n bytes.
+
+----------------------------------------
+
+   | [Home index.html] | [CHD chd.html] | [BDZ bdz.html] | [BMZ bmz.html] | [CHM chm.html] | [BRZ brz.html] | [FCH fch.html]
+
+----------------------------------------
+
+Enjoy!
+
+Davi de Castro Reis (davi@users.sourceforge.net)
+
+Djamel Belazzougui (db8192@users.sourceforge.net)
+
+Fabiano Cupertino Botelho (fc_botelho@users.sourceforge.net)
+
+Nivio Ziviani (nivio@dcc.ufmg.br)
 
 ----------------------------------------
 
@@ -327,5 +403,5 @@ Fabiano Cupertino Botelho (fc_botelho@users.sourceforge.net)
 
 Nivio Ziviani (nivio@dcc.ufmg.br)
 
-Last Updated: Fri Aug  5 19:08:47 2022
+Last Updated: Fri Aug  5 19:31:37 2022
 

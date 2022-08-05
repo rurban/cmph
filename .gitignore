@@ -27,7 +27,6 @@
 cxxmph/.deps/
 cxxmph/Makefile
 cxxmph/Makefile.in
-docs/DOC.css
 docs/BDZ
 docs/BMZ
 docs/BRZ
