@@ -28,8 +28,9 @@ hash_state_t *wyhash_state_new(cmph_uint32 size) //size of hash table
 {
 	hash_state_t *state = (hash_state_t *)malloc(sizeof(hash_state_t));
         if (!state) return NULL;
-	DEBUGP("Initializing wyhash hash\n");
-	state->seed = ((cmph_uint32)rand() % size);
+	if (size > 0) state->seed = ((cmph_uint32)rand() % size);
+	else state->seed = 0;
+	DEBUGP("Initializing wyhash hash with seed %u\n", state->seed);
 	return state;
 }
 void wyhash_state_destroy(hash_state_t *state)
