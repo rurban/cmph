@@ -66,7 +66,10 @@ hash_state_t *fnv_state_load(const char *buf, cmph_uint32 buflen)
 {
 	hash_state_t *state = (hash_state_t *)malloc(sizeof(hash_state_t));
 	state->hashfunc = CMPH_HASH_FNV;
-	state->seed = *(cmph_uint32 *)buf;
+        if ((long)buf % 4)
+                state->seed = (buf[3] << 24) | (buf[2] << 16) | (buf[1] << 8) | buf[0];
+        else
+                state->seed = *(cmph_uint32 *)buf;
 	DEBUGP("Loaded fnv state with seed %u\n", state->seed);
 	return state;
 }
