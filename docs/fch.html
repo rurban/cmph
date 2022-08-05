@@ -1,100 +1,136 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
-<HTML>
-<HEAD>
-<META NAME="generator" CONTENT="http://txt2tags.org">
-<LINK REL="stylesheet" TYPE="text/css" HREF="DOC.css">
-<TITLE>FCH Algorithm</TITLE>
-</HEAD><BODY BGCOLOR="white" TEXT="black">
-<CENTER>
-<H1>FCH Algorithm</H1>
-</CENTER>
+<!DOCTYPE html>
+<html>
+<head>
+<title>FCH Algorithm</title>
+<meta name="generator" content="http://txt2tags.org">
+<link rel="stylesheet" href="DOC.css">
+<style>
+body{background-color:#fff;color:#000;}
+hr{background-color:#000;border:0;color:#000;}
+hr.heavy{height:5px;}
+hr.light{height:1px;}
+img{border:0;display:block;}
+img.right{margin:0 0 0 auto;}
+img.center{border:0;margin:0 auto;}
+table th,table td{padding:4px;}
+.center,header{text-align:center;}
+table.center {margin-left:auto; margin-right:auto;}
+.right{text-align:right;}
+.left{text-align:left;}
+.tableborder,.tableborder td,.tableborder th{border:1px solid #000;}
+.underline{text-decoration:underline;}
+</style>
+</head>
+<body>
+<header>
+<hgroup>
+<h1>FCH Algorithm</h1>
+</hgroup>
+</header>
+<article>
 
+<div class="body" id="body">
 
-<HR NOSHADE SIZE=1>
+<hr class="light">
 
-<H2>The Algorithm</H2>
+<section~A~>
+<h1></h1>
+<section>
+<h2>The Algorithm</h2>
 
-<P>
-The algorithm is presented in <A HREF="#papers">[1</A>].
-</P>
+<p>
+The algorithm is presented in <a href="#papers">[1</a>].
+</p>
 
-<HR NOSHADE SIZE=1>
+<hr class="light">
 
-<H2>Memory Consumption</H2>
+</section>
+<section>
+<h2>Memory Consumption</h2>
 
-<P>
+<p>
 Now we detail the memory consumption to generate and to store minimal perfect hash functions
 using the FCH algorithm. The structures responsible for memory consumption are in the 
 following:
-</P>
+</p>
 
-<UL>
-<LI>A vector containing all the <I>n</I> keys.
-<LI>Data structure to speed up the searching step:
-  <OL>
-  <LI><B>random_table</B>: is a vector used to remember currently empty slots in the hash table. It stores <I>n</I> 4 byte long integer numbers. This vector initially contains a random permutation of the <I>n</I> hash addresses. A pointer called filled_count is used to keep the invariant that any slots to the right side of filled_count (inclusive) are empty and any ones to the left are filled.
-  <LI><B>hash_table</B>: Table used to check whether all the collisions were resolved. It has <I>n</I> entries of one byte.
-  <LI><B>map_table</B>: For any unfilled slot <I>x</I> in hash_table, the map_table vector contains <I>n</I> 4 byte long pointers pointing at random_table such that random_table[map_table[x]] = x. Thus, given an empty slot x in the hash_table, we can locate its position in the random_table vector through map_table.
-  <P></P>
-  </OL>
-<LI>Other auxiliary structures    
-  <OL>
-  <LI><B>sorted_indexes</B>: is a vector of <I>cn/(log(n) + 1)</I> 4 byte long pointers to indirectly keep the buckets sorted by decreasing order of their sizes. 
-  <P></P>
-  <LI><B>function <I>g</I></B>: is represented by a vector of <I>cn/(log(n) + 1)</I> 4 byte long integer numbers, one for each bucket. It is used to spread all the keys in a given bucket into the hash table without collisions.
-  </OL>
-</UL>
+<ul>
+<li>A vector containing all the <em>n</em> keys.
+</li>
+<li>Data structure to speed up the searching step:
+  <ol>
+  <li><strong>random_table</strong>: is a vector used to remember currently empty slots in the hash table. It stores <em>n</em> 4 byte long integer numbers. This vector initially contains a random permutation of the <em>n</em> hash addresses. A pointer called filled_count is used to keep the invariant that any slots to the right side of filled_count (inclusive) are empty and any ones to the left are filled.
+  </li>
+  <li><strong>hash_table</strong>: Table used to check whether all the collisions were resolved. It has <em>n</em> entries of one byte.
+  </li>
+  <li><strong>map_table</strong>: For any unfilled slot <em>x</em> in hash_table, the map_table vector contains <em>n</em> 4 byte long pointers pointing at random_table such that random_table[map_table[x]] = x. Thus, given an empty slot x in the hash_table, we can locate its position in the random_table vector through map_table.
+  <p></p>
+  </li>
+  </ol>
+</li>
+<li>Other auxiliary structures    
+  <ol>
+  <li><strong>sorted_indexes</strong>: is a vector of <em>cn/(log(n) + 1)</em> 4 byte long pointers to indirectly keep the buckets sorted by decreasing order of their sizes. 
+  <p></p>
+  </li>
+  <li><strong>function <em>g</em></strong>: is represented by a vector of <em>cn/(log(n) + 1)</em> 4 byte long integer numbers, one for each bucket. It is used to spread all the keys in a given bucket into the hash table without collisions.
+  </li>
+  </ol>
+</li>
+</ul>
 
-<P>
+<p>
 Thus, the total memory consumption of FCH algorithm for generating a minimal 
-perfect hash function (MPHF) is: <I>O(n) + 9n + 8cn/(log(n) + 1)</I> bytes.
-The value of parameter <I>c</I> must be greater than or equal to 2.6.
-</P>
-<P>
+perfect hash function (MPHF) is: <em>O(n) + 9n + 8cn/(log(n) + 1)</em> bytes.
+The value of parameter <em>c</em> must be greater than or equal to 2.6.
+</p>
+<p>
 Now we present the memory consumption to store the resulting function.
-We only need to store the <I>g</I> function and a constant number of bytes for the seed of the hash functions used in the resulting MPHF. Thus, we need <I>cn/(log(n) + 1) + O(1)</I> bytes.
-</P>
+We only need to store the <em>g</em> function and a constant number of bytes for the seed of the hash functions used in the resulting MPHF. Thus, we need <em>cn/(log(n) + 1) + O(1)</em> bytes.
+</p>
 
-<HR NOSHADE SIZE=1>
+<hr class="light">
 
-<A NAME="papers"></A>
-<H2>Papers</H2>
+</section>
+<section id="papers">
+<h2>Papers</h2>
 
-<OL>
-<LI>E.A. Fox, Q.F. Chen, and L.S. Heath. <A HREF="papers/fch92.pdf">A faster algorithm for constructing minimal perfect hash functions.</A> In Proc. 15th Annual International ACM SIGIR Conference on Research and Development in Information Retrieval, pages 266-273, 1992.
-</OL>
+<ol>
+<li>E.A. Fox, Q.F. Chen, and L.S. Heath. <a href="papers/fch92.pdf">A faster algorithm for constructing minimal perfect hash functions.</a> In Proc. 15th Annual International ACM SIGIR Conference on Research and Development in Information Retrieval, pages 266-273, 1992.
+</li>
+</ol>
 
-<HR NOSHADE SIZE=1>
+<hr class="light">
 
-<TABLE ALIGN="center" CELLPADDING="4">
-<TR>
-<TD><A HREF="index.html">Home</A></TD>
-<TD><A HREF="chd.html">CHD</A></TD>
-<TD><A HREF="bdz.html">BDZ</A></TD>
-<TD><A HREF="bmz.html">BMZ</A></TD>
-<TD><A HREF="chm.html">CHM</A></TD>
-<TD><A HREF="brz.html">BRZ</A></TD>
-<TD><A HREF="fch.html">FCH</A></TD>
-</TR>
-</TABLE>
+<table style="margin-left: auto; margin-right: auto;">
+<tr>
+<td><a href="index.html">Home</a></td>
+<td><a href="chd.html">CHD</a></td>
+<td><a href="bdz.html">BDZ</a></td>
+<td><a href="bmz.html">BMZ</a></td>
+<td><a href="chm.html">CHM</a></td>
+<td><a href="brz.html">BRZ</a></td>
+<td><a href="fch.html">FCH</a></td>
+</tr>
+</table>
 
-<HR NOSHADE SIZE=1>
+<hr class="light">
 
-<P>
+<p>
 Enjoy!
-</P>
-<P>
-<A HREF="mailto:davi@users.sourceforge.net">Davi de Castro Reis</A>
-</P>
-<P>
-<A HREF="mailto:db8192@users.sourceforge.net">Djamel Belazzougui</A>
-</P>
-<P>
-<A HREF="mailto:fc_botelho@users.sourceforge.net">Fabiano Cupertino Botelho</A>
-</P>
-<P>
-<A HREF="mailto:nivio@dcc.ufmg.br">Nivio Ziviani</A>
-</P>
+</p>
+<p>
+<a href="mailto:davi@users.sourceforge.net">Davi de Castro Reis</a>
+</p>
+<p>
+<a href="mailto:db8192@users.sourceforge.net">Djamel Belazzougui</a>
+</p>
+<p>
+<a href="mailto:fc_botelho@users.sourceforge.net">Fabiano Cupertino Botelho</a>
+</p>
+<p>
+<a href="mailto:nivio@dcc.ufmg.br">Nivio Ziviani</a>
+</p>
 <script type="text/javascript">
 var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
 document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
@@ -104,7 +140,10 @@ try {
 var pageTracker = _gat._getTracker("UA-7698683-2");
 pageTracker._trackPageview();
 } catch(err) {}</script>
+</section>
+</section>
+</div>
 
-<!-- html code generated by txt2tags 2.6 (http://txt2tags.org) -->
+<!-- html code generated by txt2tags 3.4 (http://txt2tags.org) -->
 <!-- cmdline: txt2tags -t html -i FCH.t2t -o docs/fch.html -->
-</BODY></HTML>
+</article></body></html>

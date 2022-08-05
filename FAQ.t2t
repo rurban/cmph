@@ -16,7 +16,7 @@ CMPH FAQ
 	  The error is probably because you have duplicated
 	  keys in the input. You must guarantee that the keys are unique in the 
 	  input. If you are using a UN*X based OS, try doing 
-``` 	#sort input.txt | uniq > input_uniq.txt
+``` 	sort input.txt | uniq > input_uniq.txt
 	  and run cmph with input_uniq.txt
 
 - Why do I change the hash function using  cmph_config_set_hashfuncs function and the default (jenkins) 

@@ -265,6 +265,10 @@ Minimum perfect hashing tool
     	  * chd
   -f	 hash function (may be used multiple times) - valid values are
     	  * jenkins
+      	  * wyhash
+      	  * djb2
+      	  * fnv
+      	  * sdbm
   -V	 print version number and exit
   -v	 increase verbosity (may be used multiple times)
   -k	 number of keys
@@ -290,7 +294,7 @@ Minimum perfect hashing tool
   -t	 set the number of keys per bin for a t-perfect hashing function. A t-perfect
     	 hash function allows at most t collisions in a given bin. This parameter applies
     	 only to the CHD and CHD_PH algorithms. Its value should be an integer in the
-    	 range [1,128]. Defaul is 1
+    	 range [1,128]. Default is 1.
   keysfile	 line separated file with keys
 ```
 
