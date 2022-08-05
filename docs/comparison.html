@@ -1,36 +1,60 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
-<HTML>
-<HEAD>
-<META NAME="generator" CONTENT="http://txt2tags.org">
-<LINK REL="stylesheet" TYPE="text/css" HREF="DOC.css">
-<TITLE>Comparison Between BMZ And CHM Algorithms</TITLE>
-</HEAD><BODY BGCOLOR="white" TEXT="black">
-<CENTER>
-<H1>Comparison Between BMZ And CHM Algorithms</H1>
-</CENTER>
+<!DOCTYPE html>
+<html>
+<head>
+<title>Comparison Between BMZ And CHM Algorithms</title>
+<meta name="generator" content="http://txt2tags.org">
+<link rel="stylesheet" href="DOC.css">
+<style>
+body{background-color:#fff;color:#000;}
+hr{background-color:#000;border:0;color:#000;}
+hr.heavy{height:5px;}
+hr.light{height:1px;}
+img{border:0;display:block;}
+img.right{margin:0 0 0 auto;}
+img.center{border:0;margin:0 auto;}
+table th,table td{padding:4px;}
+.center,header{text-align:center;}
+table.center {margin-left:auto; margin-right:auto;}
+.right{text-align:right;}
+.left{text-align:left;}
+.tableborder,.tableborder td,.tableborder th{border:1px solid #000;}
+.underline{text-decoration:underline;}
+</style>
+</head>
+<body>
+<header>
+<hgroup>
+<h1>Comparison Between BMZ And CHM Algorithms</h1>
+</hgroup>
+</header>
+<article>
 
+<div class="body" id="body">
 
-<HR NOSHADE SIZE=1>
+<hr class="light">
 
-<H2>Characteristics</H2>
+<section~A~>
+<h1></h1>
+<section>
+<h2>Characteristics</h2>
 
-<P>
+<p>
 Table 1 presents the main characteristics of the two algorithms. 
-The number of edges in the graph <IMG ALIGN="middle" SRC="figs/img27.png" BORDER="0" ALT=""> is <IMG ALIGN="middle" SRC="figs/img236.png" BORDER="0" ALT="">, 
-the number of keys in the input set <IMG ALIGN="bottom" SRC="figs/img20.png" BORDER="0" ALT="">.
-The number of vertices of <IMG ALIGN="bottom" SRC="figs/img32.png" BORDER="0" ALT=""> is equal 
-to <IMG ALIGN="bottom" SRC="figs/img12.png" BORDER="0" ALT=""> and <IMG ALIGN="bottom" SRC="figs/img237.png" BORDER="0" ALT=""> for BMZ algorithm and the CHM algorithm, respectively.
-This measure is related to the amount of space to store the array <IMG ALIGN="middle" SRC="figs/img37.png" BORDER="0" ALT="">.
-This improves the space required to store a function in BMZ algorithm to <IMG ALIGN="middle" SRC="figs/img238.png" BORDER="0" ALT=""> of the space required by the CHM algorithm.
-The number of critical edges is <IMG ALIGN="middle" SRC="figs/img76.png" BORDER="0" ALT=""> and 0, for BMZ algorithm and the CHM algorithm,
+The number of edges in the graph <img class="center" src="figs/img27.png" alt=""> is <img class="center" src="figs/img236.png" alt="">, 
+the number of keys in the input set <img class="center" src="figs/img20.png" alt="">.
+The number of vertices of <img class="center" src="figs/img32.png" alt=""> is equal 
+to <img class="center" src="figs/img12.png" alt=""> and <img class="center" src="figs/img237.png" alt=""> for BMZ algorithm and the CHM algorithm, respectively.
+This measure is related to the amount of space to store the array <img class="center" src="figs/img37.png" alt="">.
+This improves the space required to store a function in BMZ algorithm to <img class="center" src="figs/img238.png" alt=""> of the space required by the CHM algorithm.
+The number of critical edges is <img class="center" src="figs/img76.png" alt=""> and 0, for BMZ algorithm and the CHM algorithm,
 respectively.
 BMZ algorithm generates random graphs that necessarily contains cycles and the
 CHM algorithm
 generates 
 acyclic random graphs.
-Finally, the CHM algorithm generates <A HREF="concepts.html">order preserving functions</A>
+Finally, the CHM algorithm generates <a href="concepts.html">order preserving functions</a>
 while BMZ algorithm does not preserve order.
-</P>
+</p>
 <TABLE CELLPADDING=3 BORDER="1" ALIGN="center">
 <TR><TD ALIGN="CENTER"><SMALL CLASS="FOOTNOTESIZE">
 Characteristics </SMALL></TD>
@@ -108,87 +132,93 @@ Order preserving </SMALL></TD>
 </TR>
 </TABLE>
 
-<TABLE ALIGN="center" CELLPADDING="4">
-<TR>
-<TD><B>Table 1:</B> Main characteristics of the algorithms.</TD>
-</TR>
-</TABLE>
+<table style="margin-left: auto; margin-right: auto;">
+<tr>
+<td><strong>Table 1:</strong> Main characteristics of the algorithms.</td>
+</tr>
+</table>
 
-<HR NOSHADE SIZE=1>
+<hr class="light">
 
-<H2>Memory Consumption</H2>
+</section>
+<section>
+<h2>Memory Consumption</h2>
 
-<UL>
-<LI>Memory consumption to generate the minimal perfect  hash function (MPHF):
-</UL>
+<ul>
+<li>Memory consumption to generate the minimal perfect  hash function (MPHF):
+</li>
+</ul>
 
-<TABLE ALIGN="center" BORDER="1" CELLPADDING="4">
-<TR>
-<TH>Algorithm</TH>
-<TH><I>c</I></TH>
-<TH>Memory consumption to generate a MPHF</TH>
-</TR>
-<TR>
-<TD ALIGN="center">BMZ</TD>
-<TD>0.93</TD>
-<TD ALIGN="center"><I>24.80n + O(1)</I></TD>
-</TR>
-<TR>
-<TD ALIGN="center">BMZ</TD>
-<TD>1.15</TD>
-<TD ALIGN="center"><I>26.42n + O(1)</I></TD>
-</TR>
-<TR>
-<TD ALIGN="center">CHM</TD>
-<TD>2.09</TD>
-<TD ALIGN="center"><I>33.00n + O(1)</I></TD>
-</TR>
-</TABLE>
+<table style="margin-left: auto; margin-right: auto;" class="tableborder">
+<tr>
+<th>Algorithm</th>
+<th><em>c</em></th>
+<th>Memory consumption to generate a MPHF</th>
+</tr>
+<tr>
+<td class="center">BMZ</td>
+<td>0.93</td>
+<td class="center"><em>24.80n + O(1)</em></td>
+</tr>
+<tr>
+<td class="center">BMZ</td>
+<td>1.15</td>
+<td class="center"><em>26.42n + O(1)</em></td>
+</tr>
+<tr>
+<td class="center">CHM</td>
+<td>2.09</td>
+<td class="center"><em>33.00n + O(1)</em></td>
+</tr>
+</table>
 
-<TABLE ALIGN="center" CELLPADDING="4">
-<TR>
-<TD><B>Table 2:</B> Memory consumption to generate a MPHF using the algorithms BMZ and CHM.</TD>
-</TR>
-</TABLE>
+<table style="margin-left: auto; margin-right: auto;">
+<tr>
+<td><strong>Table 2:</strong> Memory consumption to generate a MPHF using the algorithms BMZ and CHM.</td>
+</tr>
+</table>
 
-<UL>
-<LI>Memory consumption to store the resulting minimal perfect  hash function (MPHF):
-</UL>
+<ul>
+<li>Memory consumption to store the resulting minimal perfect  hash function (MPHF):
+</li>
+</ul>
 
-<TABLE ALIGN="center" BORDER="1" CELLPADDING="4">
-<TR>
-<TH>Algorithm</TH>
-<TH><I>c</I></TH>
-<TH>Memory consumption to store a MPHF</TH>
-</TR>
-<TR>
-<TD ALIGN="center">BMZ</TD>
-<TD>0.93</TD>
-<TD ALIGN="center"><I>3.72n</I></TD>
-</TR>
-<TR>
-<TD ALIGN="center">BMZ</TD>
-<TD>1.15</TD>
-<TD ALIGN="center"><I>4.60n</I></TD>
-</TR>
-<TR>
-<TD ALIGN="center">CHM</TD>
-<TD>2.09</TD>
-<TD ALIGN="center"><I>8.36n</I></TD>
-</TR>
-</TABLE>
+<table style="margin-left: auto; margin-right: auto;" class="tableborder">
+<tr>
+<th>Algorithm</th>
+<th><em>c</em></th>
+<th>Memory consumption to store a MPHF</th>
+</tr>
+<tr>
+<td class="center">BMZ</td>
+<td>0.93</td>
+<td class="center"><em>3.72n</em></td>
+</tr>
+<tr>
+<td class="center">BMZ</td>
+<td>1.15</td>
+<td class="center"><em>4.60n</em></td>
+</tr>
+<tr>
+<td class="center">CHM</td>
+<td>2.09</td>
+<td class="center"><em>8.36n</em></td>
+</tr>
+</table>
 
-<TABLE ALIGN="center" CELLPADDING="4">
-<TR>
-<TD><B>Table 3:</B> Memory consumption to store a MPHF generated by the algorithms BMZ and CHM.</TD>
-</TR>
-</TABLE>
+<table style="margin-left: auto; margin-right: auto;">
+<tr>
+<td><strong>Table 3:</strong> Memory consumption to store a MPHF generated by the algorithms BMZ and CHM.</td>
+</tr>
+</table>
 
-<HR NOSHADE SIZE=1>
+<hr class="light">
 
-<H2>Run times</H2>
+</section>
+<section>
+<h2>Run times</h2>
 
-<P>
+<p>
 We now present some experimental results to compare the BMZ and CHM algorithms.
 The data consists of a collection of 100 million universe resource locations
 (URLs) collected from the Web.
@@ -197,20 +227,20 @@ All experiments were carried on
 a computer running the Linux operating system, version 2.6.7,
 with a 2.4 gigahertz processor and
 4 gigabytes of main memory.
-</P>
-<P>
+</p>
+<p>
 Table 4 presents time measurements. 
 All times are in seconds.
 The table entries represent averages over 50 trials.
-The column labelled as <IMG ALIGN="middle" SRC="figs/img243.png" BORDER="0" ALT=""> represents
-the number of iterations to generate the random graph <IMG ALIGN="bottom" SRC="figs/img32.png" BORDER="0" ALT=""> in the 
+The column labelled as <img class="center" src="figs/img243.png" alt=""> represents
+the number of iterations to generate the random graph <img class="center" src="figs/img32.png" alt=""> in the 
 mapping step of the algorithms.
 The next columns represent the run times
 for the mapping plus ordering steps together and the searching
 step for each algorithm.
 The last column represents the percent gain of our algorithm
 over the CHM algorithm.
-</P>
+</p>
 <TABLE CELLPADDING=3 BORDER="1" ALIGN="center">
 <TR><TD ALIGN="CENTER"><SMALL CLASS="FOOTNOTESIZE"> <SPAN CLASS="MATH"><IMG
  WIDTH="14" HEIGHT="13" ALIGN="BOTTOM" BORDER="0"
@@ -321,22 +351,22 @@ Total </SMALL></TD>
 </TR>
 </TABLE>
 
-<TABLE ALIGN="center" CELLPADDING="4">
-<TR>
-<TD><B>Table 4:</B> Time measurements for BMZ and the CHM algorithm.</TD>
-</TR>
-</TABLE>
+<table style="margin-left: auto; margin-right: auto;">
+<tr>
+<td><strong>Table 4:</strong> Time measurements for BMZ and the CHM algorithm.</td>
+</tr>
+</table>
 
-<P>
+<p>
 The mapping step of the BMZ algorithm is faster because 
-the expected number of iterations in the mapping step to generate <IMG ALIGN="bottom" SRC="figs/img32.png" BORDER="0" ALT=""> are 
+the expected number of iterations in the mapping step to generate <img class="center" src="figs/img32.png" alt=""> are 
 2.13 and 2.92 for BMZ algorithm and the CHM algorithm, respectively
-(see <A HREF="bmz.html#papers">[2</A>] for details).
-The graph <IMG ALIGN="bottom" SRC="figs/img32.png" BORDER="0" ALT=""> generated by BMZ algorithm
-has <IMG ALIGN="bottom" SRC="figs/img12.png" BORDER="0" ALT=""> vertices, against <IMG ALIGN="bottom" SRC="figs/img237.png" BORDER="0" ALT=""> for the CHM algorithm.
+(see <a href="bmz.html#papers">[2</a>] for details).
+The graph <img class="center" src="figs/img32.png" alt=""> generated by BMZ algorithm
+has <img class="center" src="figs/img12.png" alt=""> vertices, against <img class="center" src="figs/img237.png" alt=""> for the CHM algorithm.
 These two facts make BMZ algorithm faster in the mapping step.
 The ordering step of BMZ algorithm is approximately equal to
-the time to check if <IMG ALIGN="bottom" SRC="figs/img32.png" BORDER="0" ALT=""> is acyclic for the CHM algorithm.
+the time to check if <img class="center" src="figs/img32.png" alt=""> is acyclic for the CHM algorithm.
 The searching step of the CHM algorithm is faster, but the total
 time of BMZ algorithm is, on average, approximately 59 % faster
 than the CHM algorithm.
@@ -344,20 +374,20 @@ It is important to notice the times for the searching step:
 for both algorithms they are not the dominant times,
 and the experimental results clearly show
 a linear behavior for the searching step.
-</P>
-<P>
-We now present run times for BMZ algorithm using a <A HREF="bmz.html#heuristic">heuristic</A> that 
+</p>
+<p>
+We now present run times for BMZ algorithm using a <a href="bmz.html#heuristic">heuristic</a> that 
 reduces the space requirement
-to any given value between <IMG ALIGN="bottom" SRC="figs/img12.png" BORDER="0" ALT=""> words and <IMG ALIGN="bottom" SRC="figs/img13.png" BORDER="0" ALT=""> words.
-For example, for <IMG ALIGN="bottom" SRC="figs/img244.png" BORDER="0" ALT=""> and <IMG ALIGN="bottom" SRC="figs/img6.png" BORDER="0" ALT="">, the analytical expected number 
-of iterations are <IMG ALIGN="bottom" SRC="figs/img245.png" BORDER="0" ALT=""> and <IMG ALIGN="bottom" SRC="figs/img246.png" BORDER="0" ALT="">, respectively
-(for <IMG ALIGN="middle" SRC="figs/img247.png" BORDER="0" ALT="">, the number of iterations are 2.78 for <IMG ALIGN="bottom" SRC="figs/img244.png" BORDER="0" ALT=""> and 3.04
-for <IMG ALIGN="bottom" SRC="figs/img6.png" BORDER="0" ALT="">).
+to any given value between <img class="center" src="figs/img12.png" alt=""> words and <img class="center" src="figs/img13.png" alt=""> words.
+For example, for <img class="center" src="figs/img244.png" alt=""> and <img class="center" src="figs/img6.png" alt="">, the analytical expected number 
+of iterations are <img class="center" src="figs/img245.png" alt=""> and <img class="center" src="figs/img246.png" alt="">, respectively
+(for <img class="center" src="figs/img247.png" alt="">, the number of iterations are 2.78 for <img class="center" src="figs/img244.png" alt=""> and 3.04
+for <img class="center" src="figs/img6.png" alt="">).
 Table 5 presents the total times to construct a 
-function for <IMG ALIGN="middle" SRC="figs/img247.png" BORDER="0" ALT="">, with an increase from <IMG ALIGN="bottom" SRC="figs/img237.png" BORDER="0" ALT=""> seconds 
-for <IMG ALIGN="bottom" SRC="figs/img128.png" BORDER="0" ALT=""> (see Table 4) to <IMG ALIGN="bottom" SRC="figs/img249.png" BORDER="0" ALT=""> seconds for <IMG ALIGN="bottom" SRC="figs/img244.png" BORDER="0" ALT=""> and 
-to <IMG ALIGN="bottom" SRC="figs/img250.png" BORDER="0" ALT=""> seconds for <IMG ALIGN="bottom" SRC="figs/img6.png" BORDER="0" ALT="">.
-</P>
+function for <img class="center" src="figs/img247.png" alt="">, with an increase from <img class="center" src="figs/img248.png" alt=""> seconds 
+for <img class="center" src="figs/img128.png" alt=""> (see Table 4) to <img class="center" src="figs/img249.png" alt=""> seconds for <img class="center" src="figs/img244.png" alt=""> and 
+to <img class="center" src="figs/img250.png" alt=""> seconds for <img class="center" src="figs/img6.png" alt="">.
+</p>
 <TABLE CELLPADDING=3 BORDER="1" ALIGN="center">
 <TR><TD ALIGN="CENTER"><SMALL CLASS="FOOTNOTESIZE"> <SPAN CLASS="MATH"><IMG
  WIDTH="14" HEIGHT="13" ALIGN="BOTTOM" BORDER="0"
@@ -405,43 +435,43 @@ Total </SMALL></TD>
 </TR>
 </TABLE>
 
-<TABLE ALIGN="center" CELLPADDING="4">
-<TR>
-<TD><B>Table 5:</B> Time measurements for BMZ tuned algorithm with <IMG ALIGN="bottom" SRC="figs/img5.png" BORDER="0" ALT=""> and <IMG ALIGN="bottom" SRC="figs/img6.png" BORDER="0" ALT="">.</TD>
-</TR>
-</TABLE>
+<table style="margin-left: auto; margin-right: auto;">
+<tr>
+<td><strong>Table 5:</strong> Time measurements for BMZ tuned algorithm with <img class="center" src="figs/img5.png" alt=""> and <img class="center" src="figs/img6.png" alt="">.</td>
+</tr>
+</table>
 
-<HR NOSHADE SIZE=1>
+<hr class="light">
 
-<TABLE ALIGN="center" CELLPADDING="4">
-<TR>
-<TD><A HREF="index.html">Home</A></TD>
-<TD><A HREF="chd.html">CHD</A></TD>
-<TD><A HREF="bdz.html">BDZ</A></TD>
-<TD><A HREF="bmz.html">BMZ</A></TD>
-<TD><A HREF="chm.html">CHM</A></TD>
-<TD><A HREF="brz.html">BRZ</A></TD>
-<TD><A HREF="fch.html">FCH</A></TD>
-</TR>
-</TABLE>
+<table style="margin-left: auto; margin-right: auto;">
+<tr>
+<td><a href="index.html">Home</a></td>
+<td><a href="chd.html">CHD</a></td>
+<td><a href="bdz.html">BDZ</a></td>
+<td><a href="bmz.html">BMZ</a></td>
+<td><a href="chm.html">CHM</a></td>
+<td><a href="brz.html">BRZ</a></td>
+<td><a href="fch.html">FCH</a></td>
+</tr>
+</table>
 
-<HR NOSHADE SIZE=1>
+<hr class="light">
 
-<P>
+<p>
 Enjoy!
-</P>
-<P>
-<A HREF="mailto:davi@users.sourceforge.net">Davi de Castro Reis</A>
-</P>
-<P>
-<A HREF="mailto:db8192@users.sourceforge.net">Djamel Belazzougui</A>
-</P>
-<P>
-<A HREF="mailto:fc_botelho@users.sourceforge.net">Fabiano Cupertino Botelho</A>
-</P>
-<P>
-<A HREF="mailto:nivio@dcc.ufmg.br">Nivio Ziviani</A>
-</P>
+</p>
+<p>
+<a href="mailto:davi@users.sourceforge.net">Davi de Castro Reis</a>
+</p>
+<p>
+<a href="mailto:db8192@users.sourceforge.net">Djamel Belazzougui</a>
+</p>
+<p>
+<a href="mailto:fc_botelho@users.sourceforge.net">Fabiano Cupertino Botelho</a>
+</p>
+<p>
+<a href="mailto:nivio@dcc.ufmg.br">Nivio Ziviani</a>
+</p>
 <script type="text/javascript">
 var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
 document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
@@ -451,7 +481,10 @@ try {
 var pageTracker = _gat._getTracker("UA-7698683-2");
 pageTracker._trackPageview();
 } catch(err) {}</script>
+</section>
+</section>
+</div>
 
-<!-- html code generated by txt2tags 2.6 (http://txt2tags.org) -->
+<!-- html code generated by txt2tags 3.4 (http://txt2tags.org) -->
 <!-- cmdline: txt2tags -t html -i COMPARISON.t2t -o docs/comparison.html -->
-</BODY></HTML>
+</article></body></html>

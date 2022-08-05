@@ -1,101 +1,126 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
-<HTML>
-<HEAD>
-<META NAME="generator" CONTENT="http://txt2tags.org">
-<LINK REL="stylesheet" TYPE="text/css" HREF="DOC.css">
-<TITLE>CMPH FAQ</TITLE>
-</HEAD><BODY BGCOLOR="white" TEXT="black">
-<CENTER>
-<H1>CMPH FAQ</H1>
-</CENTER>
+<!DOCTYPE html>
+<html>
+<head>
+<title>CMPH FAQ</title>
+<meta name="generator" content="http://txt2tags.org">
+<link rel="stylesheet" href="DOC.css">
+<style>
+body{background-color:#fff;color:#000;}
+hr{background-color:#000;border:0;color:#000;}
+hr.heavy{height:5px;}
+hr.light{height:1px;}
+img{border:0;display:block;}
+img.right{margin:0 0 0 auto;}
+img.center{border:0;margin:0 auto;}
+table th,table td{padding:4px;}
+.center,header{text-align:center;}
+table.center {margin-left:auto; margin-right:auto;}
+.right{text-align:right;}
+.left{text-align:left;}
+.tableborder,.tableborder td,.tableborder th{border:1px solid #000;}
+.underline{text-decoration:underline;}
+</style>
+</head>
+<body>
+<header>
+<hgroup>
+<h1>CMPH FAQ</h1>
+</hgroup>
+</header>
+<article>
 
+<div class="body" id="body">
 
-<UL>
-<LI>How do I define the ids of the keys?
-</UL>
+<ul>
+<li>How do I define the ids of the keys?
+</li>
+</ul>
 
-	<BLOCKQUOTE>
+	<blockquote>
 	- You don't. The ids will be assigned by the algorithm creating the minimal
-	  perfect hash function. If the algorithm creates an <B>ordered</B> minimal
+	  perfect hash function. If the algorithm creates an <strong>ordered</strong> minimal
 	  perfect hash function, the ids will be the indices of the keys in the 
 	  input. Otherwise, you have no guarantee of the distribution of the ids.
-	</BLOCKQUOTE>
+	</blockquote>
 
-<UL>
-<LI>Why do I always get the error "Unable to create minimum perfect hashing function"?
-</UL>
+<ul>
+<li>Why do I always get the error "Unable to create minimum perfect hashing function"?
+</li>
+</ul>
 
-	<BLOCKQUOTE>
+	<blockquote>
 	- The algorithms do not guarantee that a minimal perfect hash function can
 	  be created. In practice, it will always work if your input
 	  is big enough (&gt;100 keys). 
 	  The error is probably because you have duplicated
 	  keys in the input. You must guarantee that the keys are unique in the 
 	  input. If you are using a UN*X based OS, try doing 
-	</BLOCKQUOTE>
+	</blockquote>
 
-<PRE>
-  	sort input.txt | uniq &gt; input_uniq.txt
-</PRE>
+<pre>
+	sort input.txt | uniq &gt; input_uniq.txt
+</pre>
 
-	<BLOCKQUOTE>
+	<blockquote>
 	  and run cmph with input_uniq.txt
-	</BLOCKQUOTE>
+	</blockquote>
 
-<UL>
-<LI>Why do I change the hash function using  cmph_config_set_hashfuncs function and the default (jenkins) 
+<ul>
+<li>Why do I change the hash function using  cmph_config_set_hashfuncs function and the default (jenkins) 
 one is executed?
-</UL>
+</li>
+</ul>
 
-	<BLOCKQUOTE>
+	<blockquote>
 	- Probably you are you using the cmph_config_set_algo function after
 	  the cmph_config_set_hashfuncs. Therefore, the default hash function 
-	  is reset when you call the cmph_config_set_algo function.
-	</BLOCKQUOTE>
+	  is reset when you call the cmph_config_set_algo function. 
+	</blockquote>
 
-<UL>
-<LI>What do I do when the following error is got? 
-</UL>
+<ul>
+<li>What do I do when the following error is got? 
+</li>
+</ul>
 
-	<BLOCKQUOTE>
-	- Error: <B>error while loading shared libraries: libcmph.so.0: cannot open shared object file: No such file ordirectory</B>
-	</BLOCKQUOTE>
-	<BLOCKQUOTE>
-	- Solution: type <B>export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib/</B> at the shell or put that shell command 
+	<blockquote>
+	- Error: <strong>error while loading shared libraries: libcmph.so.0: cannot open shared object file: No such file ordirectory</strong>
+	</blockquote>
+	<blockquote>
+	- Solution: type <strong>export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib/</strong> at the shell or put that shell command 
 	  in your .profile file or in the /etc/profile file.
-	</BLOCKQUOTE>
+	</blockquote>
 
-<HR NOSHADE SIZE=1>
+<hr class="light">
 
-<TABLE ALIGN="center" CELLPADDING="4">
-<TR>
-<TD><A HREF="index.html">Home</A></TD>
-<TD><A HREF="chd.html">CHD</A></TD>
-<TD><A HREF="bdz.html">BDZ</A></TD>
-<TD><A HREF="bmz.html">BMZ</A></TD>
-<TD><A HREF="chm.html">CHM</A></TD>
-<TD><A HREF="brz.html">BRZ</A></TD>
-<TD><A HREF="fch.html">FCH</A></TD>
-</TR>
-</TABLE>
+<table style="margin-left: auto; margin-right: auto;">
+<tr>
+<td><a href="index.html">Home</a></td>
+<td><a href="chd.html">CHD</a></td>
+<td><a href="bdz.html">BDZ</a></td>
+<td><a href="bmz.html">BMZ</a></td>
+<td><a href="chm.html">CHM</a></td>
+<td><a href="brz.html">BRZ</a></td>
+<td><a href="fch.html">FCH</a></td>
+</tr>
+</table>
 
-<HR NOSHADE SIZE=1>
+<hr class="light">
 
-<P>
+<p>
 Enjoy!
-</P>
-<P>
-<A HREF="mailto:davi@users.sourceforge.net">Davi de Castro Reis</A>
-</P>
-<P>
-<A HREF="mailto:db8192@users.sourceforge.net">Djamel Belazzougui</A>
-</P>
-<P>
-<A HREF="mailto:fc_botelho@users.sourceforge.net">Fabiano Cupertino Botelho</A>
-</P>
-<P>
-<A HREF="mailto:nivio@dcc.ufmg.br">Nivio Ziviani</A>
-</P>
+</p>
+<p>
+<a href="mailto:davi@users.sourceforge.net">Davi de Castro Reis</a>
+</p>
+<p>
+<a href="mailto:db8192@users.sourceforge.net">Djamel Belazzougui</a>
+</p>
+<p>
+<a href="mailto:fc_botelho@users.sourceforge.net">Fabiano Cupertino Botelho</a>
+</p>
+<p>
+<a href="mailto:nivio@dcc.ufmg.br">Nivio Ziviani</a>
+</p>
 <script type="text/javascript">
 var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
 document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
@@ -105,7 +130,8 @@ try {
 var pageTracker = _gat._getTracker("UA-7698683-2");
 pageTracker._trackPageview();
 } catch(err) {}</script>
+</div>
 
-<!-- html code generated by txt2tags 2.6 (http://txt2tags.org) -->
+<!-- html code generated by txt2tags 3.4 (http://txt2tags.org) -->
 <!-- cmdline: txt2tags -t html -i FAQ.t2t -o docs/faq.html -->
-</BODY></HTML>
+</article></body></html>

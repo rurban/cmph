@@ -1,170 +1,209 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
-<HTML>
-<HEAD>
-<META NAME="generator" CONTENT="http://txt2tags.org">
-<LINK REL="stylesheet" TYPE="text/css" HREF="DOC.css">
-<TITLE>CHM Algorithm</TITLE>
-</HEAD><BODY BGCOLOR="white" TEXT="black">
-<CENTER>
-<H1>CHM Algorithm</H1>
-</CENTER>
+<!DOCTYPE html>
+<html>
+<head>
+<title>CHM Algorithm</title>
+<meta name="generator" content="http://txt2tags.org">
+<link rel="stylesheet" href="DOC.css">
+<style>
+body{background-color:#fff;color:#000;}
+hr{background-color:#000;border:0;color:#000;}
+hr.heavy{height:5px;}
+hr.light{height:1px;}
+img{border:0;display:block;}
+img.right{margin:0 0 0 auto;}
+img.center{border:0;margin:0 auto;}
+table th,table td{padding:4px;}
+.center,header{text-align:center;}
+table.center {margin-left:auto; margin-right:auto;}
+.right{text-align:right;}
+.left{text-align:left;}
+.tableborder,.tableborder td,.tableborder th{border:1px solid #000;}
+.underline{text-decoration:underline;}
+</style>
+</head>
+<body>
+<header>
+<hgroup>
+<h1>CHM Algorithm</h1>
+</hgroup>
+</header>
+<article>
 
+<div class="body" id="body">
 
-<HR NOSHADE SIZE=1>
+<hr class="light">
 
-<H2>The Algorithm</H2>
+<section~A~>
+<h1></h1>
+<section>
+<h2>The Algorithm</h2>
 
-<P>
-The algorithm is presented in <A HREF="#papers">[1,2,3</A>].
-</P>
+<p>
+The algorithm is presented in <a href="#papers">[1,2,3</a>].
+</p>
 
-<HR NOSHADE SIZE=1>
+<hr class="light">
 
-<H2>Memory Consumption</H2>
+</section>
+<section>
+<h2>Memory Consumption</h2>
 
-<P>
+<p>
 Now we detail the memory consumption to generate and to store minimal perfect hash functions
 using the CHM algorithm. The structures responsible for memory consumption are in the 
 following:
-</P>
+</p>
 
-<UL>
-<LI>Graph:
-  <OL>
-  <LI><B>first</B>: is a vector that stores <I>cn</I> integer numbers, each one representing 
+<ul>
+<li>Graph:
+  <ol>
+  <li><strong>first</strong>: is a vector that stores <em>cn</em> integer numbers, each one representing 
     the first edge (index in the vector edges) in the list of 
     edges of each vertex. 
     The integer numbers are 4 bytes long. Therefore,
-    the vector first is stored in <I>4cn</I> bytes.
-  <P></P>
-  <LI><B>edges</B>: is a vector to represent the edges of the graph. As each edge
+    the vector first is stored in <em>4cn</em> bytes.
+  <p></p>
+  </li>
+  <li><strong>edges</strong>: is a vector to represent the edges of the graph. As each edge
     is compounded by a pair of vertices, each entry stores two integer numbers 
-    of 4 bytes that represent the vertices. As there are <I>n</I> edges, the 
-    vector edges is stored in <I>8n</I> bytes. 
-  <P></P>
-  <LI><B>next</B>: given a vertex <IMG ALIGN="bottom" SRC="figs/img139.png" BORDER="0" ALT="">, we can discover the edges that 
-    contain <IMG ALIGN="bottom" SRC="figs/img139.png" BORDER="0" ALT=""> following its list of edges, which starts on 
-    first[<IMG ALIGN="bottom" SRC="figs/img139.png" BORDER="0" ALT="">] and the next
-    edges are given by next[...first[<IMG ALIGN="bottom" SRC="figs/img139.png" BORDER="0" ALT="">]...]. Therefore, 
+    of 4 bytes that represent the vertices. As there are <em>n</em> edges, the 
+    vector edges is stored in <em>8n</em> bytes. 
+  <p></p>
+  </li>
+  <li><strong>next</strong>: given a vertex <img class="center" src="figs/img139.png" alt="">, we can discover the edges that 
+    contain <img class="center" src="figs/img139.png" alt=""> following its list of edges, which starts on 
+    first[<img class="center" src="figs/img139.png" alt="">] and the next
+    edges are given by next[...first[<img class="center" src="figs/img139.png" alt="">]...]. Therefore, 
     the vectors first and next represent 
     the linked lists of edges of each vertex. As there are two vertices for each edge,
     when an edge is iserted in the graph, it must be inserted in the two linked lists 
-    of the vertices in its composition. Therefore, there are <I>2n</I> entries of integer
-    numbers in the vector next, so it is stored in <I>4*2n = 8n</I> bytes.
-  <P></P>
-  </OL>
-<LI>Other auxiliary structures    
-  <OL>
-  <LI><B>visited</B>: is a vector of <I>cn</I> bits, where each bit indicates if the g value of 
+    of the vertices in its composition. Therefore, there are <em>2n</em> entries of integer
+    numbers in the vector next, so it is stored in <em>4*2n = 8n</em> bytes.
+  <p></p>
+  </li>
+  </ol>
+</li>
+<li>Other auxiliary structures    
+  <ol>
+  <li><strong>visited</strong>: is a vector of <em>cn</em> bits, where each bit indicates if the g value of 
     a given vertex was already defined. Therefore, the vector visited is stored
-    in <I>cn/8</I> bytes.
-  <P></P>
-  <LI><B>function <I>g</I></B>: is represented by a vector of <I>cn</I> integer numbers.
-    As each integer number is 4 bytes long, the function <I>g</I> is stored in
-    <I>4cn</I> bytes. 
-  </OL>
-</UL>
+    in <em>cn/8</em> bytes.
+  <p></p>
+  </li>
+  <li><strong>function <em>g</em></strong>: is represented by a vector of <em>cn</em> integer numbers.
+    As each integer number is 4 bytes long, the function <em>g</em> is stored in
+    <em>4cn</em> bytes. 
+  </li>
+  </ol>
+</li>
+</ul>
 
-<P>
+<p>
 Thus, the total memory consumption of CHM algorithm for generating a minimal 
-perfect hash function (MPHF) is: <I>(8.125c + 16)n + O(1)</I> bytes.
-As the value of constant <I>c</I> must be at least 2.09 we have:
-</P>
+perfect hash function (MPHF) is: <em>(8.125c + 16)n + O(1)</em> bytes.
+As the value of constant <em>c</em> must be at least 2.09 we have:
+</p>
 
-<TABLE ALIGN="center" BORDER="1" CELLPADDING="4">
-<TR>
-<TH><I>c</I></TH>
-<TH>Memory consumption to generate a MPHF</TH>
-</TR>
-<TR>
-<TD>2.09</TD>
-<TD ALIGN="center"><I>33.00n + O(1)</I></TD>
-</TR>
-</TABLE>
+<table style="margin-left: auto; margin-right: auto;" class="tableborder">
+<tr>
+<th><em>c</em></th>
+<th>Memory consumption to generate a MPHF</th>
+</tr>
+<tr>
+<td>2.09</td>
+<td class="center"><em>33.00n + O(1)</em></td>
+</tr>
+</table>
 
-<TABLE ALIGN="center" CELLPADDING="4">
-<TR>
-<TD><B>Table 1:</B> Memory consumption to generate a MPHF using the CHM algorithm.</TD>
-</TR>
-</TABLE>
+<table style="margin-left: auto; margin-right: auto;">
+<tr>
+<td><strong>Table 1:</strong> Memory consumption to generate a MPHF using the CHM algorithm.</td>
+</tr>
+</table>
 
-<P>
+<p>
 Now we present the memory consumption to store the resulting function.
-We only need to store the <I>g</I> function. Thus, we need <I>4cn</I> bytes.
+We only need to store the <em>g</em> function. Thus, we need <em>4cn</em> bytes.
 Again we have:
-</P>
+</p>
 
-<TABLE ALIGN="center" BORDER="1" CELLPADDING="4">
-<TR>
-<TH><I>c</I></TH>
-<TH>Memory consumption to store a MPHF</TH>
-</TR>
-<TR>
-<TD>2.09</TD>
-<TD ALIGN="center"><I>8.36n</I></TD>
-</TR>
-</TABLE>
+<table style="margin-left: auto; margin-right: auto;" class="tableborder">
+<tr>
+<th><em>c</em></th>
+<th>Memory consumption to store a MPHF</th>
+</tr>
+<tr>
+<td>2.09</td>
+<td class="center"><em>8.36n</em></td>
+</tr>
+</table>
 
-<TABLE ALIGN="center" CELLPADDING="4">
-<TR>
-<TD><B>Table 2:</B> Memory consumption to store a MPHF generated by the CHM algorithm.</TD>
-</TR>
-</TABLE>
+<table style="margin-left: auto; margin-right: auto;">
+<tr>
+<td><strong>Table 2:</strong> Memory consumption to store a MPHF generated by the CHM algorithm.</td>
+</tr>
+</table>
 
-<HR NOSHADE SIZE=1>
+<hr class="light">
 
-<H2>Experimental Results</H2>
+</section>
+<section>
+<h2>Experimental Results</h2>
 
-<P>
-<A HREF="comparison.html">CHM x BMZ</A>
-</P>
+<p>
+<a href="comparison.html">CHM x BMZ</a>
+</p>
 
-<HR NOSHADE SIZE=1>
+<hr class="light">
 
-<A NAME="papers"></A>
-<H2>Papers</H2>
+</section>
+<section id="papers">
+<h2>Papers</h2>
 
-<OL>
-<LI>Z.J. Czech, G. Havas, and B.S. Majewski. <A HREF="papers/chm92.pdf">An optimal algorithm for generating minimal perfect hash functions.</A>, Information Processing Letters, 43(5):257-264, 1992.
-<P></P>
-<LI>Z.J. Czech, G. Havas, and B.S. Majewski. Fundamental study perfect hashing.
+<ol>
+<li>Z.J. Czech, G. Havas, and B.S. Majewski. <a href="papers/chm92.pdf">An optimal algorithm for generating minimal perfect hash functions.</a>, Information Processing Letters, 43(5):257-264, 1992.
+<p></p>
+</li>
+<li>Z.J. Czech, G. Havas, and B.S. Majewski. Fundamental study perfect hashing.
   Theoretical Computer Science, 182:1-143, 1997.
-<P></P>
-<LI>B.S. Majewski, N.C. Wormald, G. Havas, and Z.J. Czech. A family of perfect hashing methods.
+<p></p>
+</li>
+<li>B.S. Majewski, N.C. Wormald, G. Havas, and Z.J. Czech. A family of perfect hashing methods.
   The Computer Journal, 39(6):547--554, 1996.
-</OL>
+</li>
+</ol>
 
-<HR NOSHADE SIZE=1>
+<hr class="light">
 
-<TABLE ALIGN="center" CELLPADDING="4">
-<TR>
-<TD><A HREF="index.html">Home</A></TD>
-<TD><A HREF="chd.html">CHD</A></TD>
-<TD><A HREF="bdz.html">BDZ</A></TD>
-<TD><A HREF="bmz.html">BMZ</A></TD>
-<TD><A HREF="chm.html">CHM</A></TD>
-<TD><A HREF="brz.html">BRZ</A></TD>
-<TD><A HREF="fch.html">FCH</A></TD>
-</TR>
-</TABLE>
+<table style="margin-left: auto; margin-right: auto;">
+<tr>
+<td><a href="index.html">Home</a></td>
+<td><a href="chd.html">CHD</a></td>
+<td><a href="bdz.html">BDZ</a></td>
+<td><a href="bmz.html">BMZ</a></td>
+<td><a href="chm.html">CHM</a></td>
+<td><a href="brz.html">BRZ</a></td>
+<td><a href="fch.html">FCH</a></td>
+</tr>
+</table>
 
-<HR NOSHADE SIZE=1>
+<hr class="light">
 
-<P>
+<p>
 Enjoy!
-</P>
-<P>
-<A HREF="mailto:davi@users.sourceforge.net">Davi de Castro Reis</A>
-</P>
-<P>
-<A HREF="mailto:db8192@users.sourceforge.net">Djamel Belazzougui</A>
-</P>
-<P>
-<A HREF="mailto:fc_botelho@users.sourceforge.net">Fabiano Cupertino Botelho</A>
-</P>
-<P>
-<A HREF="mailto:nivio@dcc.ufmg.br">Nivio Ziviani</A>
-</P>
+</p>
+<p>
+<a href="mailto:davi@users.sourceforge.net">Davi de Castro Reis</a>
+</p>
+<p>
+<a href="mailto:db8192@users.sourceforge.net">Djamel Belazzougui</a>
+</p>
+<p>
+<a href="mailto:fc_botelho@users.sourceforge.net">Fabiano Cupertino Botelho</a>
+</p>
+<p>
+<a href="mailto:nivio@dcc.ufmg.br">Nivio Ziviani</a>
+</p>
 <script type="text/javascript">
 var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
 document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
@@ -174,7 +213,10 @@ try {
 var pageTracker = _gat._getTracker("UA-7698683-2");
 pageTracker._trackPageview();
 } catch(err) {}</script>
+</section>
+</section>
+</div>
 
-<!-- html code generated by txt2tags 2.6 (http://txt2tags.org) -->
+<!-- html code generated by txt2tags 3.4 (http://txt2tags.org) -->
 <!-- cmdline: txt2tags -t html -i CHM.t2t -o docs/chm.html -->
-</BODY></HTML>
+</article></body></html>

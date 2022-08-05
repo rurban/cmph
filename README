@@ -264,6 +264,10 @@ utility.
       	  * chd
     -f	 hash function (may be used multiple times) - valid values are
       	  * jenkins
+        	  * wyhash
+        	  * djb2
+        	  * fnv
+        	  * sdbm
     -V	 print version number and exit
     -v	 increase verbosity (may be used multiple times)
     -k	 number of keys
@@ -289,7 +293,7 @@ utility.
     -t	 set the number of keys per bin for a t-perfect hashing function. A t-perfect
       	 hash function allows at most t collisions in a given bin. This parameter applies
       	 only to the CHD and CHD_PH algorithms. Its value should be an integer in the
-      	 range [1,128]. Defaul is 1
+      	 range [1,128]. Default is 1.
     keysfile	 line separated file with keys
 
 
@@ -322,5 +326,5 @@ Fabiano Cupertino Botelho (fc_botelho@users.sourceforge.net)
 
 Nivio Ziviani (nivio@dcc.ufmg.br)
 
-Last Updated: Fri Dec 28 23:50:31 2018
+Last Updated: %%date(%c)
 

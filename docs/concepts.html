@@ -1,104 +1,128 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
-<HTML>
-<HEAD>
-<META NAME="generator" CONTENT="http://txt2tags.org">
-<LINK REL="stylesheet" TYPE="text/css" HREF="DOC.css">
-<TITLE>Minimal Perfect Hash Functions - Introduction</TITLE>
-</HEAD><BODY BGCOLOR="white" TEXT="black">
-<CENTER>
-<H1>Minimal Perfect Hash Functions - Introduction</H1>
-</CENTER>
+<!DOCTYPE html>
+<html>
+<head>
+<title>Minimal Perfect Hash Functions - Introduction</title>
+<meta name="generator" content="http://txt2tags.org">
+<link rel="stylesheet" href="DOC.css">
+<style>
+body{background-color:#fff;color:#000;}
+hr{background-color:#000;border:0;color:#000;}
+hr.heavy{height:5px;}
+hr.light{height:1px;}
+img{border:0;display:block;}
+img.right{margin:0 0 0 auto;}
+img.center{border:0;margin:0 auto;}
+table th,table td{padding:4px;}
+.center,header{text-align:center;}
+table.center {margin-left:auto; margin-right:auto;}
+.right{text-align:right;}
+.left{text-align:left;}
+.tableborder,.tableborder td,.tableborder th{border:1px solid #000;}
+.underline{text-decoration:underline;}
+</style>
+</head>
+<body>
+<header>
+<hgroup>
+<h1>Minimal Perfect Hash Functions - Introduction</h1>
+</hgroup>
+</header>
+<article>
 
+<div class="body" id="body">
 
-<HR NOSHADE SIZE=1>
+<hr class="light">
 
-<H2>Basic Concepts</H2>
+<section~A~>
+<h1></h1>
+<section>
+<h2>Basic Concepts</h2>
 
-<P>
-Suppose <IMG ALIGN="bottom" SRC="figs/img14.png" BORDER="0" ALT=""> is a universe of <I>keys</I>.
-Let <IMG ALIGN="bottom" SRC="figs/img15.png" BORDER="0" ALT=""> be a <I>hash function</I> that maps the keys from <IMG ALIGN="bottom" SRC="figs/img14.png" BORDER="0" ALT=""> to a given interval of integers <IMG ALIGN="middle" SRC="figs/img16.png" BORDER="0" ALT="">.
-Let <IMG ALIGN="middle" SRC="figs/img17.png" BORDER="0" ALT=""> be a set of <IMG ALIGN="bottom" SRC="figs/img8.png" BORDER="0" ALT=""> keys from <IMG ALIGN="bottom" SRC="figs/img14.png" BORDER="0" ALT="">.
-Given a key <IMG ALIGN="middle" SRC="figs/img18.png" BORDER="0" ALT="">, the hash function <IMG ALIGN="bottom" SRC="figs/img7.png" BORDER="0" ALT=""> computes an 
-integer in <IMG ALIGN="middle" SRC="figs/img19.png" BORDER="0" ALT=""> for the storage or retrieval of <IMG ALIGN="bottom" SRC="figs/img11.png" BORDER="0" ALT=""> in 
-a <I>hash table</I>.
-Hashing methods for <I>non-static sets</I> of keys can be used to construct
-data structures storing <IMG ALIGN="bottom" SRC="figs/img20.png" BORDER="0" ALT=""> and supporting membership queries
-"<IMG ALIGN="middle" SRC="figs/img18.png" BORDER="0" ALT="">?" in expected time <IMG ALIGN="middle" SRC="figs/img21.png" BORDER="0" ALT="">.
+<p>
+Suppose <img class="center" src="figs/img14.png" alt=""> is a universe of <em>keys</em>.
+Let <img class="center" src="figs/img15.png" alt=""> be a <em>hash function</em> that maps the keys from <img class="center" src="figs/img14.png" alt=""> to a given interval of integers <img class="center" src="figs/img16.png" alt="">.
+Let <img class="center" src="figs/img17.png" alt=""> be a set of <img class="center" src="figs/img8.png" alt=""> keys from <img class="center" src="figs/img14.png" alt="">.
+Given a key <img class="center" src="figs/img18.png" alt="">, the hash function <img class="center" src="figs/img7.png" alt=""> computes an 
+integer in <img class="center" src="figs/img19.png" alt=""> for the storage or retrieval of <img class="center" src="figs/img11.png" alt=""> in 
+a <em>hash table</em>.
+Hashing methods for <em>non-static sets</em> of keys can be used to construct
+data structures storing <img class="center" src="figs/img20.png" alt=""> and supporting membership queries
+"<img class="center" src="figs/img18.png" alt="">?" in expected time <img class="center" src="figs/img21.png" alt="">.
 However, they involve a certain amount of wasted space owing to unused
 locations in the table and waisted time to resolve collisions when
 two keys are hashed to the same table location.
-</P>
-<P>
-For <I>static sets</I> of keys it is possible to compute a function
+</p>
+<p>
+For <em>static sets</em> of keys it is possible to compute a function
 to find any key in a table in one probe; such hash functions are called
-<I>perfect</I>. 
-More precisely, given a set of keys <IMG ALIGN="bottom" SRC="figs/img20.png" BORDER="0" ALT="">, we shall say that a 
-hash function <IMG ALIGN="bottom" SRC="figs/img15.png" BORDER="0" ALT=""> is a <I>perfect hash function</I> 
-for <IMG ALIGN="bottom" SRC="figs/img20.png" BORDER="0" ALT=""> if <IMG ALIGN="bottom" SRC="figs/img7.png" BORDER="0" ALT=""> is an injection on <IMG ALIGN="bottom" SRC="figs/img20.png" BORDER="0" ALT="">,
-that is, there are no <I>collisions</I> among the keys in <IMG ALIGN="bottom" SRC="figs/img20.png" BORDER="0" ALT="">: 
-if <IMG ALIGN="bottom" SRC="figs/img11.png" BORDER="0" ALT=""> and <IMG ALIGN="middle" SRC="figs/img22.png" BORDER="0" ALT=""> are in <IMG ALIGN="bottom" SRC="figs/img20.png" BORDER="0" ALT=""> and <IMG ALIGN="middle" SRC="figs/img23.png" BORDER="0" ALT="">, 
-then <IMG ALIGN="middle" SRC="figs/img24.png" BORDER="0" ALT="">.
+<em>perfect</em>. 
+More precisely, given a set of keys <img class="center" src="figs/img20.png" alt="">, we shall say that a 
+hash function <img class="center" src="figs/img15.png" alt=""> is a <em>perfect hash function</em> 
+for <img class="center" src="figs/img20.png" alt=""> if <img class="center" src="figs/img7.png" alt=""> is an injection on <img class="center" src="figs/img20.png" alt="">,
+that is, there are no <em>collisions</em> among the keys in <img class="center" src="figs/img20.png" alt="">: 
+if <img class="center" src="figs/img11.png" alt=""> and <img class="center" src="figs/img22.png" alt=""> are in <img class="center" src="figs/img20.png" alt=""> and <img class="center" src="figs/img23.png" alt="">, 
+then <img class="center" src="figs/img24.png" alt="">.
 Figure 1(a) illustrates a perfect hash function.
 Since no collisions occur, each key can be retrieved from the table
 with a single probe.
-If <IMG ALIGN="bottom" SRC="figs/img25.png" BORDER="0" ALT="">, that is, the table has the same size as <IMG ALIGN="bottom" SRC="figs/img20.png" BORDER="0" ALT="">,
-then we say that <IMG ALIGN="bottom" SRC="figs/img7.png" BORDER="0" ALT=""> is a <I>minimal perfect hash function</I> 
-for <IMG ALIGN="bottom" SRC="figs/img20.png" BORDER="0" ALT="">.
+If <img class="center" src="figs/img25.png" alt="">, that is, the table has the same size as <img class="center" src="figs/img20.png" alt="">,
+then we say that <img class="center" src="figs/img7.png" alt=""> is a <em>minimal perfect hash function</em> 
+for <img class="center" src="figs/img20.png" alt="">.
 Figure 1(b) illustrates a minimal perfect hash function.
 Minimal perfect hash functions totally avoid the problem of wasted
-space and time. A perfect hash function <IMG ALIGN="bottom" SRC="figs/img7.png" BORDER="0" ALT=""> is <I>order preserving</I> 
-if the keys in <IMG ALIGN="bottom" SRC="figs/img20.png" BORDER="0" ALT=""> are arranged in some given order 
-and <IMG ALIGN="bottom" SRC="figs/img7.png" BORDER="0" ALT=""> preserves this order in the hash table.
-</P>
+space and time. A perfect hash function <img class="center" src="figs/img7.png" alt=""> is <em>order preserving</em> 
+if the keys in <img class="center" src="figs/img20.png" alt=""> are arranged in some given order 
+and <img class="center" src="figs/img7.png" alt=""> preserves this order in the hash table.
+</p>
 
-<TABLE ALIGN="center" CELLPADDING="4">
-<TR>
-<TD ALIGN="right"><center><IMG ALIGN="middle" SRC="figs/img26.png" BORDER="0" ALT=""></center></TD>
-</TR>
-<TR>
-<TD><B>Figure 1:</B> (a) Perfect hash function. (b) Minimal perfect hash function.</TD>
-</TR>
-</TABLE>
+<table style="margin-left: auto; margin-right: auto;">
+<tr>
+<td class="right"><img class="center" src="figs/img26.png" alt=""></td>
+</tr>
+<tr>
+<td><strong>Figure 1:</strong> (a) Perfect hash function. (b) Minimal perfect hash function.</td>
+</tr>
+</table>
 
-<P>
+<p>
 Minimal perfect hash functions are widely used for memory efficient
 storage and fast retrieval of items from static sets, such as words in natural
 languages, reserved words in programming languages or interactive systems,
 universal resource locations (URLs) in Web search engines, or item sets in
 data mining techniques.
-</P>
+</p>
 
-<HR NOSHADE SIZE=1>
+<hr class="light">
 
-<TABLE ALIGN="center" CELLPADDING="4">
-<TR>
-<TD><A HREF="index.html">Home</A></TD>
-<TD><A HREF="chd.html">CHD</A></TD>
-<TD><A HREF="bdz.html">BDZ</A></TD>
-<TD><A HREF="bmz.html">BMZ</A></TD>
-<TD><A HREF="chm.html">CHM</A></TD>
-<TD><A HREF="brz.html">BRZ</A></TD>
-<TD><A HREF="fch.html">FCH</A></TD>
-</TR>
-</TABLE>
+<table style="margin-left: auto; margin-right: auto;">
+<tr>
+<td><a href="index.html">Home</a></td>
+<td><a href="chd.html">CHD</a></td>
+<td><a href="bdz.html">BDZ</a></td>
+<td><a href="bmz.html">BMZ</a></td>
+<td><a href="chm.html">CHM</a></td>
+<td><a href="brz.html">BRZ</a></td>
+<td><a href="fch.html">FCH</a></td>
+</tr>
+</table>
 
-<HR NOSHADE SIZE=1>
+<hr class="light">
 
-<P>
+<p>
 Enjoy!
-</P>
-<P>
-<A HREF="mailto:davi@users.sourceforge.net">Davi de Castro Reis</A>
-</P>
-<P>
-<A HREF="mailto:db8192@users.sourceforge.net">Djamel Belazzougui</A>
-</P>
-<P>
-<A HREF="mailto:fc_botelho@users.sourceforge.net">Fabiano Cupertino Botelho</A>
-</P>
-<P>
-<A HREF="mailto:nivio@dcc.ufmg.br">Nivio Ziviani</A>
-</P>
+</p>
+<p>
+<a href="mailto:davi@users.sourceforge.net">Davi de Castro Reis</a>
+</p>
+<p>
+<a href="mailto:db8192@users.sourceforge.net">Djamel Belazzougui</a>
+</p>
+<p>
+<a href="mailto:fc_botelho@users.sourceforge.net">Fabiano Cupertino Botelho</a>
+</p>
+<p>
+<a href="mailto:nivio@dcc.ufmg.br">Nivio Ziviani</a>
+</p>
 <script type="text/javascript">
 var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
 document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
@@ -108,7 +132,10 @@ try {
 var pageTracker = _gat._getTracker("UA-7698683-2");
 pageTracker._trackPageview();
 } catch(err) {}</script>
+</section>
+</section>
+</div>
 
-<!-- html code generated by txt2tags 2.6 (http://txt2tags.org) -->
+<!-- html code generated by txt2tags 3.4 (http://txt2tags.org) -->
 <!-- cmdline: txt2tags -t html -i CONCEPTS.t2t -o docs/concepts.html -->
-</BODY></HTML>
+</article></body></html>
