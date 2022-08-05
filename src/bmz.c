@@ -71,18 +71,16 @@ cmph_t *bmz_new(cmph_config_t *mph, double c)
 	bmz->m = mph->key_source->nkeys;
 	bmz->n = (cmph_uint32)ceil(c * mph->key_source->nkeys);
 
-    if (bmz->n < 5) // workaround for small key sets
-    {
-        bmz->n = 5;
-    }
+	if (bmz->n < 5) // workaround for small key sets
+	{
+		bmz->n = 5;
+	}
 
 	DEBUGP("m (edges): %u n (vertices): %u c: %f\n", bmz->m, bmz->n, c);
 	bmz->graph = graph_new(bmz->n, bmz->m);
 	DEBUGP("Created graph\n");
 
-	bmz->hashes = (hash_state_t **)malloc(sizeof(hash_state_t *)*3);
-	for(i = 0; i < 3; ++i) bmz->hashes[i] = NULL;
-
+	bmz->hashes = (hash_state_t **)calloc(sizeof(hash_state_t *), 2);
 	do
 	{
 	  // Mapping step
@@ -96,6 +94,11 @@ cmph_t *bmz_new(cmph_config_t *mph, double c)
 	  while(1)
 	  {
 		int ok;
+		if (bmz->hashes[0])
+		{
+		    hash_state_destroy(bmz->hashes[0]);
+		    hash_state_destroy(bmz->hashes[1]);
+		}
 		DEBUGP("hash function 1\n");
 		bmz->hashes[0] = hash_state_new(bmz->hashfuncs[0], bmz->n);
 		DEBUGP("hash function 2\n");
