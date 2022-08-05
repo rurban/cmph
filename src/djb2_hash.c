@@ -58,11 +58,12 @@ void djb2_state_dump(hash_state_t *state, char **buf, cmph_uint32 *buflen)
 hash_state_t *djb2_state_load(const char *buf, cmph_uint32 buflen)
 {
 	hash_state_t *state = (hash_state_t *)malloc(sizeof(hash_state_t));
-	state->hashfunc = CMPH_HASH_DJB2;
+        const unsigned char *p = (const unsigned char *)buf;
         if ((long)buf % 4)
-                state->seed = (buf[3] << 24) | (buf[2] << 16) | (buf[1] << 8) | buf[0];
+                state->seed = (p[3] << 24) | (p[2] << 16) | (p[1] << 8) | p[0];
         else
                 state->seed = *(cmph_uint32 *)buf;
+	state->hashfunc = CMPH_HASH_DJB2;
 	DEBUGP("Loaded djb2 state with seed %u\n", state->seed);
 	return state;
 }
