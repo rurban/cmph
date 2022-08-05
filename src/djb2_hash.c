@@ -11,6 +11,7 @@ hash_state_t *djb2_state_new(cmph_uint32 size)
 	state->hashfunc = CMPH_HASH_DJB2;
 	if (size > 0) state->seed = ((cmph_uint32)rand() % size);
         else state->seed = 5381;
+	DEBUGP("Initializing djb2 hash with seed %u\n", state->seed);
 	return state;
 }
 

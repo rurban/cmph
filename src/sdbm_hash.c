@@ -12,6 +12,7 @@ hash_state_t *sdbm_state_new(cmph_uint32 size)
 	state->hashfunc = CMPH_HASH_SDBM;
 	if (size > 0) state->seed = ((cmph_uint32)rand() % size);
 	else state->seed = 0;
+	DEBUGP("Initializing sdbm hash with seed %u\n", state->seed);
 	return state;
 }
 
@@ -44,7 +45,7 @@ void sdbm_state_dump(hash_state_t *state, char **buf, cmph_uint32 *buflen)
 		return;
 	}
 	memcpy(*buf, &(state->seed), sizeof(cmph_uint32));
-	DEBUGP("Dumped fnv state with seed %u\n", state->seed);
+	DEBUGP("Dumped sdbm state with seed %u\n", state->seed);
 	return;
 }
 

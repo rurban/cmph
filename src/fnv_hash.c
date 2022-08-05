@@ -13,6 +13,7 @@ hash_state_t *fnv_state_new(cmph_uint32 size)
 	state->hashfunc = CMPH_HASH_FNV;
 	if (size > 0) state->seed = ((cmph_uint32)rand() % size);
 	else state->seed = 0;
+	DEBUGP("Initializing fnv hash with seed %u\n", state->seed);
         return state;
 }
 
