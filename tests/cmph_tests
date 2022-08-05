@@ -14,7 +14,7 @@ for a in bmz chm brz fch bdz bdz_ph bmz8 chd chd_ph; do
     echo "** mphf_tests -a $a _words"
     ./mphf_tests _words
 done
-for f in jenkins wyhash djb2 fnv; do
+for f in jenkins wyhash djb2 fnv sdbm; do
     rm -f _words.mph
     echo "** cmph -g -f $f _words"
     ../src/cmph -g -f $f _words
