@@ -210,8 +210,9 @@ int main(int argc, char **argv)
 				if (!valid)
 				{
 					fprintf(stderr, "Invalid hash function: %s\nValid names are:", optarg);
-                                        for (i = 0; i < CMPH_HASH_COUNT; ++i)
+                                        for (i = 0; i < CMPH_HASH_COUNT; ++i) {
                                                 fprintf(stderr, " %s",cmph_hash_names[i]);
+                                        }
                                         fprintf(stderr, "\n");
 					return -1;
 				}

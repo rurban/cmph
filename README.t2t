@@ -269,6 +269,7 @@ Minimum perfect hashing tool
       	  * djb2
       	  * fnv
       	  * sdbm
+      	  * crc32 (in work)
   -V	 print version number and exit
   -v	 increase verbosity (may be used multiple times)
   -k	 number of keys
