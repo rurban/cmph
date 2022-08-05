@@ -87,6 +87,8 @@ src/compressed_rank.lo
 src/compressed_rank.o
 src/compressed_seq.lo
 src/compressed_seq.o
+src/crc32_hash.lo
+src/crc32_hash.o
 src/djb2_hash.lo
 src/djb2_hash.o
 src/fch.lo

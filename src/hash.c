@@ -10,11 +10,13 @@
 #include "djb2_hash.h"
 #include "fnv_hash.h"
 #include "sdbm_hash.h"
+#include "crc32_hash.h"
 
 //#define DEBUG
 #include "debug.h"
 
-const char *cmph_hash_names[] = { "jenkins", "wyhash", "djb2", "fnv", "sdbm", NULL };
+// the matching enum is at cmph_types.h
+const char *cmph_hash_names[] = { "jenkins", "wyhash", "djb2", "fnv", "sdbm", "crc32", NULL };
 
 hash_state_t *hash_state_new(CMPH_HASH hashfunc, cmph_uint32 hashsize)
 {
@@ -24,27 +26,26 @@ hash_state_t *hash_state_new(CMPH_HASH hashfunc, cmph_uint32 hashsize)
 		case CMPH_HASH_JENKINS:
 	  		DEBUGP("Jenkins function - %u\n", hashsize);
 			state = jenkins_state_new(hashsize);
-	  		DEBUGP("Jenkins function created\n");
 			break;
 		case CMPH_HASH_WYHASH:
 	  		DEBUGP("Wyhash function - %u\n", hashsize);
 			state = wyhash_state_new(hashsize);
-	  		DEBUGP("Wyhash function created\n");
 			break;
 		case CMPH_HASH_DJB2:
 	  		DEBUGP("DJB2 function - %u\n", hashsize);
 			state = djb2_state_new(hashsize);
-	  		DEBUGP("DJB2 function created\n");
 			break;
 		case CMPH_HASH_FNV:
 	  		DEBUGP("FNV function - %u\n", hashsize);
 			state = fnv_state_new(hashsize);
-	  		DEBUGP("FNV function created\n");
 			break;
 		case CMPH_HASH_SDBM:
 	  		DEBUGP("SDBM function - %u\n", hashsize);
 			state = sdbm_state_new(hashsize);
-	  		DEBUGP("SDBM function created\n");
+			break;
+		case CMPH_HASH_CRC32:
+	  		DEBUGP("CRC32 function - %u\n", hashsize);
+			state = crc32_state_new(hashsize);
 			break;
 		default:
 			assert(0);
@@ -66,6 +67,8 @@ cmph_uint32 hash(hash_state_t *state, const char *key, cmph_uint32 keylen)
 			return fnv_hash(state, key, keylen);
 		case CMPH_HASH_SDBM:
 			return sdbm_hash(state, key, keylen);
+		case CMPH_HASH_CRC32:
+			return crc32_hash(state, key, keylen);
 		default:
 			assert(0);
 	}
@@ -91,6 +94,9 @@ void hash_vector(hash_state_t *state, const char *key, cmph_uint32 keylen, cmph_
 			break;
 		case CMPH_HASH_SDBM:
 			sdbm_hash_vector(state, key, keylen, hashes);
+			break;
+		case CMPH_HASH_CRC32:
+			crc32_hash_vector(state, key, keylen, hashes);
 			break;
 		default:
 			assert(0);
@@ -123,6 +129,10 @@ void hash_state_dump(hash_state_t *state, char **buf, cmph_uint32 *buflen)
 		case CMPH_HASH_SDBM:
                         DEBUGP("Dump hash sdbm\n");
 			sdbm_state_dump(state, &algobuf, buflen);
+			break;
+		case CMPH_HASH_CRC32:
+                        DEBUGP("Dump hash crc32\n");
+			crc32_state_dump(state, &algobuf, buflen);
 			break;
 		default:
 			assert(0);
@@ -157,6 +167,12 @@ cmph_cleanup:
 //			break;
 //		case CMPH_HASH_FNV:
 //			dest_state = fnv_state_copy(&src_state->fnv);
+//			break;
+//		case CMPH_HASH_SDBM:
+//			dest_state = sdbm_state_copy(&src_state->fnv);
+//			break;
+//		case CMPH_HASH_CRC32:
+//			dest_state = crc32_state_copy(&src_state->fnv);
 //			break;
 //		default:
 //			assert(0);
@@ -197,6 +213,13 @@ hash_state_t *hash_state_load(const char *buf, cmph_uint32 buflen)
 		case CMPH_HASH_SDBM:
                         DEBUGP("Hash is sdbm\n");
 			return sdbm_state_load(buf + offset, buflen - offset);
+		case CMPH_HASH_CRC32:
+#ifdef HAVE_CRC32_HW
+                        DEBUGP("Hash is HW crc32\n");
+#else
+                        DEBUGP("Hash is SW crc32\n");
+#endif
+			return crc32_state_load(buf + offset, buflen - offset);
 		default:
                         DEBUGP("Unknown Hash\n");
 			return NULL;
@@ -221,6 +244,9 @@ void hash_state_destroy(hash_state_t *state)
 			break;
 		case CMPH_HASH_SDBM:
 			sdbm_state_destroy(state);
+			break;
+		case CMPH_HASH_CRC32:
+			crc32_state_destroy(state);
 			break;
 		default:
 			assert(0);
@@ -251,6 +277,7 @@ void hash_state_pack(hash_state_t *state, void *hash_packed)
 			break;
 		case CMPH_HASH_FNV:
                 case CMPH_HASH_SDBM:
+                case CMPH_HASH_CRC32:
 			fnv_state_pack(state, hash_packed);
 			break;
 		default:
@@ -276,6 +303,7 @@ cmph_uint32 hash_state_packed_size(CMPH_HASH hashfunc)
 			return djb2_state_packed_size();
 		case CMPH_HASH_FNV:
 		case CMPH_HASH_SDBM:
+		case CMPH_HASH_CRC32:
 			return fnv_state_packed_size();
 		default:
 			assert(0);
@@ -304,6 +332,8 @@ cmph_uint32 hash_packed(void *hash_packed, CMPH_HASH hashfunc, const char *k, cm
 			return fnv_hash_packed(hash_packed, k, keylen);
                 case CMPH_HASH_SDBM:
 			return sdbm_hash_packed(hash_packed, k, keylen);
+                case CMPH_HASH_CRC32:
+			return crc32_hash_packed(hash_packed, k, keylen);
 		default:
 			assert(0);
 	}
@@ -335,6 +365,9 @@ void hash_vector_packed(void *hash_packed, CMPH_HASH hashfunc, const char *k, cm
 			break;
                 case CMPH_HASH_SDBM:
 			sdbm_hash_vector_packed(hash_packed, k, keylen, hashes);
+			break;
+                case CMPH_HASH_CRC32:
+			crc32_hash_vector_packed(hash_packed, k, keylen, hashes);
 			break;
 		default:
 			assert(0);
