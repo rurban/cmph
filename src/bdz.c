@@ -57,17 +57,20 @@ static void bdz_free_queue(bdz_queue_t * queue)
 typedef struct
 {
 	cmph_uint32 nedges;
+	cmph_uint32 nvertices; // == bdz->n
 	bdz_edge_t * edges;
 	cmph_uint32 * first_edge;
 	cmph_uint8 * vert_degree;
-}bdz_graph3_t;
+} bdz_graph3_t;
 
 
 static void bdz_alloc_graph3(bdz_graph3_t * graph3, cmph_uint32 nedges, cmph_uint32 nvertices)
 {
-	graph3->edges=(bdz_edge_t *)malloc(nedges*sizeof(bdz_edge_t));
-	graph3->first_edge=(cmph_uint32 *)malloc(nvertices*sizeof(cmph_uint32));
-	graph3->vert_degree=(cmph_uint8 *)malloc((size_t)nvertices);
+	graph3->nedges=nedges;
+	graph3->nvertices=nvertices;
+	graph3->edges=(bdz_edge_t *)calloc(nedges, sizeof(bdz_edge_t));
+	graph3->first_edge=(cmph_uint32 *)calloc(nvertices, sizeof(cmph_uint32));
+	graph3->vert_degree=(cmph_uint8 *)calloc((size_t)nvertices, 1);
 };
 static void bdz_init_graph3(bdz_graph3_t * graph3, cmph_uint32 nedges, cmph_uint32 nvertices)
 {
@@ -105,22 +108,23 @@ static void bdz_add_edge(bdz_graph3_t * graph3, cmph_uint32 v0, cmph_uint32 v1, 
 	graph3->nedges++;
 };
 
-static void bdz_dump_graph(bdz_graph3_t* graph3, cmph_uint32 nedges, cmph_uint32 nvertices)
+static void bdz_dump_graph(bdz_graph3_t* graph3)
 {
 	cmph_uint32 i;
-	for(i=0;i<nedges;i++){
-		printf("\nedge %d %d %d %d ",i,graph3->edges[i].vertices[0],
+	for(i=0;i<graph3->nedges;i++){
+		printf("edge [%u] %d %d %d, ",i,graph3->edges[i].vertices[0],
 			graph3->edges[i].vertices[1],graph3->edges[i].vertices[2]);
-		printf(" nexts %d %d %d",graph3->edges[i].next_edges[0],
-				graph3->edges[i].next_edges[1],graph3->edges[i].next_edges[2]);
+		printf("next %d %d %d\n",graph3->edges[i].next_edges[0],
+		       graph3->edges[i].next_edges[1],
+		       graph3->edges[i].next_edges[2]);
 	};
 	
-        #ifdef DEBUG
-	for(i=0;i<nvertices;i++){
-		printf("\nfirst for vertice %d %d ",i,graph3->first_edge[i]);
+#ifdef DEBUG
+	for(i=0;i<graph3->nvertices;i++){
+		DEBUGP("first for vertices %d %d\n",i,graph3->first_edge[i]);
 	
 	};
-        #endif
+#endif
 };
 
 static void bdz_remove_edge(bdz_graph3_t * graph3, cmph_uint32 curr_edge)
@@ -142,7 +146,7 @@ static void bdz_remove_edge(bdz_graph3_t * graph3, cmph_uint32 curr_edge)
 		};
 		if(edge1==NULL_EDGE){
 			printf("\nerror remove edge %d dump graph",curr_edge);
-			bdz_dump_graph(graph3,graph3->nedges,graph3->nedges+graph3->nedges/4);
+			bdz_dump_graph(graph3);
 			exit(-1);
 		};
 
@@ -180,9 +184,9 @@ static int bdz_generate_queue(cmph_uint32 nedges, cmph_uint32 nvertices, bdz_que
 		};
 	};
         DEBUGP("Queue head %d Queue tail %d\n", queue_head, queue_tail);
-        #ifdef DEBUG
-	bdz_dump_graph(graph3,graph3->nedges,graph3->nedges+graph3->nedges/4);
-        #endif
+#ifdef DEBUG
+	bdz_dump_graph(graph3);
+#endif
 	while(queue_tail!=queue_head){
 		curr_edge=queue[queue_tail++];
 		bdz_remove_edge(graph3,curr_edge);
@@ -671,10 +675,11 @@ cmph_uint32 bdz_packed_size(cmph_t *mphf)
 	bdz_data_t *data = (bdz_data_t *)mphf->data;
 
 	CMPH_HASH hl_type = hash_get_type(data->hl);
+	cmph_uint32 sizeg = (cmph_uint32)ceil(data->n/4.0);
 
 	return (cmph_uint32)(sizeof(CMPH_ALGO) + hash_state_packed_size(hl_type) +
                              3*sizeof(cmph_uint32) + sizeof(cmph_uint32)*(data->ranktablesize) +
-                             sizeof(cmph_uint8) + sizeof(cmph_uint8)* (cmph_uint32)(ceil(data->n/4.0)));
+                             sizeof(cmph_uint8) + sizeof(cmph_uint8) * sizeg);
 }
 
 /** cmph_uint32 bdz_search(void *packed_mphf, const char *key, cmph_uint32 keylen);

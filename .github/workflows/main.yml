@@ -19,6 +19,6 @@ jobs:
     - run: autoreconf -fi
     - run: ./configure CFLAGS="${{ matrix.CFLAGS }}"
     - run: make
-    - run: make check
+    - run: make check || cat tests/test-suite.log
     - if: matrix.CFLAGS == ''
       run: make distcheck
