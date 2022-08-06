@@ -280,11 +280,11 @@ cmph_t *bdz_new(cmph_config_t *mph, double c)
 	bdz_queue_t edges;
 	bdz_graph3_t graph3;
 	bdz_config_data_t *bdz = (bdz_config_data_t *)mph->data;
-	#ifdef CMPH_TIMING
+#ifdef CMPH_TIMING
 	double construction_time_begin = 0.0;
 	double construction_time = 0.0;
 	ELAPSED_TIME_IN_SECONDS(&construction_time_begin);
-	#endif
+#endif
 
 
 	if (c == 0) c = 1.23; // validating restrictions over parameter c.

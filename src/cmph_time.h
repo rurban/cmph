@@ -9,14 +9,14 @@
 #ifdef WIN32
 // include headers to use gettimeofday
 #else
-	#ifdef __GNUC__
+#  ifdef __GNUC__
 	#include <sys/time.h>
 	#include <sys/resource.h>
-	#endif
+#  endif
 #endif
 
 #ifdef __GNUC__
-	#ifndef __CMPH_TIME_H__
+#  ifndef __CMPH_TIME_H__
 		#define __CMPH_TIME_H__
 		static inline void elapsed_time_in_seconds(double * elapsed_time)
 		{
@@ -40,23 +40,23 @@
 		static inline void dummy_elapsed_time_in_useconds()
 		{
 		}	
-	#endif
+#  endif
 #endif
 
 #ifdef CMPH_TIMING
-	  #ifdef __GNUC__
-		  #define ELAPSED_TIME_IN_SECONDS elapsed_time_in_seconds
-		  #define ELAPSED_TIME_IN_uSECONDS elapsed_time_in_useconds
-	  #else
-		  #define ELAPSED_TIME_IN_SECONDS dummy_elapsed_time_in_seconds
-		  #define ELAPSED_TIME_IN_uSECONDS dummy_elapsed_time_in_useconds
-	  #endif
+#  ifdef __GNUC__
+	#define ELAPSED_TIME_IN_SECONDS elapsed_time_in_seconds
+	#define ELAPSED_TIME_IN_uSECONDS elapsed_time_in_useconds
+#  else
+	#define ELAPSED_TIME_IN_SECONDS dummy_elapsed_time_in_seconds
+	#define ELAPSED_TIME_IN_uSECONDS dummy_elapsed_time_in_useconds
+#  endif
 #else
-	  #ifdef __GNUC__
-		  #define ELAPSED_TIME_IN_SECONDS
-		  #define ELAPSED_TIME_IN_uSECONDS
-	  #else
-		  #define ELAPSED_TIME_IN_SECONDS dummy_elapsed_time_in_seconds
-		  #define ELAPSED_TIME_IN_uSECONDS dummy_elapsed_time_in_useconds
-	  #endif
+#  ifdef __GNUC__
+	#define ELAPSED_TIME_IN_SECONDS
+	#define ELAPSED_TIME_IN_uSECONDS
+#  else
+	#define ELAPSED_TIME_IN_SECONDS dummy_elapsed_time_in_seconds
+	#define ELAPSED_TIME_IN_uSECONDS dummy_elapsed_time_in_useconds
+#  endif
 #endif
