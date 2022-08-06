@@ -8,7 +8,7 @@ endif
 ACLOCAL_AMFLAGS="-Im4"
 
 pkgconfigdir = $(libdir)/pkgconfig
-README: docs/README.t2t
-	cd docs && $(MAKE) -C docs index.html
+#README: docs/README.t2t
+#	cd docs && $(MAKE) -C docs index.html
 
 CLEANFILES = TAGS README
