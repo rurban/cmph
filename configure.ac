@@ -1,12 +1,12 @@
 dnl Process this file with autoconf to produce a configure script.
-AC_INIT([cmph], [2.0.3])
+AC_INIT([cmph], [2.0.3], [https://sourceforge.net/projects/cmph/support],[cmph],
+        [https://cmph.sf.net/])
 AC_CONFIG_SRCDIR([Makefile.am])
 AM_INIT_AUTOMAKE
 AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_MACRO_DIR([m4])
 
 dnl Checks for programs.
-AC_PROG_AWK
 AC_PROG_CC
 AC_PROG_INSTALL
 AC_PROG_LN_S
@@ -21,9 +21,43 @@ fi
 if test "x$ac_cv_sys_largefile_LIBS" = "xno" ; then
   ac_cv_sys_largefile_LIBS=""
 fi
-CFLAGS="$ac_cv_sys_largefile_CFLAGS $CFLAGS"
+AC_MSG_CHECKING(for -march=native support)
+if $(${CC} ${CFLAGS} -march=native -S -o /dev/null -xc /dev/null > /dev/null 2>&1)
+then
+   	AC_MSG_RESULT(yes)
+	ac_cv_march_native_CFLAGS=-march=native
+        NATIVE_ARCH=1
+else
+	AC_MSG_RESULT(no)
+        NATIVE_ARCH=
+fi
+AC_SUBST(NATIVE_ARCH)
+CFLAGS="$ac_cv_sys_largefile_CFLAGS $CFLAGS $ac_cv_march_native_CFLAGS"
 LDFLAGS="$ac_cv_sys_largefile_LDFLAGS $LDFLAGS"
 LIBS="$LIBS $ac_cv_sys_largefile_LIBS"
+
+AC_CACHE_CHECK([for crc32c intrinsics],
+  ac_cv_crc32_hw, [
+  ac_cv_crc32_hw=no
+  AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
+    [[
+#if defined(__aarch64__)
+# include "sse2neon.h"
+#elif defined __SSE4_2__ &&                                           \
+    (defined __x86_64__ || defined __i686_64__ || defined _M_AMD64 || \
+	defined _M_IX86)
+# include <smmintrin.h>
+#endif]], [[
+(void)_mm_crc32_u8(0L, 0L);
+]])],
+    [ac_cv_crc32_hw=yes])
+  ])
+if test x$ac_cv_crc32_hw = xyes;
+then
+  AC_DEFINE(HAVE_CRC32_HW, 1,
+    [Define if crc32c-ni is supported.])
+fi
+AM_CONDITIONAL([CRC32_HW], [test -n "$HAVE_CRC32_HW"])
 
 dnl Checks for headers
 AC_CHECK_HEADERS([getopt.h math.h])
