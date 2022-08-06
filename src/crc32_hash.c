@@ -101,14 +101,12 @@ crc3(uint8_t *key, size_t len, uint32_t seed0, uint32_t seed1, uint32_t *hashes)
 #define ALIGN_SIZE 0x08UL
 #define ALIGN_MASK (ALIGN_SIZE - 1)
 #define CALC_CRC3(op, h1, h2, h3, type, buf, len)                  \
-	do {                                                       \
 		for (; (len) >= sizeof(type);                      \
 		     (len) -= sizeof(type), buf += sizeof(type)) { \
 			(h1) = op((h1), *(type *)(buf));           \
 			(h2) = op((h2), *(type *)(buf));           \
 			(h3) = op((h3), *(type *)(buf));           \
 		}                                                  \
-	} while (0)
 
 static inline void
 crc3(uint8_t *key, size_t len, uint32_t seed0, uint32_t seed1, uint32_t *hashes)
