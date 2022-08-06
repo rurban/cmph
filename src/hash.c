@@ -1,3 +1,4 @@
+#include "config.h"
 #include "hash.h"
 #include <stdlib.h>
 #include <assert.h>
