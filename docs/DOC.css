@@ -176,3 +176,7 @@ div.body dt {
 	margin-bottom: 8pt;
 }
 
+img {border:0; display:inline-block; vertical-align:text-bottom;}
+img.right {margin:0 0 0 auto;}
+img.center {border:0;margin:0 auto;}
+

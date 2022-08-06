@@ -39,6 +39,9 @@ docs/FAQ
 docs/FCH
 docs/GPERF
 docs/NEWSLOG
+docs/Makefile
+docs/Makefile.in
+docs/cmph.1
 examples/.deps/
 examples/.libs/
 examples/Makefile

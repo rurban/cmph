@@ -35,7 +35,8 @@ fi
  
 if [ "$upload_opt" = "html" ] || [ "$upload_opt" = "all" ]
 then
-    scp -r *.html  fc_botelho@web.sourceforge.net:/home/project-web/cmph/htdocs/
+    scp -r docs/*.html  fc_botelho@web.sourceforge.net:/home/project-web/cmph/htdocs/
+    scp -r docs/figs  fc_botelho@web.sourceforge.net:/home/project-web/cmph/htdocs/
 fi
 
 if [ "$upload_opt" = "examples" ] || [ "$upload_opt" = "all" ]
@@ -45,5 +46,5 @@ fi
 
 if [ "$upload_opt" = "papers" ] || [ "$upload_opt" = "all" ]
 then
-    scp -r papers/*.pdf fc_botelho@web.sourceforge.net:/home/project-web/cmph/htdocs/papers/
+    scp -r docs/papers/*.pdf fc_botelho@web.sourceforge.net:/home/project-web/cmph/htdocs/papers/
 fi
