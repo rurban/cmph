@@ -1,4 +1,4 @@
-.TH CMPH "1" "October 2007" "cmph 0.6" "User Commands"
+.TH CMPH "1" "August 2022" "cmph 2.0.3" "User Commands"
 .SH NAME
 cmph \- minimum perfect hashing tool
 .SH SYNOPSIS
@@ -17,10 +17,10 @@ Print an help message
 This value determines: the number of vertices in the graph for the algorithms BMZ and CHM; the number of bits per key required in the FCH algorithm
 .TP
 \fB\-a\fR
-Algorithm. Valid values are: bmz, bmz8, chm, brz, fch
+Algorithm. Valid values are: chm (default), bmz, bmz8, brz, fch, bdz, bdz_ph, chd, chd_ph
 .TP
 \fB\-f\fR
-hash function (may be used multiple times). valid values are: djb2, fnv, jenkins, sdbm
+hash function (may be used multiple times). Valid values are: jenkins (default), wyhash, djb2, fnv, sdbm, (crc32 in work)
 .TP
 \fB\-V\fR	
 Print version number and exit
