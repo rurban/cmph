@@ -16,8 +16,8 @@
 
 //cmph_uint32 ngrafos = 0;
 //cmph_uint32 ngrafos_aciclicos = 0;
-// table used for looking up the number of assigned vertices  a 8-bit integer
-const cmph_uint8 bdz_lookup_table[] =
+// table used for looking up the number of assigned vertices, a 8-bit integer
+const cmph_uint8 bdz_lookup_table[256] =
 {
 4, 4, 4, 3, 4, 4, 4, 3, 4, 4, 4, 3, 3, 3, 3, 2,
 4, 4, 4, 3, 4, 4, 4, 3, 4, 4, 4, 3, 3, 3, 3, 2,
@@ -219,7 +219,7 @@ static int bdz_generate_queue(cmph_uint32 nedges, cmph_uint32 nvertices, bdz_que
 		};
 	};
 	free(marked_edge);
-	return (int)(queue_head-nedges);/* returns 0 if successful otherwies return negative number*/
+	return (int)(queue_head - nedges);/* returns 0 if successful otherwise return negative number*/
 };
 
 static int bdz_mapping(cmph_config_t *mph, bdz_graph3_t* graph3, bdz_queue_t queue);
@@ -437,10 +437,9 @@ static void assigning(bdz_config_data_t *bdz, bdz_graph3_t* graph3, bdz_queue_t 
 	cmph_uint32 curr_edge;
 	cmph_uint32 v0,v1,v2;
         const size_t sizemv = (size_t)(bdz->n >> 3) + 1;
-	cmph_uint8 * marked_vertices = (cmph_uint8 *)malloc(sizemv);
+	cmph_uint8 * marked_vertices = (cmph_uint8 *)calloc(sizemv, 1);
         cmph_uint32 sizeg = (cmph_uint32)ceil(bdz->n/4.0); // 2bit per vertex
 	bdz->g = (cmph_uint8 *)calloc((size_t)(sizeg), sizeof(cmph_uint8));
-	memset(marked_vertices, 0, sizemv);
 	memset(bdz->g, 0xff, (size_t)(sizeg));
 
 	for(i=nedges-1;i+1>=1;i--){
@@ -519,12 +518,12 @@ int bdz_dump(cmph_t *mphf, FILE *fd)
 	CHK_FWRITE(&(data->r), sizeof(cmph_uint32), (size_t)1, fd);
 
 	cmph_uint32 sizeg = (cmph_uint32)ceil(data->n/4.0);
-	CHK_FWRITE(data->g, sizeof(cmph_uint8)*sizeg, (size_t)1, fd);
+	CHK_FWRITE(data->g, sizeof(cmph_uint8), sizeg, fd);
 
 	CHK_FWRITE(&(data->k), sizeof(cmph_uint32), (size_t)1, fd);
 	CHK_FWRITE(&(data->b), sizeof(cmph_uint8), (size_t)1, fd);
 	CHK_FWRITE(&(data->ranktablesize), sizeof(cmph_uint32), (size_t)1, fd);
-	CHK_FWRITE(data->ranktable, sizeof(cmph_uint32)*(data->ranktablesize), (size_t)1, fd);
+	CHK_FWRITE(data->ranktable, sizeof(cmph_uint32), (size_t)data->ranktablesize, fd);
 #ifdef DEBUG
 	cmph_uint32 i;
 	fprintf(stderr, "G: ");
