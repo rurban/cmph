@@ -15,12 +15,21 @@ for a in bmz chm brz fch bdz bdz_ph bmz8 chd chd_ph; do
     ./mphf_tests _words
 done
 for f in jenkins wyhash djb2 fnv sdbm crc32; do
+    # cmh uses the single hash API, 2x extra
     rm -f _words.mph
     echo "** cmph -g -f $f _words"
     ../src/cmph -g -f $f _words
     echo "** cmph -f $f _words"
     ../src/cmph _words
     echo "** mphf_tests -f $f _words"
+    ./mphf_tests _words
+    # bdz uses the hash_vector API, 3x in one
+    rm -f _words.mph
+    echo "** cmph -g -f $f -a bdz _words"
+    ../src/cmph -g -f $f -a bdz _words
+    echo "** cmph -f $f -a bdz _words"
+    ../src/cmph _words
+    echo "** mphf_tests -f $f -a bdz _words"
     ./mphf_tests _words
 done
 rm -f _words _words.mph
