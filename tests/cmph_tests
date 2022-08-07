@@ -24,12 +24,17 @@ for f in jenkins wyhash djb2 fnv sdbm crc32; do
     echo "** mphf_tests -f $f _words"
     ./mphf_tests _words
     # bdz uses the hash_vector API, 3x in one
-    rm -f _words.mph
-    echo "** cmph -g -f $f -a bdz _words"
-    ../src/cmph -g -f $f -a bdz _words
-    echo "** cmph -f $f -a bdz _words"
-    ../src/cmph _words
-    echo "** mphf_tests -f $f -a bdz _words"
-    ./mphf_tests _words
+    if [ $f = sdbm ]
+    then
+        echo skip too weak $f hash_vector
+    else
+        rm -f _words.mph
+        echo "** cmph -g -f $f -a bdz _words"
+        ../src/cmph -g -f $f -a bdz _words
+        echo "** cmph -f $f -a bdz _words"
+        ../src/cmph _words
+        echo "** mphf_tests -f $f -a bdz _words"
+        ./mphf_tests _words
+    fi
 done
 rm -f _words _words.mph
