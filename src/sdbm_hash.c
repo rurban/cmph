@@ -10,7 +10,7 @@ hash_state_t *sdbm_state_new(cmph_uint32 size)
 	hash_state_t *state = (hash_state_t *)malloc(sizeof(hash_state_t));
         if (!state) return NULL;
 	state->hashfunc = CMPH_HASH_SDBM;
-	if (size > 0) state->seed = ((cmph_uint32)rand() % size);
+	if (size > 0) state->seed = (cmph_uint32)rand();
 	else state->seed = 0;
 	DEBUGP("Initializing sdbm hash with seed %u\n", state->seed);
 	return state;
@@ -34,6 +34,18 @@ cmph_uint32 sdbm_hash(hash_state_t *state, const char *k, const cmph_uint32 keyl
 	return hash;
 }
 
+static cmph_uint32 sdbm_hash_seed(const cmph_uint32 seed, const char *k, const cmph_uint32 keylen)
+{
+	register cmph_uint32 hash = seed;
+	const unsigned char *ptr = (unsigned char *)k;
+	cmph_uint32 i = 0;
+
+	while(i < keylen) {
+		hash = *ptr + (hash << 6) + (hash << 16) - hash;
+		++ptr, ++i;
+	}
+	return hash;
+}
 
 void sdbm_state_dump(hash_state_t *state, char **buf, cmph_uint32 *buflen)
 {
@@ -71,12 +83,9 @@ hash_state_t *sdbm_state_load(const char *buf, cmph_uint32 buflen)
 
 void sdbm_hash_vector(hash_state_t *state, const char *k, cmph_uint32 keylen, cmph_uint32 * hashes)
 {
-	hashes[0] = sdbm_hash(state, k, keylen);
-        state->seed++;
-	hashes[1] = sdbm_hash(state, k, keylen);
-        state->seed++;
-	hashes[2] = sdbm_hash(state, k, keylen);
-        state->seed -= 2;
+	hashes[0] = sdbm_hash_seed(state->seed, k, keylen);
+	hashes[1] = sdbm_hash_seed(state->seed+1, k, keylen);
+	hashes[2] = sdbm_hash_seed(state->seed+2, k, keylen);
 }
 
 cmph_uint32 sdbm_hash_packed(void *packed, const char *k, cmph_uint32 keylen)
