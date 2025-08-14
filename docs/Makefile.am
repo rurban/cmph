@@ -174,8 +174,8 @@ COMMON_T2T := $(addprefix,$(srcdir)/, FOOTER.t2t GOOGLEANALYTICS.t2t CONFIG.t2t)
 #cmph.1: CMPH.t2t
 #	txt2tags -t man -i CMPH.t2t -o $@
 index.html: $(addprefix,$(srcdir)/, README.t2t CMPH.t2t LOGO.t2t NEWSLOG.t2t) $(COMMON_T2T)
-	cd $(srcdir) && txt2tags -t html --mask-email -i README.t2t -o $(abs_builddir)/$@
-	cd $(srcdir) && txt2tags -t txt --mask-email -i README.t2t -o $(abs_top_builddir)/README
+	cd $(srcdir) && txt2tags -t html -i README.t2t -o $(abs_builddir)/$@
+	cd $(srcdir) && txt2tags -t txt -i README.t2t -o $(abs_top_builddir)/README
 chd.html: $(addprefix,$(srcdir)/, CHD.t2t ALGORITHMS.t2t) $(COMMON_T2T)
 	cd $(srcdir) && txt2tags -t html -i CHD.t2t -o $(abs_builddir)/$@
 bdz.html: $(addprefix,$(srcdir)/, BDZ.t2t ALGORITHMS.t2t) $(COMMON_T2T)
