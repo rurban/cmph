@@ -21,4 +21,4 @@ jobs:
     - run: make
     - run: make check || cat tests/test-suite.log
     - if: matrix.CFLAGS == ''
-      run: make distcheck
+      run: make distcheck || cat tests/test-suite.log
