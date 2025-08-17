@@ -59,7 +59,7 @@ void bm_create(CMPH_ALGO algo, int iters) {
   if (!mphf) {
     fprintf(stderr, "Failed to create mphf for algorithm %s with %u keys",
             cmph_names[algo], iters);
-    exit(-1);
+    return;
   }
   cmph_config_destroy(config);
   cmph_io_struct_vector_adapter_destroy(source);
@@ -74,6 +74,11 @@ void bm_search(CMPH_ALGO algo, int iters) {
   mphf_name = create_lsmap_key(algo, iters);
   mphf = (cmph_t*)lsmap_search(g_created_mphf, mphf_name);
   free(mphf_name);
+  if (!mphf) {
+    fprintf(stderr, "No mphf found for algorithm %s with %u keys\n",
+            cmph_names[algo], iters);
+    return;
+  }
 
   cmph_uint32* count = (cmph_uint32*)malloc(sizeof(cmph_uint32)*iters);  
   cmph_uint32* hash_count = (cmph_uint32*)malloc(sizeof(cmph_uint32)*iters);  
@@ -98,9 +103,13 @@ void verify() { }
   void bm_search_ ## algo(int iters) { bm_search(algo, iters); }
 
 DECLARE_ALGO(CMPH_BMZ);
+DECLARE_ALGO(CMPH_BMZ8);
 DECLARE_ALGO(CMPH_CHM);
 DECLARE_ALGO(CMPH_BDZ);
+DECLARE_ALGO(CMPH_BDZ_PH);
 DECLARE_ALGO(CMPH_FCH);
+DECLARE_ALGO(CMPH_CHD);
+DECLARE_ALGO(CMPH_CHD_PH);
 DECLARE_ALGO(CMPH_BRZ);
 
 int main(int argc, char** argv) {
@@ -119,6 +128,15 @@ int main(int argc, char** argv) {
   BM_REGISTER(bm_search_CMPH_BDZ, SIZE);
   BM_REGISTER(bm_create_CMPH_FCH, SIZE);
   BM_REGISTER(bm_search_CMPH_FCH, SIZE);
+  BM_REGISTER(bm_create_CMPH_BDZ_PH, SIZE);
+  BM_REGISTER(bm_search_CMPH_BDZ_PH, SIZE);
+  BM_REGISTER(bm_create_CMPH_CHD, SIZE);
+  BM_REGISTER(bm_search_CMPH_CHD, SIZE);
+  BM_REGISTER(bm_create_CMPH_CHD_PH, SIZE);
+  BM_REGISTER(bm_search_CMPH_CHD_PH, SIZE);
+  // instable:
+  BM_REGISTER(bm_create_CMPH_BMZ8, SIZE);
+  BM_REGISTER(bm_search_CMPH_BMZ8, SIZE);
   BM_REGISTER(bm_create_CMPH_BRZ, SIZE);
   BM_REGISTER(bm_search_CMPH_BRZ, SIZE);
   run_benchmarks(argc, argv);
