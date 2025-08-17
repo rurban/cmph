@@ -54,6 +54,7 @@ void bm_create(CMPH_ALGO algo, int iters) {
       0, sizeof(cmph_uint32), iters);
   config = cmph_config_new(source);
   cmph_config_set_algo(config, algo);
+  cmph_config_set_graphsize(config, 5);
   mphf = cmph_new(config);
   if (!mphf) {
     fprintf(stderr, "Failed to create mphf for algorithm %s with %u keys",
@@ -98,27 +99,28 @@ void verify() { }
 
 DECLARE_ALGO(CMPH_BMZ);
 DECLARE_ALGO(CMPH_CHM);
-DECLARE_ALGO(CMPH_BRZ);
-DECLARE_ALGO(CMPH_FCH);
 DECLARE_ALGO(CMPH_BDZ);
+DECLARE_ALGO(CMPH_FCH);
+DECLARE_ALGO(CMPH_BRZ);
 
 int main(int argc, char** argv) {
-  g_numbers_len = 1000 * 1000;
+#define SIZE 1000 * 1000
+  g_numbers_len = SIZE;
   g_numbers = random_numbers_vector_new(g_numbers_len);
   g_created_mphf = lsmap_new();
   g_expected_probes = lsmap_new();
   g_mphf_probes = lsmap_new();
 
-  BM_REGISTER(bm_create_CMPH_BMZ, 1000 * 1000);
-  BM_REGISTER(bm_search_CMPH_BMZ, 1000 * 1000);
-  BM_REGISTER(bm_create_CMPH_CHM, 1000 * 1000);
-  BM_REGISTER(bm_search_CMPH_CHM, 1000 * 1000);
-//  BM_REGISTER(bm_create_CMPH_BRZ, 1000 * 1000);
-//  BM_REGISTER(bm_search_CMPH_BRZ, 1000 * 1000);
-//  BM_REGISTER(bm_create_CMPH_FCH, 1000 * 1000);
-//  BM_REGISTER(bm_search_CMPH_FCH, 1000 * 1000);
-  BM_REGISTER(bm_create_CMPH_BDZ, 1000 * 1000);
-  BM_REGISTER(bm_search_CMPH_BDZ, 1000 * 1000);
+  BM_REGISTER(bm_create_CMPH_BMZ, SIZE);
+  BM_REGISTER(bm_search_CMPH_BMZ, SIZE);
+  BM_REGISTER(bm_create_CMPH_CHM, SIZE);
+  BM_REGISTER(bm_search_CMPH_CHM, SIZE);
+  BM_REGISTER(bm_create_CMPH_BDZ, SIZE);
+  BM_REGISTER(bm_search_CMPH_BDZ, SIZE);
+  BM_REGISTER(bm_create_CMPH_FCH, SIZE);
+  BM_REGISTER(bm_search_CMPH_FCH, SIZE);
+  BM_REGISTER(bm_create_CMPH_BRZ, SIZE);
+  BM_REGISTER(bm_search_CMPH_BRZ, SIZE);
   run_benchmarks(argc, argv);
 
   verify();
