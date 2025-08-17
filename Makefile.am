@@ -11,4 +11,5 @@ pkgconfigdir = $(libdir)/pkgconfig
 #README: docs/README.t2t
 #	cd docs && $(MAKE) -C docs index.html
 
-CLEANFILES = TAGS README
+CLEANFILES = TAGS
+DISTCLEANFILES = README

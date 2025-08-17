@@ -163,8 +163,10 @@ FIGS = figs/img177.png figs/img82.png figs/img1.png figs/img109.png	\
 PAPERS = papers/esa09.pdf papers/thesis.pdf papers/bmz_tr004_04.ps.gz papers/wads07.pdf \
 	papers/bmz_wea2005.ps.gz papers/fch92.pdf papers/chm92.pdf
 
-doc_HTML = bdz.html  brz.html  chm.html         concepts.html  faq.html  gperf.html  newslog.html \
-	   bmz.html  chd.html  comparison.html  examples.html  fch.html  index.html
+doc_HTML = \
+	bdz.html brz.html chm.html fch.html bmz.html chd.html \
+	faq.html concepts.html gperf.html newslog.html comparison.html  \
+	examples.html index.html
 EXTRA_DIST = $(T2T) gendocs $(FIGS) $(PAPERS)
 
 all: $(doc_HTML)
@@ -201,4 +203,4 @@ newslog.html: $(addprefix,$(srcdir)/, NEWSLOG.t2t ALGORITHMS.t2t) $(COMMON_T2T)
 examples.html: $(addprefix,$(srcdir)/, EXAMPLES.t2t ALGORITHMS.t2t) $(COMMON_T2T)
 	cd $(srcdir) && txt2tags -t html -i EXAMPLES.t2t -o $(abs_builddir)/$@
 
-CLEANFILES = $(doc_HTML)
+DISTCLEANFILES = $(doc_HTML)
