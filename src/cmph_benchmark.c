@@ -64,7 +64,7 @@ int global_benchmarks_length() {
 }
 
 void bm_register(const char* name, void (*func)(int), int iters) {
-  benchmark_t benchmark;
+  benchmark_t benchmark = {0};
   int length = global_benchmarks_length();
   benchmark.name = name;
   benchmark.func = func;
