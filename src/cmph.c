@@ -599,6 +599,41 @@ int cmph_dump(cmph_t *mphf, FILE *f)
 	assert(0);
 	return 0;
 }
+int cmph_compile(cmph_t *mphf, cmph_config_t *config, const char *keys_file)
+{
+	DEBUGP("Compiling mphf with algorithm %s\n", cmph_names[mphf->algo]);
+	printf("/* ex: set ro ft=c: -*- mode: c; buffer-read-only: t -*- */\n");
+	printf("/* Created via cmph -C -a %s \"%s\" */\n",
+	       cmph_names[mphf->algo], keys_file);
+	printf("/* Do not modify */\n\n");
+	printf("/* n: %u */\n", config->key_source->nkeys);
+	printf("/* c: %f */\n", config->c);
+	switch (mphf->algo)
+	{
+		case CMPH_CHM:
+		    return chm_compile(mphf, config);
+		case CMPH_BMZ:
+			return bmz_compile(mphf);
+		case CMPH_BMZ8:
+			return bmz8_compile(mphf);
+		case CMPH_BRZ:
+			return brz_compile(mphf);
+		case CMPH_FCH:
+			return fch_compile(mphf);
+		case CMPH_BDZ:
+			return bdz_compile(mphf);
+		case CMPH_BDZ_PH:
+			return bdz_ph_compile(mphf);
+		case CMPH_CHD_PH:
+			return chd_ph_compile(mphf);
+		case CMPH_CHD:
+			return chd_compile(mphf);
+		default:
+			assert(0);
+	}
+	assert(0);
+	return 0;
+}
 cmph_t *cmph_load(FILE *f)
 {
 	cmph_t *mphf = NULL;

@@ -30,6 +30,7 @@ void chd_ph_config_destroy(cmph_config_t *mph);
 cmph_t *chd_ph_new(cmph_config_t *mph, double c);
 void chd_ph_load(FILE *fd, cmph_t *mphf);
 int chd_ph_dump(cmph_t *mphf, FILE *fd);
+int chd_ph_compile(cmph_t *mphf);
 void chd_ph_destroy(cmph_t *mphf);
 cmph_uint32 chd_ph_search(cmph_t *mphf, const char *key, cmph_uint32 keylen);
 

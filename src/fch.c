@@ -332,6 +332,12 @@ cmph_t *fch_new(cmph_config_t *mph, double c)
 	return mphf;
 }
 
+int fch_compile(cmph_t *mphf)
+{
+	fch_data_t *data = (fch_data_t *)mphf->data;
+	DEBUGP("Compiling fch\n");
+	printf("// NYI\n");
+}
 int fch_dump(cmph_t *mphf, FILE *fd)
 {
 	char *buf = NULL;

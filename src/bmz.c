@@ -491,6 +491,12 @@ static int bmz_gen_edges(cmph_config_t *mph)
 	return !multiple_edges;
 }
 
+int bmz_compile(cmph_t *mphf)
+{
+	bmz_data_t *data = (bmz_data_t *)mphf->data;
+	DEBUGP("Compiling bmz\n");
+	printf("// NYI\n");
+}
 int bmz_dump(cmph_t *mphf, FILE *fd)
 {
 	char *buf = NULL;

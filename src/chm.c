@@ -235,6 +235,46 @@ static int chm_gen_edges(cmph_config_t *mph)
 	return ! cycles;
 }
 
+int chm_compile(cmph_t *mphf, cmph_config_t *mph)
+{
+	chm_data_t *data = (chm_data_t *)mphf->data;
+	chm_config_data_t *config = (chm_config_data_t *)mph->data;
+	DEBUGP("Compiling chm\n");
+	hash_state_compile(data->nhashes, data->hashes);
+	// single hash: jenkins_hash%d
+	// hash_vector: jenkins_hash_vector
+	printf("\nuint32_t cmph_search(const char* key, uint32_t keylen) {\n");
+	printf("    /* n: %u */\n", data->n);
+	printf("    /* m: %u */\n", data->m);
+	printf("    const uint32_t g[%u] = {\n        ", data->n);
+	for (unsigned i=0; i < data->n - 1; i++) {
+		printf("%u, ", data->g[i]);
+		if (i % 16 == 15)
+			printf("\n        ");
+	}
+	printf("%u\n    };\n", data->g[data->n - 1]);
+	printf("    uint32_t h1, h2;\n");
+	if (data->nhashes > 1) {
+		printf("   h1 = %s0(%u, (const unsigned char*)key, keylen) %% %u;\n",
+		       cmph_hash_names[config->hashfuncs[0]], data->hashes[0]->seed, data->n);
+		printf("   h2 = %s1(%u, (const unsigned char*)key, keylen) %% %u;\n",
+		       cmph_hash_names[config->hashfuncs[1]], data->hashes[1]->seed,
+		       data->n);
+	}
+	else {
+		printf("    uint32_t hv[3];\n");
+		printf("    %s_hash_vector(%u, (const unsigned char*)key, keylen, hv);\n",
+		       cmph_hash_names[config->hashfuncs[0]], data->hashes[0]->seed);
+		printf("    h1 = hv[0] %% %u;\n", data->n);
+		printf("    h2 = hv[1] %% %u;\n", data->n);
+	}
+	//DEBUGP("key: %s h1: %u h2: %u\n", key, h1, h2);
+	printf("    if (h1 == h2 && ++h2 >= %u) h2 = 0;\n", data->n);
+	//DEBUGP("key: %s g[h1]: %u g[h2]: %u edges: %u\n", key, chm->g[h1], chm->g[h2], chm->m);
+	printf("    return (g[h1] + g[h2]) %% %u;\n", data->m);
+	printf("};\n");
+	return 0;
+}
 int chm_dump(cmph_t *mphf, FILE *fd)
 {
 	char *buf = NULL;

@@ -594,13 +594,18 @@ static char * brz_copy_partial_bmz8_mphf(brz_config_data_t *brz, bmz8_data_t * b
 	return buf;
 }
 
-
+int brz_compile(cmph_t *mphf)
+{
+	brz_data_t *data = (brz_data_t *)mphf->data;
+	DEBUGP("Compiling brz\n");
+	printf("// NYI\n");
+}
 int brz_dump(cmph_t *mphf, FILE *fd)
 {
 	brz_data_t *data = (brz_data_t *)mphf->data;
 	char *buf = NULL;
 	cmph_uint32 buflen;
-	DEBUGP("Dumping brzf\n");
+	DEBUGP("Dumping brz\n");
 	// The initial part of the MPHF has already been dumped to disk during construction
 	// Dumping h0
         hash_state_dump(data->h0, &buf, &buflen);
@@ -1036,5 +1041,6 @@ cmph_uint32 brz_search_packed(void *packed_mphf, const char *key, cmph_uint32 ke
 			return brz_bmz8_search_packed(ptr, key, keylen, fingerprint);
 		default: assert(0);
 	}
-	return (cmph_uint32)-1;
+	assert(0);
+	return 0;
 }

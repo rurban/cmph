@@ -104,6 +104,48 @@ void hash_vector(hash_state_t *state, const char *key, cmph_uint32 keylen, cmph_
 }
 
 
+void hash_state_compile(int count, hash_state_t **states)
+{
+	printf("#include <stdint.h>\n");
+	for (int i=0; i < count; i++) {
+		hash_state_t *state = states[i];
+		switch (state->hashfunc)
+		{
+		case CMPH_HASH_JENKINS:
+			DEBUGP("Compile hash[%d] jenkins with seed %u\n", i, state->seed);
+			if (i == 0 || states[0]->hashfunc != CMPH_HASH_JENKINS)
+				jenkins_prep_compile();
+			if (count != 1)
+				jenkins_state_compile_seed(i, state->seed);
+			break;
+		case CMPH_HASH_WYHASH:
+			DEBUGP("Compile hash[%d] wyhash with seed %u\n", i, state->seed);
+			if (i == 0 || states[0]->hashfunc != CMPH_HASH_WYHASH)
+				wyhash_prep_compile();
+			wyhash_state_compile_seed(i, state->seed);
+			break;
+		case CMPH_HASH_DJB2:
+			DEBUGP("Compile %d hash djb2\n", i+1);
+			//djb2_state_dump(state, &algobuf, buflen);
+			break;
+		case CMPH_HASH_FNV:
+			DEBUGP("Compile hash fnv\n");
+			//fnv_state_dump(state, &algobuf, buflen);
+			break;
+		case CMPH_HASH_SDBM:
+			DEBUGP("Compile hash sdbm\n");
+			//sdbm_state_dump(state, &algobuf, buflen);
+			break;
+		case CMPH_HASH_CRC32:
+			DEBUGP("Compile hash crc32\n");
+			//crc32_state_dump(state, &algobuf, buflen);
+			break;
+		default:
+			assert(0);
+		}
+	}
+	return;
+}
 void hash_state_dump(hash_state_t *state, char **buf, cmph_uint32 *buflen)
 {
 	char *algobuf;
@@ -111,7 +153,7 @@ void hash_state_dump(hash_state_t *state, char **buf, cmph_uint32 *buflen)
 	switch (state->hashfunc)
 	{
 		case CMPH_HASH_JENKINS:
-                        DEBUGP("Dump hash jenkins\n");
+                        DEBUGP("Compile hash jenkins\n");
 			jenkins_state_dump(state, &algobuf, buflen);
 			break;
 		case CMPH_HASH_WYHASH:

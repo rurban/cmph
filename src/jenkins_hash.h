@@ -24,6 +24,8 @@ void jenkins_hash_vector_(hash_state_t *state, const char *k, cmph_uint32 keylen
 void jenkins_state_dump(hash_state_t *state, char **buf, cmph_uint32 *buflen);
 //hash_state_t *jenkins_state_copy(hash_state_t *src_state);
 hash_state_t *jenkins_state_load(const char *buf);
+void jenkins_prep_compile(void);
+void jenkins_state_compile_seed(int i, cmph_uint32 seed);
 void jenkins_state_destroy(hash_state_t *state);
 
 /** \fn void jenkins_state_pack(hash_state_t *state, void *jenkins_packed);

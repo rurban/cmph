@@ -13,6 +13,7 @@ cmph_t *chm_new(cmph_config_t *mph, double c);
 
 void chm_load(FILE *f, cmph_t *mphf);
 int chm_dump(cmph_t *mphf, FILE *f);
+int chm_compile(cmph_t *mphf, cmph_config_t *config);
 void chm_destroy(cmph_t *mphf);
 cmph_uint32 chm_search(cmph_t *mphf, const char *key, cmph_uint32 keylen);
 

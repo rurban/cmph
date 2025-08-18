@@ -498,7 +498,12 @@ static void ranking(bdz_config_data_t *bdz)
 	}
 }
 
-
+int bdz_compile(cmph_t *mphf)
+{
+	bdz_data_t *data = (bdz_data_t *)mphf->data;
+	DEBUGP("Compiling bdz\n");
+	printf("// NYI\n");
+}
 int bdz_dump(cmph_t *mphf, FILE *fd)
 {
 	char *buf = NULL;

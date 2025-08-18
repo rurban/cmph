@@ -864,6 +864,12 @@ void chd_ph_load(FILE *fd, cmph_t *mphf)
 	CHK_FREAD(&(chd_ph->nbuckets), sizeof(cmph_uint32), (size_t)1, fd);
 }
 
+int chd_ph_compile(cmph_t *mphf)
+{
+	chd_ph_data_t *data = (chd_ph_data_t *)mphf->data;
+	DEBUGP("Compiling chd_ph\n");
+	printf("// NYI\n");
+}
 int chd_ph_dump(cmph_t *mphf, FILE *fd)
 {
 	char *buf = NULL;

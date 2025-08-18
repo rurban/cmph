@@ -174,3 +174,55 @@ void wyhash_hash_vector_packed(void *wyhash_packed, const char *k, cmph_uint32 k
 {
 	__wyhash_hash_vector(*((cmph_uint32 *)wyhash_packed), (const unsigned char*)k, keylen, hashes);
 }
+
+void wyhash_prep_compile(void) {
+	printf(
+"#include \"wyhash.h\"\n"
+"/* wyhash_hash */\n"
+"static inline void wyhash_hash_vector(uint32_t seed, const unsigned char *k, uint32_t len, uint32_t *hashes) {\n"
+"    uint64_t *hashes64 = (uint64_t*) hashes;\n"
+"    const uint64_t secret[4] = { _wyp[0],_wyp[1],_wyp[2],_wyp[3] };\n"
+"    const uint8_t *p = (const uint8_t *)k;\n"
+"    seed ^= secret[0];\n"
+"    uint64_t a, b;\n"
+"    if(_likely_(len<=16)){\n"
+"        if(_likely_(len>=4)){\n"
+"            a=(_wyr4(p)<<32)|_wyr4(p+((len>>3)<<2));\n"
+"            b=(_wyr4(p+len-4)<<32)|_wyr4(p+len-4-((len>>3)<<2));\n"
+"        }\n"
+"        else if(_likely_(len>0)){\n"
+"            a=_wyr3(p,len); b=0;\n"
+"        }\n"
+"        else a=b=0;\n"
+"    }\n"
+"    else {\n"
+"        size_t i=len; \n"
+"        if(_unlikely_(i>48)){\n"
+"            uint64_t see1=seed, see2=seed;\n"
+"            do {\n"
+"                seed=_wymix(_wyr8(p)^secret[1],_wyr8(p+8)^seed);\n"
+"                see1=_wymix(_wyr8(p+16)^secret[2],_wyr8(p+24)^see1);\n"
+"                see2=_wymix(_wyr8(p+32)^secret[3],_wyr8(p+40)^see2);\n"
+"                p+=48; i-=48;\n"
+"            } while (_likely_(i>48));\n"
+"            seed^=see1^see2;\n"
+"        }\n"
+"        while(_unlikely_(i>16)){\n"
+"            seed=_wymix(_wyr8(p)^secret[1],_wyr8(p+8)^seed);\n"
+"            i-=16; p+=16;\n"
+"        }\n"
+"        a=_wyr8(p+i-16);  b=_wyr8(p+i-8);\n"
+"    }\n"
+"    hashes64[0] = _wymix(secret[1]^len,_wymix(a^secret[1], b^seed));\n"
+"    hashes[2] = (uint32_t)_wymix(b^secret[1], a^seed);\n"
+"}\n"
+"\n");
+}
+void wyhash_state_compile_seed(int i, cmph_uint32 seed) {
+	printf("uint32_t wyhash_hash%d(const char *k, uint32_t keylen) {\n"
+	       "    uint32_t hashes[3];\n"
+	       "    wyhash_hash_vector(%u, (const unsigned char*)k, keylen, hashes);\n"
+	       "    return hashes[2];\n"
+	       "}\n", i, seed);
+	return;
+}

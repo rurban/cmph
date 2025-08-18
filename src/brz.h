@@ -33,6 +33,7 @@ cmph_t *brz_new(cmph_config_t *mph, double c);
 
 void brz_load(FILE *f, cmph_t *mphf);
 int brz_dump(cmph_t *mphf, FILE *f);
+int brz_compile(cmph_t *mphf);
 void brz_destroy(cmph_t *mphf);
 cmph_uint32 brz_search(cmph_t *mphf, const char *key, cmph_uint32 keylen);
 

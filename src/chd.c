@@ -191,6 +191,12 @@ void chd_load(FILE *fd, cmph_t *mphf)
 	CHK_FREAD(chd->packed_cr, chd->packed_cr_size, (size_t)1, fd);
 }
 
+int chd_compile(cmph_t *mphf)
+{
+	chd_data_t *data = (chd_data_t *)mphf->data;
+	DEBUGP("Compiling chd\n");
+	printf("// NYI\n");
+}
 int chd_dump(cmph_t *mphf, FILE *fd)
 {
 	chd_data_t *data = (chd_data_t *)mphf->data;

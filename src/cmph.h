@@ -76,12 +76,13 @@ void cmph_destroy(cmph_t *mphf);
 /** Hash serialization/deserialization */
 int cmph_dump(cmph_t *mphf, FILE *f);
 cmph_t *cmph_load(FILE *f);
+int cmph_compile(cmph_t *mphf, cmph_config_t *config, const char *keys_file);
 
 /** \fn void cmph_pack(cmph_t *mphf, void *packed_mphf);
  *  \brief Support the ability to pack a perfect hash function into a preallocated contiguous memory space pointed by packed_mphf.
  *  \param mphf pointer to the resulting mphf
- *  \param packed_mphf pointer to the contiguous memory area used to store the 
- *  \param resulting mphf. The size of packed_mphf must be at least cmph_packed_size() 
+ *  \param packed_mphf pointer to the contiguous memory area used to store the
+ *  \param resulting mphf. The size of packed_mphf must be at least cmph_packed_size()
  */
 void cmph_pack(cmph_t *mphf, void *packed_mphf);
 

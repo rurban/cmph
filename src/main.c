@@ -27,7 +27,7 @@ void usage(const char *prg)
 void usage_long(const char *prg)
 {
 	cmph_uint32 i;
-	fprintf(stderr, "usage: %s [-v] [-h] [-V] [-k nkeys] [-f hash_function] [-g [-c algorithm_dependent_value][-s seed] ] [-a algorithm] [-M memory_in_MB] [-b algorithm_dependent_value] [-t keys_per_bin] [-d tmp_dir] [-m file.mph] keysfile\n", prg);
+	fprintf(stderr, "usage: %s [-v][-h][-V][-C] [-k nkeys] [-f hash_function] [-g [-c algorithm_dependent_value][-s seed] ] [-a algorithm] [-M memory_in_MB] [-b algorithm_dependent_value] [-t keys_per_bin] [-d tmp_dir] [-m file.mph] keysfile\n", prg);
 	fprintf(stderr, "Minimum perfect hashing tool\n\n");
 	fprintf(stderr, "  -h\t print this help message\n");
 	fprintf(stderr, "  -c\t c value determines:\n");
@@ -41,7 +41,8 @@ void usage_long(const char *prg)
 	fprintf(stderr, "  -V\t print version number and exit\n");
 	fprintf(stderr, "  -v\t increase verbosity (may be used multiple times)\n");
 	fprintf(stderr, "  -k\t number of keys\n");
-	fprintf(stderr, "  -g\t generation mode\n");
+	fprintf(stderr, "  -g\t generate .mph file\n");
+	fprintf(stderr, "  -C\t generate and emit C file\n");
 	fprintf(stderr, "  -s\t random seed\n");
 	fprintf(stderr, "  -m\t minimum perfect hash function file \n");
 	fprintf(stderr, "  -M\t main memory availability (in MB) used in BRZ algorithm \n");
@@ -68,6 +69,7 @@ int main(int argc, char **argv)
 {
 	cmph_uint32 verbosity = 0;
 	char generate = 0;
+	char compile = 0;
 	char *mphf_file = NULL;
 	FILE *mphf_fd = stdout;
 	const char *keys_file = NULL;
@@ -88,7 +90,7 @@ int main(int argc, char **argv)
 	cmph_uint32 keys_per_bin = 1;
 	while (1)
 	{
-		char ch = (char)getopt(argc, argv, "hVvgc:k:a:M:b:t:f:m:d:s:");
+		char ch = (char)getopt(argc, argv, "hVvgCc:k:a:M:b:t:f:m:d:s:");
 		if (ch == -1) break;
 		switch (ch)
 		{
@@ -111,6 +113,9 @@ int main(int argc, char **argv)
 						exit(1);
 					}
 				}
+				break;
+			case 'C':
+				compile = 1;
 				break;
 			case 'g':
 				generate = 1;
@@ -265,10 +270,11 @@ int main(int argc, char **argv)
 	if (seed == UINT_MAX) seed = (cmph_uint32)time(NULL);
 	if (nkeys == UINT_MAX) source = cmph_io_nlfile_adapter(keys_fd);
 	else source = cmph_io_nlnkfile_adapter(keys_fd, nkeys);
-	if (generate)
+	if (generate || compile)
 	{
 		//Create mphf
-		mphf_fd = fopen(mphf_file, "wb");
+		if (generate)
+			mphf_fd = fopen(mphf_file, "wb");
 		config = cmph_config_new(source);
 		cmph_config_set_algo(config, mph_algo);
 		if (nhashes) cmph_config_set_hashfuncs(config, hashes);
@@ -284,11 +290,9 @@ int main(int argc, char **argv)
 		if (c != 0) cmph_config_set_graphsize(config, c);
 		mphf = cmph_new(config);
 
-		cmph_config_destroy(config);
 		if (mphf == NULL)
 		{
 			fprintf(stderr, "Unable to create minimum perfect hashing function\n");
-			//cmph_config_destroy(config);
 			if (nhashes)
 				free(hashes);
 			free(mphf_file);
@@ -296,7 +300,7 @@ int main(int argc, char **argv)
 			return -1;
 		}
 
-		if (mphf_fd == NULL)
+		if (generate && mphf_fd == NULL)
 		{
 			fprintf(stderr, "Unable to open output file %s: %s\n", mphf_file, strerror(errno));
 			if (nhashes)
@@ -305,9 +309,14 @@ int main(int argc, char **argv)
 			free(source);
 			return -1;
 		}
-		cmph_dump(mphf, mphf_fd);
+		if (generate)
+			cmph_dump(mphf, mphf_fd);
+		if (compile)
+			cmph_compile(mphf, config, keys_file);
+		cmph_config_destroy(config);
 		cmph_destroy(mphf);
-		fclose(mphf_fd);
+		if (generate)
+			fclose(mphf_fd);
 	}
 	else
 	{
