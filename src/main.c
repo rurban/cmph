@@ -250,7 +250,7 @@ int main(int argc, char **argv)
 	}
 
 	if (seed == UINT_MAX) seed = (cmph_uint32)time(NULL);
-	if(nkeys == UINT_MAX) source = cmph_io_nlfile_adapter(keys_fd);
+	if (nkeys == UINT_MAX) source = cmph_io_nlfile_adapter(keys_fd);
 	else source = cmph_io_nlnkfile_adapter(keys_fd, nkeys);
 	if (generate)
 	{
@@ -277,6 +277,7 @@ int main(int argc, char **argv)
 			fprintf(stderr, "Unable to create minimum perfect hashing function\n");
 			//cmph_config_destroy(config);
 			free(mphf_file);
+			free(source);
 			return -1;
 		}
 
@@ -284,6 +285,7 @@ int main(int argc, char **argv)
 		{
 			fprintf(stderr, "Unable to open output file %s: %s\n", mphf_file, strerror(errno));
 			free(mphf_file);
+			free(source);
 			return -1;
 		}
 		cmph_dump(mphf, mphf_fd);
@@ -298,6 +300,7 @@ int main(int argc, char **argv)
 		{
 			fprintf(stderr, "Unable to open input file %s: %s\n", mphf_file, strerror(errno));
 			free(mphf_file);
+			cmph_io_nlfile_adapter_destroy(source);
 			return -1;
 		}
 		mphf = cmph_load(mphf_fd);
@@ -306,6 +309,7 @@ int main(int argc, char **argv)
 		{
 			fprintf(stderr, "Unable to parser input file %s\n", mphf_file);
 			free(mphf_file);
+			free(source);
 			return -1;
 		}
 		cmph_uint32 siz = cmph_size(mphf);
@@ -344,7 +348,7 @@ int main(int argc, char **argv)
 	free(mphf_file);
 	free(tmp_dir);
         free(hashes);
-        cmph_io_nlfile_adapter_destroy(source);
+	free(source);
 	return ret;
 
 }
