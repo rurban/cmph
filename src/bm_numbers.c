@@ -80,8 +80,8 @@ void bm_search(CMPH_ALGO algo, int iters) {
     return;
   }
 
-  cmph_uint32* count = (cmph_uint32*)malloc(sizeof(cmph_uint32)*iters);  
-  cmph_uint32* hash_count = (cmph_uint32*)malloc(sizeof(cmph_uint32)*iters);  
+  cmph_uint32* count = (cmph_uint32*)calloc(iters, sizeof(cmph_uint32));
+  cmph_uint32* hash_count = (cmph_uint32*)calloc(iters, sizeof(cmph_uint32));
 
   for (i = 0; i < iters * 100; ++i) {
     cmph_uint32 pos = random() % iters;
