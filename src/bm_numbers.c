@@ -135,10 +135,10 @@ int main(int argc, char** argv) {
   BM_REGISTER(bm_create_CMPH_CHD_PH, SIZE);
   BM_REGISTER(bm_search_CMPH_CHD_PH, SIZE);
   // instable:
-  BM_REGISTER(bm_create_CMPH_BMZ8, SIZE);
-  BM_REGISTER(bm_search_CMPH_BMZ8, SIZE);
   BM_REGISTER(bm_create_CMPH_BRZ, SIZE);
   BM_REGISTER(bm_search_CMPH_BRZ, SIZE);
+  BM_REGISTER(bm_create_CMPH_BMZ8, 255);
+  BM_REGISTER(bm_search_CMPH_BMZ8, 255);
   run_benchmarks(argc, argv);
 
   verify();

@@ -2,28 +2,36 @@
 
 cd "$(dirname "$0")" || exit 1
 set -e
-N=100
+N=10000
 WORDS=/usr/share/dict/words
 
 test -e _words || head -n $N <${WORDS} >_words
+test -e _words100 || head -n 100 <${WORDS} >_words100
+
 for a in bmz chm brz fch bdz bdz_ph bmz8 chd chd_ph; do
     rm -f _words.mph
-    echo "** cmph -g -a $a _words"
-    ../src/cmph -g -a $a _words
-    echo "** cmph -a $a _words"
-    ../src/cmph _words
-    echo "** mphf_tests -a $a _words"
-    ./mphf_tests _words
+    if [ $a = bmz8 ]; then
+        rm -f _words100.mph
+        words=_words100
+    else
+        words=_words
+    fi
+    echo "** cmph -g -a $a $words"
+    ../src/cmph -g -a $a $words
+    echo "** cmph -a $a $words"
+    ../src/cmph -a $a $words
+    echo "** mphf_tests -a $a $words"
+    ./mphf_tests -a $a $words
 done
 for f in jenkins wyhash djb2 fnv sdbm crc32; do
     # cmh uses the single hash API, 2x extra
-    rm -f _words.mph
+    rm -f _words.mph _words100.mph
     echo "** cmph -g -f $f _words"
     ../src/cmph -g -f $f _words
     echo "** cmph -f $f _words"
-    ../src/cmph _words
+    ../src/cmph -f $f _words
     echo "** mphf_tests -f $f _words"
-    ./mphf_tests _words
+    ./mphf_tests -f $f _words
     # bdz uses the hash_vector API, 3x in one
     if [ $f = sdbm ]
     then
@@ -33,9 +41,9 @@ for f in jenkins wyhash djb2 fnv sdbm crc32; do
         echo "** cmph -g -f $f -a bdz _words"
         ../src/cmph -g -f $f -a bdz _words
         echo "** cmph -f $f -a bdz _words"
-        ../src/cmph _words
+        ../src/cmph -f $f -a bdz _words
         echo "** mphf_tests -f $f -a bdz _words"
-        ./mphf_tests _words
+        ./mphf_tests -f $f -a bdz _words
     fi
 done
-rm -f _words _words.mph
+rm -f _words _words.mph _words100 _words100.mph
