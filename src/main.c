@@ -199,7 +199,18 @@ int main(int argc, char **argv)
 				{
 					if (strcmp(cmph_hash_names[i], optarg) == 0)
 					{
-						hashes = (CMPH_HASH *)realloc(hashes, sizeof(CMPH_HASH) * ( nhashes + 2 ));
+						if (hashes) {
+							CMPH_HASH *new_hashes = (CMPH_HASH *)realloc(hashes, sizeof(CMPH_HASH) * ( nhashes + 2 ));
+							if (!new_hashes)
+							{
+								perror("realloc");
+								return -1;
+							}
+							else
+								hashes = new_hashes;
+						}
+						else
+							hashes = (CMPH_HASH *)calloc(2, sizeof(CMPH_HASH));
 						hashes[nhashes] = (CMPH_HASH)i;
 						hashes[nhashes + 1] = CMPH_HASH_COUNT;
 						++nhashes;

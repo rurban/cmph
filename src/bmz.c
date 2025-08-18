@@ -332,7 +332,14 @@ static cmph_uint8 bmz_traverse_critical_nodes_heuristic(bmz_config_data_t *bmz, 
 					{
 					        if(nunused_g_values == unused_g_values_capacity)
 						{
-   						        unused_g_values = (cmph_uint32 *)realloc(unused_g_values, (unused_g_values_capacity + BUFSIZ)*sizeof(cmph_uint32));
+						        cmph_uint32 *new_unused_g_values = (cmph_uint32 *)realloc(unused_g_values, (unused_g_values_capacity + BUFSIZ)*sizeof(cmph_uint32));
+							if (!new_unused_g_values) {
+							    vqueue_destroy(q);
+							    free(unused_g_values);
+							    return -1;
+							}
+							else
+							    unused_g_values = new_unused_g_values;
 						        unused_g_values_capacity += BUFSIZ;  
 						}
 						unused_g_values[nunused_g_values++] = next_g;

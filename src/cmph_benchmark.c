@@ -70,8 +70,13 @@ void bm_register(const char* name, void (*func)(int), int iters) {
   benchmark.func = func;
   benchmark.iters = iters;
   assert(!find_benchmark(name));
-  global_benchmarks = (benchmark_t *)realloc(
+  benchmark_t* benchmarks = (benchmark_t *)realloc(
       global_benchmarks, (length + 2)*sizeof(benchmark_t));
+  if (!benchmarks) {
+    perror("realloc");
+    exit(-1);
+  } else
+    global_benchmarks = benchmarks;
   global_benchmarks[length] = benchmark;
   memset(&benchmark, 0, sizeof(benchmark_t));  // pivot
   global_benchmarks[length + 1] = benchmark;

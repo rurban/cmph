@@ -102,7 +102,14 @@ int main(int argc, char **argv)
 				{
 					if (strcmp(cmph_hash_names[i], optarg) == 0)
 					{
-						hashes = (CMPH_HASH *)realloc(hashes, sizeof(CMPH_HASH) * ( nhashes + 2 ));
+						CMPH_HASH *new_hashes = (CMPH_HASH *)realloc(hashes, sizeof(CMPH_HASH) * ( nhashes + 2 ));
+						if (!new_hashes)
+						{
+							perror("realloc");
+							free(hashes);
+							return -1;
+						} else
+							hashes = new_hashes;
 						hashes[nhashes] = (CMPH_HASH)i;
 						hashes[nhashes + 1] = CMPH_HASH_COUNT;
 						++nhashes;
