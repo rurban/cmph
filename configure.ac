@@ -114,4 +114,5 @@ AC_SUBST(CHECK_CFLAGS)
 
 AC_CHECK_SPOON
 AC_CONFIG_FILES([Makefile src/Makefile cxxmph/Makefile tests/Makefile examples/Makefile docs/Makefile man/Makefile cmph.pc cxxmph.pc])
+AC_CONFIG_FILES([tests/cmph_tests], [chmod +x tests/cmph_tests])
 AC_OUTPUT

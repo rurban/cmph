@@ -1,5 +1,6 @@
 #!/bin/sh
 
+cd "$(dirname "$0")" || exit 1
 set -e
 N=100
 WORDS=/usr/share/dict/words
