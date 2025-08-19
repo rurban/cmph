@@ -112,7 +112,7 @@ DECLARE_ALGO(CMPH_CHD);
 DECLARE_ALGO(CMPH_CHD_PH);
 DECLARE_ALGO(CMPH_BRZ);
 
-int main(int argc, char** argv) {
+int main(void) {
 #define SIZE 1000 * 1000
   g_numbers_len = SIZE;
   g_numbers = random_numbers_vector_new(g_numbers_len);
@@ -139,7 +139,7 @@ int main(int argc, char** argv) {
   BM_REGISTER(bm_search_CMPH_BRZ, SIZE);
   BM_REGISTER(bm_create_CMPH_BMZ8, 255);
   BM_REGISTER(bm_search_CMPH_BMZ8, 255);
-  run_benchmarks(argc, argv);
+  run_benchmarks(/*argc, argv*/);
 
   verify();
   free(g_numbers);

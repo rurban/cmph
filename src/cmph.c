@@ -126,11 +126,15 @@ static int key_vector_read(void *data, char **key, cmph_uint32 *keylen)
 
 static void key_nlfile_dispose(void *data, char *key, cmph_uint32 keylen)
 {
+	(void)data;
+	(void)keylen;
 	free(key);
 }
 
 static void key_vector_dispose(void *data, char *key, cmph_uint32 keylen)
 {
+	(void)data;
+	(void)keylen;
 	free(key);
 }
 

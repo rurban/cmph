@@ -1,6 +1,8 @@
 #include "../src/compressed_seq.h"
 
+#ifndef DEBUG
 #define DEBUG
+#endif
 #include "../src/debug.h"
 #include <stdlib.h>
 

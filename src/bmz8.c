@@ -84,7 +84,7 @@ cmph_t *bmz8_new(cmph_config_t *mph, double c)
 	bmz8->graph = graph_new(bmz8->n, bmz8->m);
 	DEBUGP("Created graph\n");
 
-	bmz8->hashes = (hash_state_t **)calloc(sizeof(hash_state_t *), 2);
+	bmz8->hashes = (hash_state_t **)calloc(2, sizeof(hash_state_t *));
 	do
 	{
 	  // Mapping step

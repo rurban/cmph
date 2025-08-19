@@ -65,7 +65,7 @@ AC_CHECK_HEADERS([getopt.h math.h])
 dnl Checks for libraries.
 LT_LIB_M
 LDFLAGS="$LIBS $LIBM $LDFLAGS"
-CFLAGS="-Wall $CFLAGS"
+CFLAGS="-Wall -Wextra $CFLAGS"
 
 AC_PROG_CXX
 CXXFLAGS="-Wall -Wno-unused-function -DNDEBUG -O3 -fomit-frame-pointer $CXXFLAGS"

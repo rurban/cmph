@@ -74,6 +74,7 @@ static void bdz_alloc_graph3(bdz_graph3_t * graph3, cmph_uint32 nedges, cmph_uin
 };
 static void bdz_init_graph3(bdz_graph3_t * graph3, cmph_uint32 nedges, cmph_uint32 nvertices)
 {
+	(void)nedges;
 	memset(graph3->first_edge,0xff,nvertices*sizeof(cmph_uint32));
 	memset(graph3->vert_degree,0,(size_t)nvertices);
 	graph3->nedges=0;
@@ -168,6 +169,8 @@ static int bdz_generate_queue(cmph_uint32 nedges, cmph_uint32 nvertices, bdz_que
 	cmph_uint32 curr_edge;
 	cmph_uint32 tmp_edge;
 	cmph_uint8 * marked_edge = (cmph_uint8 *)malloc((size_t)(nedges >> 3) + 1);
+	(void)nvertices;
+
 	memset(marked_edge, 0, (size_t)(nedges >> 3) + 1);
 
 	for(i=0;i<nedges;i++){
@@ -488,7 +491,7 @@ static void ranking(bdz_config_data_t *bdz)
 	bdz->ranktable = (cmph_uint32 *)calloc((size_t)bdz->ranktablesize, sizeof(cmph_uint32));
 	// ranktable computation (number of bits in g)
 	bdz->ranktable[0] = 0;	
-	for (int i=1; i < bdz->ranktablesize; i++) {
+	for (cmph_uint32 i=1; i < bdz->ranktablesize; i++) {
 		nbytes = size < nbytes_total? size : nbytes_total;
 		for (j = 0; j < nbytes; j++) {
 			count += bdz_lookup_table[*(bdz->g + offset + j)];

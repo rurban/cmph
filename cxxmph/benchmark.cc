@@ -3,6 +3,7 @@
 #include <cerrno>
 #include <cstring>
 #include <cstdio>
+#include <cstdint>
 #include <memory>
 #include <sys/time.h>
 #include <sys/resource.h>
@@ -107,7 +108,7 @@ namespace cxxmph {
 
 /* static */ void Benchmark::RunAll() {
   for (uint32_t i = 0; i < g_benchmarks.size(); ++i) {
-    std::auto_ptr<Benchmark> bm(g_benchmarks[i]);
+    std::unique_ptr<Benchmark> bm(g_benchmarks[i]);
     if (!bm->SetUp()) {
       cerr << "Set up phase for benchmark "
            << bm->name() << " failed." << endl;

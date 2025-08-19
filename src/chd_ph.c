@@ -77,13 +77,13 @@ void chd_ph_bucket_clean(chd_ph_bucket_t * buckets, cmph_uint32 nbuckets)
 	for(i = 0; i < nbuckets; i++)
 		buckets[i].size = 0;
 }
-static cmph_uint8 chd_ph_bucket_insert(chd_ph_bucket_t * buckets,chd_ph_map_item_t * map_items, chd_ph_item_t * items,
-				cmph_uint32 nbuckets,cmph_uint32 item_idx)
+static cmph_uint8 chd_ph_bucket_insert(chd_ph_bucket_t * buckets,chd_ph_map_item_t * map_items, chd_ph_item_t * items, cmph_uint32 item_idx)
 {
 	register cmph_uint32 i = 0;
 	register chd_ph_item_t * tmp_item;
 	register chd_ph_map_item_t * tmp_map_item = map_items + item_idx;
 	register chd_ph_bucket_t * bucket = buckets + tmp_map_item->bucket_num;
+
 	tmp_item = items + bucket->items_list;
 
 	for(i = 0; i < bucket->size; i++)
@@ -267,7 +267,7 @@ cmph_uint8 chd_ph_mapping(cmph_config_t *mph, chd_ph_bucket_t * buckets, chd_ph_
 		for(i = 0; i < chd_ph->m; i++)
 		{
 			map_item = (map_items + i);
-			if(!chd_ph_bucket_insert(buckets, map_items, items, chd_ph->nbuckets, i))
+			if(!chd_ph_bucket_insert(buckets, map_items, items, i))
 				break;
 		}
 		if(i == chd_ph->m)

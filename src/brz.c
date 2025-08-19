@@ -538,6 +538,8 @@ static char * brz_copy_partial_fch_mphf(brz_config_data_t *brz, fch_data_t * fch
 	char * bufh2 = NULL;
 	char * buf   = NULL;
 	cmph_uint32 n  = fchf->b;//brz->size[index];
+	(void)brz;
+	(void)index;
 	hash_state_dump(fchf->h1, &bufh1, &buflenh1);
 	hash_state_dump(fchf->h2, &bufh2, &buflenh2);
 	*buflen = buflenh1 + buflenh2 + n + 2U * (cmph_uint32)sizeof(cmph_uint32);
@@ -1016,4 +1018,5 @@ cmph_uint32 brz_search_packed(void *packed_mphf, const char *key, cmph_uint32 ke
 			return brz_bmz8_search_packed(ptr, key, keylen, fingerprint);
 		default: assert(0);
 	}
+	return (cmph_uint32)-1;
 }

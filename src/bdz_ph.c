@@ -61,6 +61,7 @@ static void bdz_ph_alloc_graph3(bdz_ph_graph3_t * graph3, cmph_uint32 nedges, cm
 };
 static void bdz_ph_init_graph3(bdz_ph_graph3_t * graph3, cmph_uint32 nedges, cmph_uint32 nvertices)
 {
+	(void)nedges;    
 	memset(graph3->first_edge,0xff,nvertices*sizeof(cmph_uint32));
 	memset(graph3->vert_degree,0,(size_t)nvertices);
 	graph3->nedges=0;
@@ -151,6 +152,7 @@ static int bdz_ph_generate_queue(cmph_uint32 nedges, cmph_uint32 nvertices, bdz_
 	cmph_uint32 curr_edge;
 	cmph_uint32 tmp_edge;
 	cmph_uint8 * marked_edge =(cmph_uint8 *)calloc((size_t)(nedges >> 3) + 1, 1);
+	(void)nvertices;    
 
 	for(i=0;i<nedges;i++){
 		v0=graph3->edges[i].vertices[0];

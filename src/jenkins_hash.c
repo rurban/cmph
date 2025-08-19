@@ -125,30 +125,41 @@ static inline void __jenkins_hash_vector(cmph_uint32 seed, const unsigned char *
 	hashes[2]  += length;
 	switch(len)              /* all the case statements fall through */
 	{
-		case 11:
+	        case 11:
 			hashes[2] +=((cmph_uint32)k[10]<<24);
+			// fallthrough
 		case 10:
 			hashes[2] +=((cmph_uint32)k[9]<<16);
+			// fallthrough
 		case 9 :
 			hashes[2] +=((cmph_uint32)k[8]<<8);
 			/* the first byte of hashes[2] is reserved for the length */
+			// fallthrough
 		case 8 :
 			hashes[1] +=((cmph_uint32)k[7]<<24);
+			// fallthrough
 		case 7 :
 			hashes[1] +=((cmph_uint32)k[6]<<16);
+			// fallthrough
 		case 6 :
 			hashes[1] +=((cmph_uint32)k[5]<<8);
+			// fallthrough
 		case 5 :
 			hashes[1] +=(cmph_uint8) k[4];
+			// fallthrough
 		case 4 :
 			hashes[0] +=((cmph_uint32)k[3]<<24);
+			// fallthrough
 		case 3 :
 			hashes[0] +=((cmph_uint32)k[2]<<16);
+			// fallthrough
 		case 2 :
 			hashes[0] +=((cmph_uint32)k[1]<<8);
+			// fallthrough
 		case 1 :
 			hashes[0] +=(cmph_uint8)k[0];
-			/* case 0: nothing left to add */
+			// fallthrough
+		/* case 0: nothing left to add */
 	}
 
 	mix(hashes[0],hashes[1],hashes[2]);
@@ -247,6 +258,7 @@ hash_state_t *jenkins_state_load(const char *buf, cmph_uint32 buflen)
 {
 	hash_state_t *state = (hash_state_t *)malloc(sizeof(hash_state_t));
         const unsigned char *p = (const unsigned char *)buf;
+	(void)buflen;
         if ((long)buf % 4)
                 state->seed = (p[3] << 24) | (p[2] << 16) | (p[1] << 8) | p[0];
         else

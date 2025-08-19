@@ -236,7 +236,7 @@ int chm_dump(cmph_t *mphf, FILE *fd)
         CHECK_FWRITE(nwrite, 1);
 #ifdef DEBUG
 	fprintf(stderr, "G: ");
-	for (int i = 0; i < data->n; ++i) fprintf(stderr, "%u ", data->g[i]);
+	for (cmph_uint32 i = 0; i < data->n; ++i) fprintf(stderr, "%u ", data->g[i]);
 	fprintf(stderr, "\n");
 #endif
 	return 1;

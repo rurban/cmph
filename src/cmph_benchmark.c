@@ -123,7 +123,7 @@ void bm_end(const char* name) {
   printf("\n");
 }
  
-void run_benchmarks(int argc, char** argv) {
+void run_benchmarks(void) {
   benchmark_t* benchmark = global_benchmarks;
   while (benchmark && benchmark->name != NULL) {
     bm_start(benchmark->name);
