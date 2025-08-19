@@ -182,7 +182,7 @@ int main(int argc, char **argv)
 		{
 			printf("%s -> %u\n", buf, h);
 		}
-		source->dispose(source->data, buf, buflen);
+		source->dispose(buf);
 	}
 #ifdef CMPH_TIMING
 	ELAPSED_TIME_IN_SECONDS(&evaluation_time);

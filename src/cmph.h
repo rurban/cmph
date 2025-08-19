@@ -19,7 +19,7 @@ typedef struct
         void *data;
         cmph_uint32 nkeys;
         int (*read)(void *, char **, cmph_uint32 *);
-        void (*dispose)(void *, char *, cmph_uint32);
+        void (*dispose)(char *);
         void (*rewind)(void *);
 } cmph_io_adapter_t;
 

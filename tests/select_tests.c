@@ -1,13 +1,15 @@
 #include "../src/select.h"
 
+#ifndef DEBUG
 #define DEBUG
+#endif
 #include "../src/debug.h"
 #include <stdlib.h>
 
 static inline void print_values(select_t * sel)
 {
 	register cmph_uint32 index;
-	
+
 	index = select_query(sel, 0);
 	fprintf(stderr, "Index[0]\t= %u\n", index - 0);
 
@@ -34,7 +36,7 @@ static inline void print_values(select_t * sel)
 static inline void print_values_packed(char * sel_packed)
 {
 	register cmph_uint32 index;
-	
+
 	index = select_query_packed(sel_packed, 0);
 	fprintf(stderr, "Index[0]\t= %u\n", index - 0);
 
@@ -57,7 +59,7 @@ static inline void print_values_packed(char * sel_packed)
 	fprintf(stderr, "Index[3]\t= %u\n", index - 3);
 }
 
-int main(int argc, char **argv)
+int main(void)
 {
 	select_t sel;
 	cmph_uint32 n = 4;
@@ -67,31 +69,31 @@ int main(int argc, char **argv)
 	cmph_uint32 buflen = 0;
 	char * select_packed = NULL;
 	cmph_uint32 select_pack_size = 0;
-	
+
 	select_init(&sel);
 	select_generate(&sel, keys_vec, n, m);
 	fprintf(stderr, "Space usage = %u\n", select_get_space_usage(&sel));
 	print_values(&sel);
-	
+
 	fprintf(stderr, "Dumping select structure\n");
 	select_dump(&sel, &buf, &buflen);
-	
+
 	select_destroy(&sel);
 	fprintf(stderr, "Loading select structure\n");
-	
-	select_load(&sel, buf, buflen);
+
+	select_load(&sel, buf);
 	print_values(&sel);
 	free(buf);;
-	
+
 	select_pack_size = select_packed_size(&sel);
-	
+
 	select_packed = (char *) calloc(select_pack_size, sizeof(char));
 	select_pack(&sel, select_packed);
 	select_destroy(&sel);
-	
+
 	fprintf(stderr, "Querying the packed select structure\n");
 	print_values_packed(select_packed);
-	
+
 	free(select_packed);
 	return 0;
 }

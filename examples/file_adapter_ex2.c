@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <string.h>
  // Create minimal perfect hash function from in-disk keys using BDZ algorithm
-int main(int argc, char **argv)
+int main(void)
 {   
 	 //Open file with newline separated list of keys
 	FILE * keys_fd = fopen("keys.txt", "r");

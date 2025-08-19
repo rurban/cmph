@@ -1,7 +1,7 @@
 #include <cmph.h>
 #include <string.h>
 // Create minimal perfect hash function from in-memory vector
-int main(int argc, char **argv)
+int main(void)
 { 
 
     // Creating a filled vector

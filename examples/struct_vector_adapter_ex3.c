@@ -10,7 +10,7 @@ typedef struct {
 } rec_t;
 #pragma pack(0)
 
-int main(int argc, char **argv)
+int main(void)
 {   
     // Creating a filled vector
     unsigned int i = 0;  

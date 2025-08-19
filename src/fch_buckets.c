@@ -35,8 +35,8 @@ static void fch_bucket_destroy(fch_bucket_t *bucket, cmph_config_t *mph)
 	assert(bucket);
 	for (i = 0; i < bucket->size; i++)
 	{
-    fch_bucket_entry_t * entry = bucket->entries + i;
-		mph->key_source->dispose(mph->key_source->data, entry->value, entry->length);
+	    fch_bucket_entry_t * entry = bucket->entries + i;
+	    mph->key_source->dispose(entry->value);
 	}
 	free(bucket->entries);
 }

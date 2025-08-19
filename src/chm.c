@@ -185,11 +185,11 @@ static int chm_gen_edges(cmph_config_t *mph)
 		if (h1 == h2)
 		{
 			if (mph->verbosity) fprintf(stderr, "Self loop for key %u\n", e);
-			mph->key_source->dispose(mph->key_source->data, key, keylen);
+			mph->key_source->dispose(key);
 			return 0;
 		}
 		DEBUGP("Adding edge: %u -> %u for key %s\n", h1, h2, key);
-		mph->key_source->dispose(mph->key_source->data, key, keylen);
+		mph->key_source->dispose(key);
 		graph_add_edge(chm->graph, h1, h2);
 	}
 	cycles = graph_is_cyclic(chm->graph);
@@ -266,7 +266,7 @@ void chm_load(FILE *f, cmph_t *mphf)
 		buf = (char *)malloc((size_t)buflen);
 		nread = fread(buf, (size_t)buflen, (size_t)1, f);
                 CHECK_FREAD(nread, 1);
-		state = hash_state_load(buf, buflen);
+		state = hash_state_load(buf);
 		chm->hashes[i] = state;
 		free(buf);
 	}

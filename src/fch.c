@@ -362,7 +362,7 @@ void fch_load(FILE *f, cmph_t *mphf)
 	DEBUGP("Hash state of h1 has %u bytes\n", buflen);
 	buf = (char *)malloc((size_t)buflen);
 	CHK_FREAD(buf, (size_t)buflen, (size_t)1, f);
-	fch->h1 = hash_state_load(buf, buflen);
+	fch->h1 = hash_state_load(buf);
 	free(buf);
 
 	mphf->data = fch;
@@ -372,7 +372,7 @@ void fch_load(FILE *f, cmph_t *mphf)
 	DEBUGP("Hash state of h2 has %u bytes\n", buflen);
 	buf = (char *)malloc((size_t)buflen);
 	CHK_FREAD(buf, (size_t)buflen, (size_t)1, f);
-	fch->h2 = hash_state_load(buf, buflen);
+	fch->h2 = hash_state_load(buf);
 	free(buf);
 
 

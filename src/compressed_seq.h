@@ -56,20 +56,19 @@ cmph_uint32 compressed_seq_get_space_usage(compressed_seq_t * cs);
 
 void compressed_seq_dump(compressed_seq_t * cs, char ** buf, cmph_uint32 * buflen);
 
-void compressed_seq_load(compressed_seq_t * cs, const char * buf, cmph_uint32 buflen);
-
+void compressed_seq_load(compressed_seq_t * cs, const char * buf);
 
 /** \fn void compressed_seq_pack(compressed_seq_t *cs, void *cs_packed);
  *  \brief Support the ability to pack a compressed sequence structure into a preallocated contiguous memory space pointed by cs_packed.
  *  \param cs points to the compressed sequence structure
- *  \param cs_packed pointer to the contiguous memory area used to store the compressed sequence structure. The size of cs_packed must be at least @see compressed_seq_packed_size 
+ *  \param cs_packed pointer to the contiguous memory area used to store the compressed sequence structure. The size of cs_packed must be at least @see compressed_seq_packed_size
  */
 void compressed_seq_pack(compressed_seq_t *cs, void *cs_packed);
 
 /** \fn cmph_uint32 compressed_seq_packed_size(compressed_seq_t *cs);
  *  \brief Return the amount of space needed to pack a compressed sequence structure.
  *  \return the size of the packed compressed sequence structure or zero for failures
- */ 
+ */
 cmph_uint32 compressed_seq_packed_size(compressed_seq_t *cs);
 
 

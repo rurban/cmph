@@ -245,7 +245,7 @@ cmph_uint8 chd_ph_mapping(cmph_config_t *mph, chd_ph_bucket_t * buckets, chd_ph_
 			map_item->f = hl[1] % chd_ph->n;
 			map_item->h = hl[2] % (chd_ph->n - 1) + 1;
 			map_item->bucket_num=g;
-			mph->key_source->dispose(mph->key_source->data, key, keylen);
+			mph->key_source->dispose(key);
 // 			if(buckets[g].size == (chd_ph->keys_per_bucket << 2))
 // 			{
 // 				DEBUGP("BUCKET = %u -- SIZE = %u -- MAXIMUM SIZE = %u\n", g, buckets[g].size, (chd_ph->keys_per_bucket << 2));
@@ -847,7 +847,7 @@ void chd_ph_load(FILE *fd, cmph_t *mphf)
 	DEBUGP("Hash state has %u bytes\n", buflen);
 	buf = (char *)malloc((size_t)buflen);
 	CHK_FREAD(buf, (size_t)buflen, (size_t)1, fd);
-	chd_ph->hl = hash_state_load(buf, buflen);
+	chd_ph->hl = hash_state_load(buf);
 	free(buf);
 
 	CHK_FREAD(&buflen, sizeof(cmph_uint32), (size_t)1, fd);
@@ -855,7 +855,7 @@ void chd_ph_load(FILE *fd, cmph_t *mphf)
 	buf = (char *)malloc((size_t)buflen);
 	CHK_FREAD(buf, (size_t)buflen, (size_t)1, fd);
 	chd_ph->cs = (compressed_seq_t *) calloc(1, sizeof(compressed_seq_t));
-	compressed_seq_load(chd_ph->cs, buf, buflen);
+	compressed_seq_load(chd_ph->cs, buf);
 	free(buf);
 
 	// loading n and nbuckets

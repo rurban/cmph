@@ -22,7 +22,7 @@
 static int brz_gen_mphf(cmph_config_t *mph);
 static cmph_uint32 brz_min_index(cmph_uint32 * vector, cmph_uint32 n);
 static void brz_destroy_keys_vd(cmph_uint8 ** keys_vd, cmph_uint32 nkeys);
-static char * brz_copy_partial_fch_mphf(brz_config_data_t *brz, fch_data_t * fchf, cmph_uint32 index,  cmph_uint32 *buflen);
+static char * brz_copy_partial_fch_mphf(fch_data_t * fchf, cmph_uint32 *buflen);
 static char * brz_copy_partial_bmz8_mphf(brz_config_data_t *brz, bmz8_data_t * bmzf, cmph_uint32 index,  cmph_uint32 *buflen);
 brz_config_data_t *brz_config_new(void)
 {
@@ -322,7 +322,7 @@ static int brz_gen_mphf(cmph_config_t *mph)
 		brz->size[h0] = (cmph_uint8)(brz->size[h0] + 1U);
 		buckets_size[h0] ++;
 		nkeys_in_buffer++;
-		mph->key_source->dispose(mph->key_source->data, key, keylen);
+		mph->key_source->dispose(key);
 	}
 	if (memory_usage != 0) // flush buffers
 	{
@@ -483,7 +483,7 @@ static int brz_gen_mphf(cmph_config_t *mph)
 				{
 					fch_data_t * fchf = NULL;
 					fchf = (fch_data_t *)mphf_tmp->data;
-					bufmphf = brz_copy_partial_fch_mphf(brz, fchf, cur_bucket, &buflenmphf);
+					bufmphf = brz_copy_partial_fch_mphf(fchf, &buflenmphf);
 				}
 					break;
 				case CMPH_BMZ8:
@@ -529,7 +529,7 @@ static void brz_destroy_keys_vd(cmph_uint8 ** keys_vd, cmph_uint32 nkeys)
 	for(i = 0; i < nkeys; i++) { free(keys_vd[i]); keys_vd[i] = NULL;}
 }
 
-static char * brz_copy_partial_fch_mphf(brz_config_data_t *brz, fch_data_t * fchf, cmph_uint32 index,  cmph_uint32 *buflen)
+static char * brz_copy_partial_fch_mphf(fch_data_t * fchf, cmph_uint32 *buflen)
 {
 	cmph_uint32 i = 0;
 	cmph_uint32 buflenh1 = 0;
@@ -538,8 +538,6 @@ static char * brz_copy_partial_fch_mphf(brz_config_data_t *brz, fch_data_t * fch
 	char * bufh2 = NULL;
 	char * buf   = NULL;
 	cmph_uint32 n  = fchf->b;//brz->size[index];
-	(void)brz;
-	(void)index;
 	hash_state_dump(fchf->h1, &bufh1, &buflenh1);
 	hash_state_dump(fchf->h2, &bufh2, &buflenh2);
 	*buflen = buflenh1 + buflenh2 + n + 2U * (cmph_uint32)sizeof(cmph_uint32);
@@ -622,14 +620,14 @@ void brz_load(FILE *f, cmph_t *mphf)
 		DEBUGP("Hash state 1 has %u bytes\n", buflen);
 		buf = (char *)malloc((size_t)buflen);
 		CHK_FREAD(buf, (size_t)buflen, (size_t)1, f);
-		brz->h1[i] = hash_state_load(buf, buflen);
+		brz->h1[i] = hash_state_load(buf);
 		free(buf);
 		//h2
 		CHK_FREAD(&buflen, sizeof(cmph_uint32), (size_t)1, f);
 		DEBUGP("Hash state 2 has %u bytes\n", buflen);
 		buf = (char *)malloc((size_t)buflen);
 		CHK_FREAD(buf, (size_t)buflen, (size_t)1, f);
-		brz->h2[i] = hash_state_load(buf, buflen);
+		brz->h2[i] = hash_state_load(buf);
 		free(buf);
 		switch(brz->algo)
 		{
@@ -650,7 +648,7 @@ void brz_load(FILE *f, cmph_t *mphf)
 	DEBUGP("Hash state has %u bytes\n", buflen);
 	buf = (char *)malloc((size_t)buflen);
 	CHK_FREAD(buf, (size_t)buflen, (size_t)1, f);
-	brz->h0 = hash_state_load(buf, buflen);
+	brz->h0 = hash_state_load(buf);
 	free(buf);
 
 	//loading c, m, and the vector offset.
