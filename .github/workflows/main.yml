@@ -15,9 +15,9 @@ jobs:
     - uses: actions/checkout@v2
       with:
         fetch-depth: 1
-    - run: sudo apt-get install wamerican txt2tags
+    - run: sudo apt-get install wamerican txt2tags check
     - run: autoreconf -fi
-    - run: ./configure CFLAGS="${{ matrix.CFLAGS }}"
+    - run: ./configure CFLAGS="${{ matrix.CFLAGS }}" --enable-check --enable-cxxmph
     - run: make
     - run: make check || cat tests/test-suite.log
     - if: matrix.CFLAGS == ''
