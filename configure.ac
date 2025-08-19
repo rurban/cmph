@@ -90,6 +90,7 @@ AM_CONDITIONAL([USE_CXXMPH], [test "$cxxmph" = true])
 AC_ENABLE_BENCHMARKS
 if test x$benchmarks = xtrue; then
   AC_LANG_PUSH([C++])
+  CXXFLAGS="$CXXFLAGS -I/usr/local/include/tsl"
   AC_CHECK_HEADERS([hopscotch_map.h])
   AC_LANG_POP([C++])
 fi
