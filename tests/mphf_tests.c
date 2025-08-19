@@ -149,20 +149,21 @@ int main(int argc, char **argv)
 		return 1;
 	}
 	keys_file = argv[optind];
-  
+
 	int ret = 0;
 	if (mphf_file == NULL)
 	{
 		mphf_file = (char *)malloc(strlen(keys_file) + 5);
 		memcpy(mphf_file, keys_file, strlen(keys_file));
 		memcpy(mphf_file + strlen(keys_file), ".mph\0", (size_t)5);
-	}	
+	}
 
 	keys_fd = fopen(keys_file, "r");
 
 	if (keys_fd == NULL)
 	{
 		fprintf(stderr, "Unable to open file %s: %s\n", keys_file, strerror(errno));
+		free(hashes);
 		return -1;
 	}
 
@@ -188,6 +189,7 @@ int main(int argc, char **argv)
 	if (!mphf)
 	{
 		fprintf(stderr, "Unable to parser input file %s\n", mphf_file);
+		free(hashes);
 		free(mphf_file);
 		free(source);
 		return -1;
@@ -219,9 +221,10 @@ int main(int argc, char **argv)
 		}
 		source->dispose(source->data, buf, buflen);
 	}
-		
+
 	cmph_destroy(mphf);
 	free(hashtable);
+	free(hashes);
 
 	fclose(keys_fd);
 	free(mphf_file);
