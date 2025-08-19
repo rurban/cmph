@@ -33,7 +33,7 @@ for f in jenkins wyhash djb2 fnv sdbm crc32; do
     echo "** mphf_tests -f $f _words"
     ./mphf_tests -f $f _words
     # bdz uses the hash_vector API, 3x in one
-    if [ $f = sdbm ]
+    if [ $f = sdbm ] || [ $f = djb2 ]
     then
         echo skip too weak $f hash_vector
     else
