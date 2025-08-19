@@ -102,11 +102,19 @@ AC_ARG_ENABLE(check, AS_HELP_STRING(
      [--enable-check],
      [Build unit tests depending on check library (default: disabled)]))
 AS_IF([test "x$enable_check" = "xyes"],
-  [ AC_CHECK_LIB([check], [tcase_create])
+  [ old_LIBS="$LIBS"
+    AC_CHECK_LIB([check], [tcase_create])
     AS_IF([test "$ac_cv_lib_check_tcase_create" = yes], [CHECK_LIBS="-lcheck"],
           [AC_MSG_ERROR("Failed to find check library (http://check.sf.net).")])
     AC_CHECK_HEADER(check.h,[],
           [AC_MSG_ERROR("Failed to find check library header (http://check.sf.net).")])
+    case $CHECK_LIBS in
+      dnl wrong order
+      "-lsubunit -lcheck") CHECK_LIBS="-lcheck -lsubunit" ;;
+      *-lsubunit*) ;;
+      *) CHECK_LIBS="$CHECK_LIBS -lsubunit" ;;
+    esac
+    LIBS="$old_LIBS"
   ])
 AM_CONDITIONAL([USE_LIBCHECK], [test "$ac_cv_lib_check_tcase_create" = yes])
 AC_SUBST(CHECK_LIBS)
