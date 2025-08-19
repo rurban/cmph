@@ -10,12 +10,15 @@ test -e _words100 || head -n 100 <${WORDS} >_words100
 
 for a in bmz chm brz fch bdz bdz_ph bmz8 chd chd_ph; do
     rm -f _words.mph
-    if [ $a = bmz8 ]; then
+    if [ $a = bmz8 ] || [ $a = fch ]; then
         rm -f _words100.mph
         words=_words100
     else
         words=_words
     fi
+    #if [ $a = fch ]; then
+    #    a="fch -f crc32 -s 1"
+    #fi
     echo "** cmph -g -a $a $words"
     ../src/cmph -g -a $a $words
     echo "** cmph -a $a $words"
@@ -23,27 +26,33 @@ for a in bmz chm brz fch bdz bdz_ph bmz8 chd chd_ph; do
     echo "** mphf_tests -a $a $words"
     ./mphf_tests -a $a $words
 done
-for f in jenkins wyhash djb2 fnv sdbm crc32; do
-    # cmh uses the single hash API, 2x extra
+for f in jenkins wyhash crc32 fnv djb2 sdbm; do
+    # cmh uses hash_vector
     rm -f _words.mph _words100.mph
+    if [ $f = crc32 ] || [ $f = sdbm ] || [ $f = djb2 ]
+    then
+        echo too weak $f hash, use a seperate hashfunc and a seed
+        f="$f -f jenkins -s 11"
+    fi
     echo "** cmph -g -f $f _words"
     ../src/cmph -g -f $f _words
     echo "** cmph -f $f _words"
     ../src/cmph -f $f _words
     echo "** mphf_tests -f $f _words"
     ./mphf_tests -f $f _words
+    rm -f _words.mph
     # bdz uses the hash_vector API, 3x in one
-    if [ $f = sdbm ]
-    then
-        echo skip too weak $f hash_vector
-    else
-        rm -f _words.mph
-        echo "** cmph -g -f $f -a bdz _words"
-        ../src/cmph -g -f $f -a bdz _words
-        echo "** cmph -f $f -a bdz _words"
-        ../src/cmph -f $f -a bdz _words
-        echo "** mphf_tests -f $f -a bdz _words"
-        ./mphf_tests -f $f -a bdz _words
-    fi
+    case $f in
+        sdbm|djb2*)
+            echo too weak $f hash with BDZ
+            break
+            ;;
+    esac
+    echo "** cmph -g -f $f -a bdz $words"
+    ../src/cmph -g -f $f -a bdz $words
+    echo "** cmph -f $f -a bdz $words"
+    ../src/cmph -f $f -a bdz $words
+    echo "** mphf_tests -f $f -a bdz $words"
+    ./mphf_tests -f $f -a bdz $words
 done
 rm -f _words _words.mph _words100 _words100.mph
