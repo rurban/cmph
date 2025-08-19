@@ -187,7 +187,7 @@ void compressed_rank_dump(compressed_rank_t * cr, char **buf, cmph_uint32 *bufle
 	DEBUGP("Dumped compressed rank structure with size %u bytes\n", *buflen);
 }
 
-void compressed_rank_load(compressed_rank_t * cr, const char *buf, cmph_uint32 buflen)
+void compressed_rank_load(compressed_rank_t * cr, const char *buf)
 {
 	register cmph_uint32 pos = 0;
 	cmph_uint32 buflen_sel = 0;
@@ -205,22 +205,22 @@ void compressed_rank_load(compressed_rank_t * cr, const char *buf, cmph_uint32 b
 	memcpy(&(cr->rem_r), buf + pos, sizeof(cmph_uint32));
 	pos += (cmph_uint32)sizeof(cmph_uint32);
 	DEBUGP("rem_r = %u\n", cr->rem_r);
-	
+
 	// loading sel
 	memcpy(&buflen_sel, buf + pos, sizeof(cmph_uint32));
 	pos += (cmph_uint32)sizeof(cmph_uint32);
 	DEBUGP("buflen_sel = %u\n", buflen_sel);
 
-	select_load(&cr->sel, buf + pos, buflen_sel);
+	select_load(&cr->sel, buf + pos);
 #ifdef DEBUG
-	cmph_uint32 i = 0;  
+	cmph_uint32 i = 0;
 	for(i = 0; i < buflen_sel; i++)
 	{
 	    DEBUGP("pos = %u  -- buf_sel[%u] = %u\n", pos, i, *(buf + pos + i));
 	}
 #endif
 	pos += buflen_sel;
-	
+
 	// loading vals_rems
 	if(cr->vals_rems)
 	{
@@ -230,7 +230,7 @@ void compressed_rank_load(compressed_rank_t * cr, const char *buf, cmph_uint32 b
 	cr->vals_rems = (cmph_uint32 *) calloc(vals_rems_size, sizeof(cmph_uint32));
 	vals_rems_size *= 4;
 	memcpy(cr->vals_rems, buf + pos, vals_rems_size);
-	
+
 #ifdef DEBUG
 	for(i = 0; i < vals_rems_size; i++)
 	{
@@ -238,8 +238,8 @@ void compressed_rank_load(compressed_rank_t * cr, const char *buf, cmph_uint32 b
 	}
 #endif
 	pos += vals_rems_size;
-	
-	DEBUGP("Loaded compressed rank structure with size %u bytes\n", buflen);
+
+	DEBUGP("Loaded compressed rank structure with size %u bytes\n", buflen_sel);
 }
 
 

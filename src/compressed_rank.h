@@ -19,7 +19,7 @@ typedef struct _compressed_rank_t compressed_rank_t;
 void compressed_rank_init(compressed_rank_t * cr);
 
 void compressed_rank_destroy(compressed_rank_t * cr);
- 
+
 void compressed_rank_generate(compressed_rank_t * cr, cmph_uint32 * vals_table, cmph_uint32 n);
 
 cmph_uint32 compressed_rank_query(compressed_rank_t * cr, cmph_uint32 idx);
@@ -28,8 +28,7 @@ cmph_uint32 compressed_rank_get_space_usage(compressed_rank_t * cr);
 
 void compressed_rank_dump(compressed_rank_t * cr, char **buf, cmph_uint32 *buflen);
 
-void compressed_rank_load(compressed_rank_t * cr, const char *buf, cmph_uint32 buflen);
-
+void compressed_rank_load(compressed_rank_t * cr, const char *buf);
 
 /** \fn void compressed_rank_pack(compressed_rank_t *cr, void *cr_packed);
  *  \brief Support the ability to pack a compressed_rank structure into a preallocated contiguous memory space pointed by cr_packed.

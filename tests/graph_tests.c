@@ -1,9 +1,11 @@
 #include "../src/graph.h"
 
+#ifndef DEBUG
 #define DEBUG
+#endif
 #include "../src/debug.h"
 
-int main(int argc, char **argv)
+int main(void)
 {
 	graph_iterator_t it;
 	cmph_uint32 i, neighbor;

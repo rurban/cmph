@@ -7,7 +7,7 @@ hash_state_t *crc32_state_new(cmph_uint32 size);
 cmph_uint32 crc32_hash(hash_state_t *state, const char *k, const cmph_uint32 keylen);
 void crc32_state_dump(hash_state_t *state, char **buf, cmph_uint32 *buflen);
 //hash_state_t *crc32_state_copy(hash_state_t *src_state);
-hash_state_t *crc32_state_load(const char *buf, cmph_uint32 buflen);
+hash_state_t *crc32_state_load(const char *buf);
 void crc32_state_destroy(hash_state_t *state);
 
 void crc32_hash_vector(hash_state_t *state, const char *k, cmph_uint32 keylen, cmph_uint32 * hashes);

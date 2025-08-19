@@ -235,7 +235,7 @@ void compressed_seq_dump(compressed_seq_t * cs, char ** buf, cmph_uint32 * bufle
 	DEBUGP("Dumped compressed sequence structure with size %u bytes\n", *buflen);
 }
 
-void compressed_seq_load(compressed_seq_t * cs, const char * buf, cmph_uint32 buflen)
+void compressed_seq_load(compressed_seq_t * cs, const char * buf)
 {
 	register cmph_uint32 pos = 0;
 	cmph_uint32 buflen_sel = 0;
@@ -254,22 +254,22 @@ void compressed_seq_load(compressed_seq_t * cs, const char * buf, cmph_uint32 bu
 	memcpy(&(cs->total_length), buf + pos, sizeof(cmph_uint32));
 	pos += (cmph_uint32)sizeof(cmph_uint32);
 	DEBUGP("total_length = %u\n", cs->total_length);
-	
+
 	// loading sel
 	memcpy(&buflen_sel, buf + pos, sizeof(cmph_uint32));
 	pos += (cmph_uint32)sizeof(cmph_uint32);
 	DEBUGP("buflen_sel = %u\n", buflen_sel);
 
-	select_load(&cs->sel, buf + pos, buflen_sel);
+	select_load(&cs->sel, buf + pos);
 #ifdef DEBUG
-	cmph_uint32 i = 0;  
+	cmph_uint32 i = 0;
 	for(i = 0; i < buflen_sel; i++)
 	{
 	    DEBUGP("pos = %u  -- buf_sel[%u] = %u\n", pos, i, *(buf + pos + i));
 	}
 #endif
 	pos += buflen_sel;
-	
+
 	// loading length_rems
 	if(cs->length_rems)
 	{
@@ -305,7 +305,7 @@ void compressed_seq_load(compressed_seq_t * cs, const char * buf, cmph_uint32 bu
 	}
 #endif
 
-	DEBUGP("Loaded compressed sequence structure with size %u bytes\n", buflen);
+	DEBUGP("Loaded compressed sequence structure with size %u bytes\n", buflen_sel);
 }
 
 void compressed_seq_pack(compressed_seq_t *cs, void *cs_packed)

@@ -247,7 +247,7 @@ void hashtree_load(FILE *f, cmph_t *mphf)
 		DEBUGP("Hash state has %u bytes\n", buflen);
 		buf = (char *)malloc(buflen);
 		fread(buf, buflen, 1, f);
-		state = hash_state_load(buf, buflen);
+		state = hash_state_load(buf);
 		hashtree->hashes[i] = state;
 		free(buf);
 	}

@@ -23,7 +23,7 @@ static inline void print_values_packed(char * cs_packed, cmph_uint32 idx)
 	fprintf(stderr, "Index[%u]\t= %u\n", idx, index);
 }
 
-int main(int argc, char **argv)
+int main(void)
 {
 	compressed_seq_t cs;
 	cmph_uint32 i = 0;
@@ -49,7 +49,7 @@ int main(int argc, char **argv)
 	compressed_seq_destroy(&cs);
 	fprintf(stderr, "Loading compressed seq structure\n");
 	
-	compressed_seq_load(&cs, buf, buflen);
+	compressed_seq_load(&cs, buf);
 	for(i = 0; i < n; i++)
 	{
 		print_values(&cs, i);

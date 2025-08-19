@@ -72,9 +72,8 @@ static void bdz_alloc_graph3(bdz_graph3_t * graph3, cmph_uint32 nedges, cmph_uin
 	graph3->first_edge=(cmph_uint32 *)calloc(nvertices, sizeof(cmph_uint32));
 	graph3->vert_degree=(cmph_uint8 *)calloc((size_t)nvertices, 1);
 };
-static void bdz_init_graph3(bdz_graph3_t * graph3, cmph_uint32 nedges, cmph_uint32 nvertices)
+static void bdz_init_graph3(bdz_graph3_t * graph3, cmph_uint32 nvertices)
 {
-	(void)nedges;
 	memset(graph3->first_edge,0xff,nvertices*sizeof(cmph_uint32));
 	memset(graph3->vert_degree,0,(size_t)nvertices);
 	graph3->nedges=0;
@@ -162,14 +161,13 @@ static void bdz_remove_edge(bdz_graph3_t * graph3, cmph_uint32 curr_edge)
 
 };
 
-static int bdz_generate_queue(cmph_uint32 nedges, cmph_uint32 nvertices, bdz_queue_t queue, bdz_graph3_t* graph3)
+static int bdz_generate_queue(cmph_uint32 nedges, bdz_queue_t queue, bdz_graph3_t* graph3)
 {
 	cmph_uint32 i,v0,v1,v2;
 	cmph_uint32 queue_head=0,queue_tail=0;
 	cmph_uint32 curr_edge;
 	cmph_uint32 tmp_edge;
 	cmph_uint8 * marked_edge = (cmph_uint8 *)malloc((size_t)(nedges >> 3) + 1);
-	(void)nvertices;
 
 	memset(marked_edge, 0, (size_t)(nedges >> 3) + 1);
 
@@ -413,7 +411,7 @@ static int bdz_mapping(cmph_config_t *mph, bdz_graph3_t* graph3, bdz_queue_t que
 	int cycles = 0;
 	cmph_uint32 hl[3];
 	bdz_config_data_t *bdz = (bdz_config_data_t *)mph->data;
-	bdz_init_graph3(graph3, bdz->m, bdz->n);
+	bdz_init_graph3(graph3, bdz->n);
 	mph->key_source->rewind(mph->key_source->data);
 	for (e = 0; e < mph->key_source->nkeys; ++e)
 	{
@@ -426,10 +424,10 @@ static int bdz_mapping(cmph_config_t *mph, bdz_graph3_t* graph3, bdz_queue_t que
 		h1 = hl[1] % bdz->r + bdz->r;
 		h2 = hl[2] % bdz->r + (bdz->r << 1);
                 DEBUGP("Key: %.*s (%u %u %u)\n", keylen, key, h0, h1, h2);
-		mph->key_source->dispose(mph->key_source->data, key, keylen);
+		mph->key_source->dispose(key);
 		bdz_add_edge(graph3,h0,h1,h2);
 	}
-	cycles = bdz_generate_queue(bdz->m, bdz->n, queue, graph3);
+	cycles = bdz_generate_queue(bdz->m, queue, graph3);
 	return (cycles == 0);
 }
 
@@ -550,7 +548,7 @@ void bdz_load(FILE *f, cmph_t *mphf)
 	DEBUGP("Hash state has %u bytes\n", buflen);
 	buf = (char *)malloc((size_t)buflen);
 	CHK_FREAD(buf, (size_t)buflen, (size_t)1, f);
-	bdz->hl = hash_state_load(buf, buflen);
+	bdz->hl = hash_state_load(buf);
 	free(buf);
 
 	DEBUGP("Reading m and n\n");

@@ -181,7 +181,7 @@ cmph_cleanup:
 //	return dest_state;
 //}
 
-hash_state_t *hash_state_load(const char *buf, cmph_uint32 buflen)
+hash_state_t *hash_state_load(const char *buf)
 {
 	cmph_uint32 i;
 	cmph_uint32 offset;
@@ -200,26 +200,26 @@ hash_state_t *hash_state_load(const char *buf, cmph_uint32 buflen)
 	{
 		case CMPH_HASH_JENKINS:
                         DEBUGP("Hash is jenkins\n");
-			return jenkins_state_load(buf + offset, buflen - offset);
+			return jenkins_state_load(buf + offset);
 		case CMPH_HASH_WYHASH:
                         DEBUGP("Hash is wyhash\n");
-			return wyhash_state_load(buf + offset, buflen - offset);
+			return wyhash_state_load(buf + offset);
 		case CMPH_HASH_DJB2:
                         DEBUGP("Hash is djb2\n");
-			return djb2_state_load(buf + offset, buflen - offset);
+			return djb2_state_load(buf + offset);
 		case CMPH_HASH_FNV:
                         DEBUGP("Hash is fnv\n");
-			return fnv_state_load(buf + offset, buflen - offset);
+			return fnv_state_load(buf + offset);
 		case CMPH_HASH_SDBM:
                         DEBUGP("Hash is sdbm\n");
-			return sdbm_state_load(buf + offset, buflen - offset);
+			return sdbm_state_load(buf + offset);
 		case CMPH_HASH_CRC32:
 #ifdef HAVE_CRC32_HW
                         DEBUGP("Hash is HW crc32\n");
 #else
                         DEBUGP("Hash is SW crc32\n");
 #endif
-			return crc32_state_load(buf + offset, buflen - offset);
+			return crc32_state_load(buf + offset);
 		default:
                         DEBUGP("Unknown Hash\n");
 			return NULL;

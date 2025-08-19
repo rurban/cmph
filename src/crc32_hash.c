@@ -195,11 +195,10 @@ void crc32_state_dump(hash_state_t *state, char **buf, cmph_uint32 *buflen)
 //	return dest_state;
 //}
 
-hash_state_t *crc32_state_load(const char *buf, cmph_uint32 buflen)
+hash_state_t *crc32_state_load(const char *buf)
 {
 	hash_state_t *state = (hash_state_t *)malloc(sizeof(hash_state_t));
         const unsigned char *p = (const unsigned char *)buf;
-	(void)buflen;
         if ((long)buf % 4)
                 state->seed = (p[3] << 24) | (p[2] << 16) | (p[1] << 8) | p[0];
         else

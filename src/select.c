@@ -247,7 +247,7 @@ void select_dump(select_t *sel, char **buf, cmph_uint32 *buflen)
 	DEBUGP("Dumped select structure with size %u bytes\n", *buflen);
 }
 
-void select_load(select_t * sel, const char *buf, cmph_uint32 buflen)
+void select_load(select_t * sel, const char *buf)
 {
 	register cmph_uint32 pos = 0;
         register cmph_uint32 nbits = 0;
@@ -279,7 +279,7 @@ void select_load(select_t * sel, const char *buf, cmph_uint32 buflen)
 	pos += vec_size;
 	memcpy(sel->select_table, buf + pos, sel_table_size);
 	
-	DEBUGP("Loaded select structure with size %u bytes\n", buflen);
+	DEBUGP("Loaded select structure with size %u bytes\n", 2*(cmph_uint32)sizeof(cmph_uint32) + vec_size + sel_table_size);
 }
 
 

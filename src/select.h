@@ -26,7 +26,7 @@ cmph_uint32 select_get_space_usage(select_t * sel);
 
 void select_dump(select_t *sel, char **buf, cmph_uint32 *buflen);
 
-void select_load(select_t * sel, const char *buf, cmph_uint32 buflen);
+void select_load(select_t * sel, const char *buf);
 
 
 /** \fn void select_pack(select_t *sel, void *sel_packed);

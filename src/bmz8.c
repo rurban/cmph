@@ -466,11 +466,11 @@ static int bmz8_gen_edges(cmph_config_t *mph)
 		if (h1 == h2)
 		{
 			if (mph->verbosity) fprintf(stderr, "Self loop for key %u\n", e);
-			mph->key_source->dispose(mph->key_source->data, key, keylen);
+			mph->key_source->dispose(key);
 			return 0;
 		}
 		DEBUGP("Adding edge: %u -> %u for key %u\n", h1, h2, e);
-		mph->key_source->dispose(mph->key_source->data, key, keylen);
+		mph->key_source->dispose(key);
 //		fprintf(stderr, "key = %s -- dispose BMZ\n", key);
 		multiple_edges = graph_contains_edge(bmz8->graph, h1, h2);
 		if (mph->verbosity && multiple_edges) fprintf(stderr, "A non simple graph was generated\n");
@@ -536,7 +536,7 @@ void bmz8_load(FILE *f, cmph_t *mphf)
 		DEBUGP("Hash state has %u bytes\n", buflen);
 		buf = (char *)malloc((size_t)buflen);
 		CHK_FREAD(buf, (size_t)buflen, (size_t)1, f);
-		state = hash_state_load(buf, buflen);
+		state = hash_state_load(buf);
 		bmz8->hashes[i] = state;
 		free(buf);
 	}

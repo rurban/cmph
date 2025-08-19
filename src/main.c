@@ -349,7 +349,7 @@ int main(int argc, char **argv)
 			{
 				printf("%s -> %u\n", buf, h);
 			}
-			source->dispose(source->data, buf, buflen);
+			source->dispose(buf);
 		}
 
 		cmph_destroy(mphf);

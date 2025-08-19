@@ -120,21 +120,15 @@ static int key_vector_read(void *data, char **key, cmph_uint32 *keylen)
         strcpy(*key, keys_vd[cmph_vector->position]);
         cmph_vector->position = cmph_vector->position + 1;
 	return (int)(*keylen);
-
 }
 
-
-static void key_nlfile_dispose(void *data, char *key, cmph_uint32 keylen)
+static void key_nlfile_dispose(char *key)
 {
-	(void)data;
-	(void)keylen;
 	free(key);
 }
 
-static void key_vector_dispose(void *data, char *key, cmph_uint32 keylen)
+static void key_vector_dispose(char *key)
 {
-	(void)data;
-	(void)keylen;
 	free(key);
 }
 

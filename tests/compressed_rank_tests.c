@@ -9,7 +9,7 @@
 static inline void print_values(compressed_rank_t * cr, cmph_uint32 idx)
 {
 	register cmph_uint32 index;
-	
+
 	index = compressed_rank_query(cr, idx);
 	fprintf(stderr, "Index[%u]\t= %u\n", idx, index);
 }
@@ -30,7 +30,7 @@ vector[]      = {0, 0, 0, 1, 1, 0, 1, 0, 1, 0, 1, 0, 0, 0, 1, 1, 0, 0, 0, 1}
 nzeros = 12
 zeroIndices[] = {0, 1, 2, 5, 7, 9, 11, 12, 13, 16, 17, 18}
 */
-int main(int argc, char **argv)
+int main(void)
 {
 	compressed_rank_t cr;
 	cmph_uint32 i = 0;
@@ -56,7 +56,7 @@ int main(int argc, char **argv)
 	compressed_rank_destroy(&cr);
 	fprintf(stderr, "Loading compressed rank structure\n");
 	
-	compressed_rank_load(&cr, buf, buflen);
+	compressed_rank_load(&cr, buf);
 	for(i = 0; i < nIndices; i++)
 	{
 		print_values(&cr, i);
