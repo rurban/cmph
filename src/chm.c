@@ -41,23 +41,25 @@ void chm_config_destroy(cmph_config_t *mph)
 // support 2 independent hash functions, but mostly just one for both
 void chm_config_set_hashfuncs(cmph_config_t *mph, CMPH_HASH *hashfuncs)
 {
-	chm_config_data_t *chm = (chm_config_data_t *)mph->data;
+	chm_config_data_t *data = (chm_config_data_t *)mph->data;
 	CMPH_HASH *hashptr = hashfuncs;
 	cmph_uint32 i = 0;
 	while (*hashptr != CMPH_HASH_COUNT)
 	{
 		if (i >= 2) break; // chm uses two hash functions
-		chm->hashfuncs[i] = *hashptr;
+		data->hashfuncs[i] = *hashptr;
+		DEBUGP("Set %d%s hashfunc to %s\n", i+1,
+		       i==0 ? "st" : i==1 ? "nd" : i==2 ? "rd" : "th", cmph_hash_names[*hashptr]);
 		++i, ++hashptr;
 	}
 	if (i >= 2) {
-		if (chm->hashfuncs[0] == chm->hashfuncs[1])
-			chm->nhashfuncs = 1;
+		if (data->hashfuncs[0] == data->hashfuncs[1])
+			data->nhashfuncs = 1;
 		else
-			chm->nhashfuncs = 2;
+			data->nhashfuncs = 2;
 	} else {
-		chm->hashfuncs[1] = chm->hashfuncs[0];
-		chm->nhashfuncs = 1;
+		data->hashfuncs[1] = data->hashfuncs[0];
+		data->nhashfuncs = 1;
 	}
 }
 
@@ -74,10 +76,20 @@ cmph_t *chm_new(cmph_config_t *mph, double c)
 	if (c == 0) c = 2.09;
 	chm->n = (cmph_uint32)ceil(c * mph->key_source->nkeys);
 	DEBUGP("m (edges): %u n (vertices): %u c: %f\n", chm->m, chm->n, c);
+#ifdef DEBUG
+	if (chm->nhashfuncs == 1) {
+		DEBUGP("Same hash functions, use %s hash_vector\n",
+		       cmph_hash_names[chm->hashfuncs[0]]);
+	}
+	else {
+	    DEBUGP("Different hash functions, use seperate hash calls\n");
+	}
+#endif
 	chm->graph = graph_new(chm->n, chm->m);
 	DEBUGP("Created graph\n");
 
 	chm->hashes = (hash_state_t **)malloc(sizeof(hash_state_t *)*3);
+
 	for(i = 0; i < 3; ++i) chm->hashes[i] = NULL;
 	//Mapping step
 	if (mph->verbosity)
@@ -88,15 +100,18 @@ cmph_t *chm_new(cmph_config_t *mph, double c)
 	{
 		int ok;
 		chm->hashes[0] = hash_state_new(chm->hashfuncs[0], chm->n);
-		chm->hashes[1] = hash_state_new(chm->hashfuncs[1], chm->n);
+		if (chm->nhashfuncs > 1)
+			chm->hashes[1] = hash_state_new(chm->hashfuncs[1], chm->n);
 		ok = chm_gen_edges(mph);
 		if (!ok)
 		{
 			--iterations;
 			hash_state_destroy(chm->hashes[0]);
 			chm->hashes[0] = NULL;
-			hash_state_destroy(chm->hashes[1]);
-			chm->hashes[1] = NULL;
+			if (chm->nhashfuncs > 1) {
+				hash_state_destroy(chm->hashes[1]);
+				chm->hashes[1] = NULL;
+			}
 			DEBUGP("%u iterations remaining\n", iterations);
 			if (mph->verbosity)
 			{
@@ -143,6 +158,7 @@ cmph_t *chm_new(cmph_config_t *mph, double c)
 	chm->g = NULL; //transfer memory ownership
 	chmf->hashes = chm->hashes;
 	chm->hashes = NULL; //transfer memory ownership
+	chmf->nhashes = chm->nhashfuncs;
 	chmf->n = chm->n;
 	chmf->m = chm->m;
 	mphf->data = chmf;
@@ -190,9 +206,17 @@ static int chm_gen_edges(cmph_config_t *mph)
 		cmph_uint32 h1, h2;
 		cmph_uint32 keylen;
 		char *key;
+
 		mph->key_source->read(mph->key_source->data, &key, &keylen);
-		h1 = hash(chm->hashes[0], key, keylen) % chm->n;
-		h2 = hash(chm->hashes[1], key, keylen) % chm->n;
+		if (chm->nhashfuncs > 1) {
+			h1 = hash(chm->hashes[0], key, keylen) % chm->n;
+			h2 = hash(chm->hashes[1], key, keylen) % chm->n;
+		} else {
+			cmph_uint32 hashes[3];
+			hash_vector(chm->hashes[0], key, keylen, hashes);
+			h1 = hashes[0] % chm->n;
+			h2 = hashes[1] % chm->n;
+		}
 		if (h1 == h2) if (++h2 >= chm->n) h2 = 0;
 		if (h1 == h2)
 		{
@@ -215,29 +239,23 @@ int chm_dump(cmph_t *mphf, FILE *fd)
 {
 	char *buf = NULL;
 	cmph_uint32 buflen;
-	cmph_uint32 two = 2; //number of hash functions
 	chm_data_t *data = (chm_data_t *)mphf->data;
+	cmph_uint32 nhashes = data->nhashes;
 	register size_t nwrite;
 
 	__cmph_dump(mphf, fd);
 
-	nwrite = fwrite(&two, sizeof(cmph_uint32), (size_t)1, fd);
+	nwrite = fwrite(&nhashes, sizeof(cmph_uint32), (size_t)1, fd);
         CHECK_FWRITE(nwrite, 1);
-	hash_state_dump(data->hashes[0], &buf, &buflen);
-	DEBUGP("Dumping hash state with %u bytes to disk\n", buflen);
-	nwrite = fwrite(&buflen, sizeof(cmph_uint32), (size_t)1, fd);
-        CHECK_FWRITE(nwrite, 1);
-	nwrite = fwrite(buf, (size_t)buflen, (size_t)1, fd);
-        CHECK_FWRITE(nwrite, 1);
-	free(buf);
-
-	hash_state_dump(data->hashes[1], &buf, &buflen);
-	DEBUGP("Dumping hash state with %u bytes to disk\n", buflen);
-	nwrite = fwrite(&buflen, sizeof(cmph_uint32), (size_t)1, fd);
-        CHECK_FWRITE(nwrite, 1);
-	nwrite = fwrite(buf, (size_t)buflen, (size_t)1, fd);
-        CHECK_FWRITE(nwrite, 1);
-	free(buf);
+	for (cmph_uint32 i = 0; i < nhashes; i++) {
+		hash_state_dump(data->hashes[i], &buf, &buflen);
+		DEBUGP("Dumping hash state %d with %u bytes to disk\n", i, buflen);
+		nwrite = fwrite(&buflen, sizeof(cmph_uint32), (size_t)1, fd);
+		CHECK_FWRITE(nwrite, 1);
+		nwrite = fwrite(buf, (size_t)buflen, (size_t)1, fd);
+		CHECK_FWRITE(nwrite, 1);
+		free(buf);
+	}
 
 	nwrite = fwrite(&(data->n), sizeof(cmph_uint32), (size_t)1, fd);
         CHECK_FWRITE(nwrite, 1);
@@ -260,14 +278,21 @@ void chm_load(FILE *f, cmph_t *mphf)
 	char *buf = NULL;
 	cmph_uint32 buflen;
 	cmph_uint32 i;
-	chm_data_t *chm = (chm_data_t *)malloc(sizeof(chm_data_t));
+	chm_data_t *chm = (chm_data_t *)calloc(1, sizeof(chm_data_t));
 	register size_t nread;
 	DEBUGP("Loading chm mphf\n");
 	mphf->data = chm;
 	nread = fread(&nhashes, sizeof(cmph_uint32), (size_t)1, f);
         CHECK_FREAD(nread, 1);
+	if (nhashes < 1 || nhashes > 2) {
+		fprintf(stderr, "Illegal CHM mph file with %u nhashes\n", nhashes);
+		free(chm);
+		mphf->size = 0;
+		return;
+	}
 	chm->hashes = (hash_state_t **)malloc(sizeof(hash_state_t *)*(nhashes + 1));
 	chm->hashes[nhashes] = NULL;
+	chm->nhashes = nhashes;
 	DEBUGP("Reading %u hashes\n", nhashes);
 	for (i = 0; i < nhashes; ++i)
 	{
@@ -304,8 +329,15 @@ void chm_load(FILE *f, cmph_t *mphf)
 cmph_uint32 chm_search(cmph_t *mphf, const char *key, cmph_uint32 keylen)
 {
 	chm_data_t *chm = (chm_data_t *)mphf->data;
-	cmph_uint32 h1 = hash(chm->hashes[0], key, keylen) % chm->n;
-	cmph_uint32 h2 = hash(chm->hashes[1], key, keylen) % chm->n;
+	cmph_uint32 h1, h2, hv[3];
+	if (chm->nhashes > 1) {
+		h1 = hash(chm->hashes[0], key, keylen) % chm->n;
+		h2 = hash(chm->hashes[1], key, keylen) % chm->n;
+	} else {
+		hash_vector(chm->hashes[0], key, keylen, hv);
+		h1 = hv[0] % chm->n;
+		h2 = hv[1] % chm->n;
+	}
 	DEBUGP("key: %s h1: %u h2: %u\n", key, h1, h2);
 	if (h1 == h2 && ++h2 >= chm->n) h2 = 0;
 	DEBUGP("key: %s g[h1]: %u g[h2]: %u edges: %u\n", key, chm->g[h1], chm->g[h2], chm->m);
@@ -316,7 +348,8 @@ void chm_destroy(cmph_t *mphf)
 	chm_data_t *data = (chm_data_t *)mphf->data;
 	free(data->g);
 	hash_state_destroy(data->hashes[0]);
-	hash_state_destroy(data->hashes[1]);
+	if (data->nhashes > 1)
+		hash_state_destroy(data->hashes[1]);
 	free(data->hashes);
 	free(data);
 	free(mphf);

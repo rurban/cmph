@@ -648,6 +648,10 @@ cmph_t *cmph_load(FILE *f)
 			assert(0);
 	}
 	DEBUGP("Loaded mphf\n");
+	if (mphf->size == 0) {
+	    free(mphf);
+	    return NULL;
+	}
 	return mphf;
 }
 

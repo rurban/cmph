@@ -326,7 +326,7 @@ int main(int argc, char **argv)
 		fclose(mphf_fd);
 		if (!mphf)
 		{
-			fprintf(stderr, "Unable to parser input file %s\n", mphf_file);
+			fprintf(stderr, "Unable to parse input file %s\n", mphf_file);
 			if (nhashes)
 				free(hashes);
 			free(mphf_file);
