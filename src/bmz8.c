@@ -145,6 +145,7 @@ cmph_t *bmz8_new(cmph_config_t *mph, double c)
 		bmz8->hashes[0] = NULL;
 		hash_state_destroy(bmz8->hashes[1]);
 		bmz8->hashes[1] = NULL;
+		free(bmz8->hashes);
 		return NULL;
 	  }
 
@@ -204,6 +205,7 @@ cmph_t *bmz8_new(cmph_config_t *mph, double c)
 	bmz8->graph = NULL;
 	if (iterations_map == 0)
 	{
+		free(bmz8->hashes);
 		return NULL;
 	}
 	mphf = (cmph_t *)malloc(sizeof(cmph_t));

@@ -257,6 +257,8 @@ int main(int argc, char **argv)
 	if (keys_fd == NULL)
 	{
 		fprintf(stderr, "Unable to open file %s: %s\n", keys_file, strerror(errno));
+		if (nhashes)
+			free(hashes);
 		return -1;
 	}
 
@@ -287,6 +289,8 @@ int main(int argc, char **argv)
 		{
 			fprintf(stderr, "Unable to create minimum perfect hashing function\n");
 			//cmph_config_destroy(config);
+			if (nhashes)
+				free(hashes);
 			free(mphf_file);
 			free(source);
 			return -1;
@@ -295,6 +299,8 @@ int main(int argc, char **argv)
 		if (mphf_fd == NULL)
 		{
 			fprintf(stderr, "Unable to open output file %s: %s\n", mphf_file, strerror(errno));
+			if (nhashes)
+				free(hashes);
 			free(mphf_file);
 			free(source);
 			return -1;
@@ -310,6 +316,8 @@ int main(int argc, char **argv)
 		if (mphf_fd == NULL)
 		{
 			fprintf(stderr, "Unable to open input file %s: %s\n", mphf_file, strerror(errno));
+			if (nhashes)
+				free(hashes);
 			free(mphf_file);
 			cmph_io_nlfile_adapter_destroy(source);
 			return -1;
@@ -319,6 +327,8 @@ int main(int argc, char **argv)
 		if (!mphf)
 		{
 			fprintf(stderr, "Unable to parser input file %s\n", mphf_file);
+			if (nhashes)
+				free(hashes);
 			free(mphf_file);
 			free(source);
 			return -1;

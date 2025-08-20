@@ -57,7 +57,7 @@ static inline void __wyhash_hash_vector(cmph_uint32 seed, const unsigned char *k
                 else a=b=0;
         }
         else {
-                size_t i=len; 
+                size_t i=len;
                 if(_unlikely_(i>48)){
                         uint64_t see1=seed, see2=seed;
                         do {

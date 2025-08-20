@@ -156,7 +156,7 @@ cmph_t *brz_new(cmph_config_t *mph, double c)
         // the caller must set the file to store the resulting MPHF before calling
         // this function.
         if (brz->mphf_fd == NULL)
-        { 
+        {
             return NULL;
         }
 

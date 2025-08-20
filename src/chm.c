@@ -109,6 +109,7 @@ cmph_t *chm_new(cmph_config_t *mph, double c)
 	if (iterations == 0)
 	{
 		graph_destroy(chm->graph);
+		free(chm->hashes);
 		return NULL;
 	}
 
