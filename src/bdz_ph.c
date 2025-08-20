@@ -210,9 +210,9 @@ bdz_ph_config_data_t *bdz_ph_config_new(void)
 	bdz_ph = (bdz_ph_config_data_t *)malloc(sizeof(bdz_ph_config_data_t));
 	assert(bdz_ph);
 	memset(bdz_ph, 0, sizeof(bdz_ph_config_data_t));
-	bdz_ph->hashfunc = CMPH_HASH_JENKINS;
-	bdz_ph->g = NULL;
-	bdz_ph->hl = NULL;
+	//bdz_ph->hashfunc = CMPH_HASH_JENKINS;
+	//bdz_ph->g = NULL;
+	//bdz_ph->hl = NULL;
 	return bdz_ph;
 }
 
@@ -230,10 +230,11 @@ void bdz_ph_config_set_hashfuncs(cmph_config_t *mph, CMPH_HASH *hashfuncs)
 	cmph_uint32 i = 0;
 	while(*hashptr != CMPH_HASH_COUNT)
 	{
-		if (i >= 1) break; //bdz_ph only uses one linear hash function
+		if (i >= 1) break; // bdz_ph only uses one linear hash function
 		bdz_ph->hashfunc = *hashptr;
 		++i, ++hashptr;
 	}
+	//bdz_ph->nhashfuncs = 1;
 }
 
 cmph_t *bdz_ph_new(cmph_config_t *mph, double c)
@@ -249,7 +250,6 @@ cmph_t *bdz_ph_new(cmph_config_t *mph, double c)
 	double construction_time = 0.0;
 	ELAPSED_TIME_IN_SECONDS(&construction_time_begin);
 #endif
-
 
 	if (c == 0) c = 1.23; // validating restrictions over parameter c.
 	DEBUGP("c: %f\n", c);

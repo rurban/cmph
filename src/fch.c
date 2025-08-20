@@ -27,6 +27,7 @@ fch_config_data_t *fch_config_new()
 	memset(fch, 0, sizeof(fch_config_data_t));
 	fch->hashfuncs[0] = CMPH_HASH_JENKINS;
 	fch->hashfuncs[1] = CMPH_HASH_JENKINS;
+	fch->nhashfuncs = 1;
 	fch->m = fch->b = 0;
 	fch->c = fch->p1 = fch->p2 = 0.0;
 	fch->g = NULL;
@@ -42,17 +43,35 @@ void fch_config_destroy(cmph_config_t *mph)
 	free(data);
 }
 
+// support 2 independent hash functions, but mostly just one for both
 void fch_config_set_hashfuncs(cmph_config_t *mph, CMPH_HASH *hashfuncs)
 {
 	fch_config_data_t *fch = (fch_config_data_t *)mph->data;
 	CMPH_HASH *hashptr = hashfuncs;
 	cmph_uint32 i = 0;
-	while(*hashptr != CMPH_HASH_COUNT)
+	while (*hashptr != CMPH_HASH_COUNT)
 	{
-		if (i >= 2) break; //fch only uses two hash functions
+		if (i >= 2) break; // fch only uses two hash functions
 		fch->hashfuncs[i] = *hashptr;
 		++i, ++hashptr;
 	}
+	if (i >= 2) {
+		if (fch->hashfuncs[0] == fch->hashfuncs[1])
+			fch->nhashfuncs = 1;
+		else
+			fch->nhashfuncs = 2;
+	} else {
+		fch->hashfuncs[1] = fch->hashfuncs[0];
+		fch->nhashfuncs = 1;
+	}
+#ifdef DEBUG
+	if (fch->nhashfuncs == 1) {
+	    DEBUGP("Same hash functions, use hash_vector\n");
+	}
+	else {
+	    DEBUGP("Different hash functions, use seperate hash calls\n");
+	}
+#endif
 }
 
 cmph_uint32 mixh10h11h12(cmph_uint32 b, double p1, double p2, cmph_uint32 initial_index)

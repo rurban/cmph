@@ -234,13 +234,13 @@ bdz_config_data_t *bdz_config_new(void)
 	bdz = (bdz_config_data_t *)malloc(sizeof(bdz_config_data_t));
         if (!bdz) return NULL;
 	memset(bdz, 0, sizeof(bdz_config_data_t));
-	bdz->hashfunc = CMPH_HASH_JENKINS;
-	bdz->g = NULL;
-	bdz->hl = NULL;
-	bdz->k = 0; //kth index in ranktable, $k = log_2(n=3r)/\varepsilon$
+	//bdz->hashfunc = CMPH_HASH_JENKINS;
+	//bdz->g = NULL;
+	//bdz->hl = NULL;
+	//bdz->k = 0; //kth index in ranktable, $k = log_2(n=3r)/\varepsilon$
 	bdz->b = 7; // number of bits of k
-	bdz->ranktablesize = 0; //number of entries in ranktable, $n/k +1$
-	bdz->ranktable = NULL; // rank table
+	//bdz->ranktablesize = 0; //number of entries in ranktable, $n/k +1$
+	//bdz->ranktable = NULL; // rank table
 	return bdz;
 }
 
@@ -267,8 +267,8 @@ void bdz_config_set_hashfuncs(cmph_config_t *mph, CMPH_HASH *hashfuncs)
 	cmph_uint32 i = 0;
 	while(*hashptr != CMPH_HASH_COUNT)
 	{
-		if (i >= 1) break; //bdz only uses one linear hash function
-		bdz->hashfunc = *hashptr;	
+		if (i >= 1) break; // bdz only uses one linear hash function
+		bdz->hashfunc = *hashptr;
 		++i, ++hashptr;
 	}
 }
@@ -287,10 +287,9 @@ cmph_t *bdz_new(cmph_config_t *mph, double c)
 	ELAPSED_TIME_IN_SECONDS(&construction_time_begin);
 #endif
 
-
 	if (c == 0) c = 1.23; // validating restrictions over parameter c.
 	DEBUGP("c: %f\n", c);
-	bdz->m = mph->key_source->nkeys;	
+	bdz->m = mph->key_source->nkeys;
 	bdz->r = (cmph_uint32)ceil((c * mph->key_source->nkeys)/3);
 	if ((bdz->r % 2) == 0) bdz->r+=1;
 
@@ -299,18 +298,17 @@ cmph_t *bdz_new(cmph_config_t *mph, double c)
         }
 
 	bdz->n = 3*bdz->r;
-
 	bdz->k = (1U << bdz->b);
 	DEBUGP("b: %u -- k: %u\n", bdz->b, bdz->k);
-	
+
 	bdz->ranktablesize = (cmph_uint32)ceil(bdz->n/(double)bdz->k);
 	DEBUGP("ranktablesize: %u\n", bdz->ranktablesize);
 
-	
+
 	bdz_alloc_graph3(&graph3, bdz->m, bdz->n);
 	bdz_alloc_queue(&edges,bdz->m);
 	DEBUGP("Created hypergraph\n");
-	
+
 	DEBUGP("m (edges): %u n (vertices): %u  r: %u c: %f \n", bdz->m, bdz->n, bdz->r, c);
 
 	// Mapping step

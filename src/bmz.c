@@ -28,9 +28,7 @@ bmz_config_data_t *bmz_config_new(void)
 	memset(bmz, 0, sizeof(bmz_config_data_t));
 	bmz->hashfuncs[0] = CMPH_HASH_JENKINS;
 	bmz->hashfuncs[1] = CMPH_HASH_JENKINS;
-	bmz->g = NULL;
-	bmz->graph = NULL;
-	bmz->hashes = NULL;
+	bmz->nhashfuncs = 1;
 	return bmz;
 }
 
@@ -41,6 +39,7 @@ void bmz_config_destroy(cmph_config_t *mph)
 	free(data);
 }
 
+// support 2 independent hash functions, but mostly just one for both
 void bmz_config_set_hashfuncs(cmph_config_t *mph, CMPH_HASH *hashfuncs)
 {
 	bmz_config_data_t *bmz = (bmz_config_data_t *)mph->data;
@@ -48,10 +47,27 @@ void bmz_config_set_hashfuncs(cmph_config_t *mph, CMPH_HASH *hashfuncs)
 	cmph_uint32 i = 0;
 	while(*hashptr != CMPH_HASH_COUNT)
 	{
-		if (i >= 2) break; //bmz only uses two hash functions
+		if (i >= 2) break; // bmz only uses two hash functions
 		bmz->hashfuncs[i] = *hashptr;
 		++i, ++hashptr;
 	}
+	if (i >= 2) {
+		if (bmz->hashfuncs[0] == bmz->hashfuncs[1])
+			bmz->nhashfuncs = 1;
+		else
+			bmz->nhashfuncs = 2;
+	} else {
+		bmz->hashfuncs[1] = bmz->hashfuncs[0];
+		bmz->nhashfuncs = 1;
+	}
+#ifdef DEBUG
+	if (bmz->nhashfuncs == 1) {
+	    DEBUGP("Same hash functions, use hash_vector\n");
+	}
+	else {
+	    DEBUGP("Different hash functions, use seperate hash calls\n");
+	}
+#endif
 }
 
 cmph_t *bmz_new(cmph_config_t *mph, double c)
@@ -70,7 +86,6 @@ cmph_t *bmz_new(cmph_config_t *mph, double c)
 	DEBUGP("c: %f\n", c);
 	bmz->m = mph->key_source->nkeys;
 	bmz->n = (cmph_uint32)ceil(c * mph->key_source->nkeys);
-
 	if (bmz->n < 5) // workaround for small key sets
 	{
 		bmz->n = 5;

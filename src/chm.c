@@ -25,6 +25,7 @@ chm_config_data_t *chm_config_new(void)
 	memset(chm, 0, sizeof(chm_config_data_t));
 	chm->hashfuncs[0] = CMPH_HASH_JENKINS;
 	chm->hashfuncs[1] = CMPH_HASH_JENKINS;
+	chm->nhashfuncs = 1;
 	chm->g = NULL;
 	chm->graph = NULL;
 	chm->hashes = NULL;
@@ -37,16 +38,26 @@ void chm_config_destroy(cmph_config_t *mph)
 	free(data);
 }
 
+// support 2 independent hash functions, but mostly just one for both
 void chm_config_set_hashfuncs(cmph_config_t *mph, CMPH_HASH *hashfuncs)
 {
 	chm_config_data_t *chm = (chm_config_data_t *)mph->data;
 	CMPH_HASH *hashptr = hashfuncs;
 	cmph_uint32 i = 0;
-	while(*hashptr != CMPH_HASH_COUNT)
+	while (*hashptr != CMPH_HASH_COUNT)
 	{
-		if (i >= 2) break; //chm uses two hash functions
+		if (i >= 2) break; // chm uses two hash functions
 		chm->hashfuncs[i] = *hashptr;
 		++i, ++hashptr;
+	}
+	if (i >= 2) {
+		if (chm->hashfuncs[0] == chm->hashfuncs[1])
+			chm->nhashfuncs = 1;
+		else
+			chm->nhashfuncs = 2;
+	} else {
+		chm->hashfuncs[1] = chm->hashfuncs[0];
+		chm->nhashfuncs = 1;
 	}
 }
 

@@ -18,6 +18,7 @@ struct __fch_data_t
 struct __fch_config_data_t
 {
 	CMPH_HASH hashfuncs[2];
+	cmph_uint32 nhashfuncs; // 2 if independent. if 1 else take just the hashes from the vector
 	cmph_uint32 m;       // words count
 	double c;      // constant c
 	cmph_uint32  b;      // parameter b = ceil(c*m/(log(m)/log(2) + 1)). Don't need to be stored 

@@ -20,6 +20,7 @@ struct __brz_data_t
 struct __brz_config_data_t
 {
 	CMPH_HASH hashfuncs[3];
+	cmph_uint32 nhashfuncs;
 	CMPH_ALGO algo;      // CMPH algo for generating the MPHFs for the buckets (Just CMPH_FCH and CMPH_BMZ8)
 	double c;      // constant c
 	cmph_uint32 m;       // edges (words) count

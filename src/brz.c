@@ -34,12 +34,13 @@ brz_config_data_t *brz_config_new(void)
 	brz->hashfuncs[0] = CMPH_HASH_JENKINS;
 	brz->hashfuncs[1] = CMPH_HASH_JENKINS;
 	brz->hashfuncs[2] = CMPH_HASH_JENKINS;
+	brz->nhashfuncs = 1;
 	brz->size   = NULL;
 	brz->offset = NULL;
 	brz->g      = NULL;
 	brz->h1 = NULL;
 	brz->h2 = NULL;
-	brz->h0 = NULL;
+	//brz->h0 = NULL;
 	brz->memory_availability = 1024*1024;
 	brz->tmp_dir = (cmph_uint8 *)calloc((size_t)10, sizeof(cmph_uint8));
 	brz->mphf_fd = NULL;
@@ -56,16 +57,35 @@ void brz_config_destroy(cmph_config_t *mph)
 	free(data);
 }
 
+// support 3 independent hash functions, but mostly just one for all
 void brz_config_set_hashfuncs(cmph_config_t *mph, CMPH_HASH *hashfuncs)
 {
 	brz_config_data_t *brz = (brz_config_data_t *)mph->data;
 	CMPH_HASH *hashptr = hashfuncs;
 	cmph_uint32 i = 0;
-	while(*hashptr != CMPH_HASH_COUNT)
+	while (*hashptr != CMPH_HASH_COUNT)
 	{
-		if (i >= 3) break; //brz only uses three hash functions
+		if (i >= 3) break; // brz up to three hash functions
 		brz->hashfuncs[i] = *hashptr;
 		++i, ++hashptr;
+	}
+	if (i >= 3) {
+		if (brz->hashfuncs[0] == brz->hashfuncs[1] &&
+		    brz->hashfuncs[0] == brz->hashfuncs[2])
+			brz->nhashfuncs = 1;
+		else
+			brz->nhashfuncs = 3;
+	} else if (i == 1) {
+		brz->hashfuncs[2] = brz->hashfuncs[1] = brz->hashfuncs[0];
+		brz->nhashfuncs = 1;
+	} else { // 2 set, the third is the default jenkins
+		if (brz->hashfuncs[0] == brz->hashfuncs[1]) {
+			brz->nhashfuncs = 1;
+			brz->hashfuncs[2] = brz->hashfuncs[1];
+		} else {
+			brz->nhashfuncs = 3;
+			brz->hashfuncs[2] = brz->hashfuncs[1];
+		}
 	}
 }
 

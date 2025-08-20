@@ -25,11 +25,12 @@ bmz8_config_data_t *bmz8_config_new(void)
 	bmz8 = (bmz8_config_data_t *)malloc(sizeof(bmz8_config_data_t));
         if (!bmz8) return NULL;
 	memset(bmz8, 0, sizeof(bmz8_config_data_t));
-	bmz8->hashfuncs[0] = CMPH_HASH_JENKINS;
-	bmz8->hashfuncs[1] = CMPH_HASH_JENKINS;
-	bmz8->g = NULL;
-	bmz8->graph = NULL;
-	bmz8->hashes = NULL;
+	//bmz8->hashfuncs[0] = CMPH_HASH_JENKINS;
+	//bmz8->hashfuncs[1] = CMPH_HASH_JENKINS;
+	bmz8->nhashfuncs = 1;
+	//bmz8->g = NULL;
+	//bmz8->graph = NULL;
+	//bmz8->hashes = NULL;
 	return bmz8;
 }
 
@@ -40,6 +41,7 @@ void bmz8_config_destroy(cmph_config_t *mph)
 	free(data);
 }
 
+// support 2 independent hash functions, but mostly just one for both
 void bmz8_config_set_hashfuncs(cmph_config_t *mph, CMPH_HASH *hashfuncs)
 {
 	bmz8_config_data_t *bmz8 = (bmz8_config_data_t *)mph->data;
@@ -47,9 +49,18 @@ void bmz8_config_set_hashfuncs(cmph_config_t *mph, CMPH_HASH *hashfuncs)
 	cmph_uint8 i = 0;
 	while(*hashptr != CMPH_HASH_COUNT)
 	{
-		if (i >= 2) break; //bmz8 only uses two hash functions
+		if (i >= 2) break; // bmz8 only uses two hash functions
 		bmz8->hashfuncs[i] = *hashptr;
 		++i, ++hashptr;
+	}
+	if (i >= 2) {
+		if (bmz8->hashfuncs[0] == bmz8->hashfuncs[1])
+			bmz8->nhashfuncs = 1;
+		else
+			bmz8->nhashfuncs = 2;
+	} else {
+		bmz8->hashfuncs[1] = bmz8->hashfuncs[0];
+		bmz8->nhashfuncs = 1;
 	}
 }
 
