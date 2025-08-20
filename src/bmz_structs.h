@@ -8,6 +8,7 @@ struct __bmz_data_t
 	cmph_uint32 m; //edges (words) count
 	cmph_uint32 n; //vertex count
 	cmph_uint32 *g;
+	cmph_uint32 nhashes;
 	hash_state_t **hashes;
 };
 
