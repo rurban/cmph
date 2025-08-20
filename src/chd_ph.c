@@ -152,7 +152,6 @@ chd_ph_config_data_t *chd_ph_config_new(void)
 	chd_ph->cs = NULL;
 	chd_ph->nbuckets = 0;
 	chd_ph->n = 0;
-	chd_ph->hl = NULL;
 
 	chd_ph->m = 0;
 	chd_ph->use_h = 1;
@@ -187,6 +186,7 @@ void chd_ph_config_set_hashfuncs(cmph_config_t *mph, CMPH_HASH *hashfuncs)
 		chd_ph->hashfunc = *hashptr;
 		++i, ++hashptr;
 	}
+	//chd_ph->nhashfuncs = 1;
 }
 
 
@@ -227,8 +227,8 @@ cmph_uint8 chd_ph_mapping(cmph_config_t *mph, chd_ph_bucket_t * buckets, chd_ph_
 	while(1)
 	{
 		mapping_iterations--;
-		if (chd_ph->hl) hash_state_destroy(chd_ph->hl);
-		chd_ph->hl = hash_state_new(chd_ph->hashfunc, chd_ph->m);
+		//if (chd_ph->hl) hash_state_destroy(chd_ph->hl);
+	        hash_state_init(&chd_ph->hl, chd_ph->m);
 
 		chd_ph_bucket_clean(buckets, chd_ph->nbuckets);
 
@@ -237,7 +237,7 @@ cmph_uint8 chd_ph_mapping(cmph_config_t *mph, chd_ph_bucket_t * buckets, chd_ph_
 		for(i = 0; i < chd_ph->m; i++)
 		{
 			mph->key_source->read(mph->key_source->data, &key, &keylen);
-			hash_vector(chd_ph->hl, key, keylen, hl);
+			hash_vector(&chd_ph->hl, key, keylen, hl);
 
 			map_item = (map_items + i);
 
@@ -283,8 +283,8 @@ cmph_uint8 chd_ph_mapping(cmph_config_t *mph, chd_ph_bucket_t * buckets, chd_ph_
 	}
 error:
 	free(map_items);
-	hash_state_destroy(chd_ph->hl);
-	chd_ph->hl = NULL;
+	//hash_state_destroy(chd_ph->hl);
+	//chd_ph->hl = NULL;
 	return 0; // FAILURE
 }
 
@@ -794,14 +794,7 @@ cleanup:
 	free(sorted_lists);
 	free(disp_table);
 	if(failure)
-	{
-		if(chd_ph->hl)
-		{
-			hash_state_destroy(chd_ph->hl);
-		}
-		chd_ph->hl = NULL;
-		return NULL;
-	}
+	    return NULL;
 
 	mphf = (cmph_t *)malloc(sizeof(cmph_t));
 	mphf->algo = mph->algo;
@@ -810,7 +803,6 @@ cleanup:
 	chd_phf->cs = chd_ph->cs;
 	chd_ph->cs = NULL; //transfer memory ownership
 	chd_phf->hl = chd_ph->hl;
-	chd_ph->hl = NULL; //transfer memory ownership
 	chd_phf->n = chd_ph->n;
 	chd_phf->nbuckets = chd_ph->nbuckets;
 
@@ -847,7 +839,8 @@ void chd_ph_load(FILE *fd, cmph_t *mphf)
 	DEBUGP("Hash state has %u bytes\n", buflen);
 	buf = (char *)malloc((size_t)buflen);
 	CHK_FREAD(buf, (size_t)buflen, (size_t)1, fd);
-	chd_ph->hl = hash_state_load(buf);
+	hash_state_t *state = hash_state_load(buf);
+	chd_ph->hl = *state;
 	free(buf);
 
 	CHK_FREAD(&buflen, sizeof(cmph_uint32), (size_t)1, fd);
@@ -872,7 +865,7 @@ int chd_ph_dump(cmph_t *mphf, FILE *fd)
 
 	__cmph_dump(mphf, fd);
 
-	hash_state_dump(data->hl, &buf, &buflen);
+	hash_state_dump(&data->hl, &buf, &buflen);
 	DEBUGP("Dumping hash state with %u bytes to disk\n", buflen);
 	CHK_FWRITE(&buflen, sizeof(cmph_uint32), (size_t)1, fd);
 	CHK_FWRITE(buf, (size_t)buflen, (size_t)1, fd);
@@ -895,7 +888,6 @@ void chd_ph_destroy(cmph_t *mphf)
 	chd_ph_data_t *data = (chd_ph_data_t *)mphf->data;
 	compressed_seq_destroy(data->cs);
 	free(data->cs);
-	hash_state_destroy(data->hl);
 	free(data);
 	free(mphf);
 
@@ -908,7 +900,7 @@ cmph_uint32 chd_ph_search(cmph_t *mphf, const char *key, cmph_uint32 keylen)
 	register cmph_uint32 disp,position;
 	register cmph_uint32 probe0_num,probe1_num;
 	register cmph_uint32 f,g,h;
-	hash_vector(chd_ph->hl, key, keylen, hl);
+	hash_vector(&chd_ph->hl, key, keylen, hl);
 	g = hl[0] % chd_ph->nbuckets;
 	f = hl[1] % chd_ph->n;
 	h = hl[2] % (chd_ph->n-1) + 1;
@@ -926,12 +918,12 @@ void chd_ph_pack(cmph_t *mphf, void *packed_mphf)
 	cmph_uint8 * ptr = (cmph_uint8 *)packed_mphf;
 
 	// packing hl type
-	CMPH_HASH hl_type = hash_get_type(data->hl);
+	CMPH_HASH hl_type = hash_get_type(&data->hl);
 	*((cmph_uint32 *) ptr) = hl_type;
 	ptr += sizeof(cmph_uint32);
 
 	// packing hl
-	hash_state_pack(data->hl, ptr);
+	hash_state_pack(&data->hl, ptr);
 	ptr += hash_state_packed_size(hl_type);
 
 	// packing n
@@ -951,7 +943,7 @@ void chd_ph_pack(cmph_t *mphf, void *packed_mphf)
 cmph_uint32 chd_ph_packed_size(cmph_t *mphf)
 {
 	register chd_ph_data_t *data = (chd_ph_data_t *)mphf->data;
-	register CMPH_HASH hl_type = hash_get_type(data->hl);
+	register CMPH_HASH hl_type = hash_get_type(&data->hl);
 	register cmph_uint32 hash_state_pack_size =  hash_state_packed_size(hl_type);
 	register cmph_uint32 cs_pack_size = compressed_seq_packed_size(data->cs);
 

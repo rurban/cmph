@@ -210,9 +210,9 @@ bdz_ph_config_data_t *bdz_ph_config_new(void)
 	bdz_ph = (bdz_ph_config_data_t *)malloc(sizeof(bdz_ph_config_data_t));
 	assert(bdz_ph);
 	memset(bdz_ph, 0, sizeof(bdz_ph_config_data_t));
-	bdz_ph->hashfunc = CMPH_HASH_JENKINS;
+	bdz_ph->hl.hashfunc = CMPH_HASH_JENKINS;
 	bdz_ph->g = NULL;
-	bdz_ph->hl = NULL;
+	//bdz_ph->hl = NULL;
 	return bdz_ph;
 }
 
@@ -230,10 +230,11 @@ void bdz_ph_config_set_hashfuncs(cmph_config_t *mph, CMPH_HASH *hashfuncs)
 	cmph_uint32 i = 0;
 	while(*hashptr != CMPH_HASH_COUNT)
 	{
-		if (i >= 1) break; //bdz_ph only uses one linear hash function
-		bdz_ph->hashfunc = *hashptr;
+		if (i >= 1) break; // bdz_ph only uses one linear hash function
+		bdz_ph->hl.hashfunc = *hashptr;
 		++i, ++hashptr;
 	}
+	//bdz_ph->nhashfuncs = 1;
 }
 
 cmph_t *bdz_ph_new(cmph_config_t *mph, double c)
@@ -249,7 +250,7 @@ cmph_t *bdz_ph_new(cmph_config_t *mph, double c)
 	double construction_time = 0.0;
 	ELAPSED_TIME_IN_SECONDS(&construction_time_begin);
 #endif
-
+	//bdz_ph->hl.hashfunc = bdz_ph->hashfunc;
 
 	if (c == 0) c = 1.23; // validating restrictions over parameter c.
 	DEBUGP("c: %f\n", c);
@@ -279,14 +280,15 @@ cmph_t *bdz_ph_new(cmph_config_t *mph, double c)
 	{
 		int ok;
 		DEBUGP("linear hash function \n");
-		bdz_ph->hl = hash_state_new(bdz_ph->hashfunc, 15);
+	        hash_state_init(&bdz_ph->hl, bdz_ph->n);
 
 		ok = bdz_ph_mapping(mph, &graph3, edges);
 		if (!ok)
 		{
 			--iterations;
-			hash_state_destroy(bdz_ph->hl);
-			bdz_ph->hl = NULL;
+			hash_state_init(&bdz_ph->hl, bdz_ph->n);
+			//hash_state_destroy(bdz_ph->hl);
+			//bdz_ph->hl = NULL;
 			DEBUGP("%u iterations remaining\n", iterations);
 			if (mph->verbosity)
 			{
@@ -331,7 +333,7 @@ cmph_t *bdz_ph_new(cmph_config_t *mph, double c)
 	bdz_phf->g = bdz_ph->g;
 	bdz_ph->g = NULL; //transfer memory ownership
 	bdz_phf->hl = bdz_ph->hl;
-	bdz_ph->hl = NULL; //transfer memory ownership
+	//bdz_ph->hl = NULL; //transfer memory ownership
 	bdz_phf->n = bdz_ph->n;
 	bdz_phf->m = bdz_ph->m;
 	bdz_phf->r = bdz_ph->r;
@@ -370,7 +372,7 @@ static int bdz_ph_mapping(cmph_config_t *mph, bdz_ph_graph3_t* graph3, bdz_ph_qu
 		cmph_uint32 keylen;
 		char *key = NULL;
 		mph->key_source->read(mph->key_source->data, &key, &keylen);
-		hash_vector(bdz_ph->hl, key, keylen, hl);
+		hash_vector(&bdz_ph->hl, key, keylen, hl);
 		h0 = hl[0] % bdz_ph->r;
 		h1 = hl[1] % bdz_ph->r + bdz_ph->r;
 		h2 = hl[2] % bdz_ph->r + (bdz_ph->r << 1);
@@ -460,7 +462,7 @@ int bdz_ph_dump(cmph_t *mphf, FILE *fd)
 
 	__cmph_dump(mphf, fd);
 
-	hash_state_dump(data->hl, &buf, &buflen);
+	hash_state_dump(&data->hl, &buf, &buflen);
 	DEBUGP("Dumping hash state with %u bytes to disk\n", buflen);
 	CHK_FWRITE(&buflen, sizeof(cmph_uint32), (size_t)1, fd);
 	CHK_FWRITE(buf, (size_t)buflen, (size_t)1, fd);
@@ -496,7 +498,8 @@ void bdz_ph_load(FILE *f, cmph_t *mphf)
 	DEBUGP("Hash state has %u bytes\n", buflen);
 	buf = (char *)malloc((size_t)buflen);
 	CHK_FREAD(buf, (size_t)buflen, (size_t)1, f);
-	bdz_ph->hl = hash_state_load(buf);
+	hash_state_t *state = hash_state_load(buf);
+	bdz_ph->hl = *state;
 	free(buf);
 
 	DEBUGP("Reading m and n\n");
@@ -518,7 +521,7 @@ cmph_uint32 bdz_ph_search(cmph_t *mphf, const char *key, cmph_uint32 keylen)
 	register cmph_uint8 byte0, byte1, byte2;
 	register cmph_uint32 vertex;
 
-	hash_vector(bdz_ph->hl, key, keylen,hl);
+	hash_vector(&bdz_ph->hl, key, keylen,hl);
 	hl[0] = hl[0] % bdz_ph->r;
 	hl[1] = hl[1] % bdz_ph->r + bdz_ph->r;
 	hl[2] = hl[2] % bdz_ph->r + (bdz_ph->r << 1);
@@ -540,7 +543,7 @@ void bdz_ph_destroy(cmph_t *mphf)
 {
 	bdz_ph_data_t *data = (bdz_ph_data_t *)mphf->data;
 	free(data->g);
-	hash_state_destroy(data->hl);
+	//hash_state_destroy(data->hl);
 	free(data);
 	free(mphf);
 }
@@ -556,12 +559,12 @@ void bdz_ph_pack(cmph_t *mphf, void *packed_mphf)
 	cmph_uint8 * ptr = (cmph_uint8 *)packed_mphf;
 
 	// packing hl type
-	CMPH_HASH hl_type = hash_get_type(data->hl);
+	CMPH_HASH hl_type = hash_get_type(&data->hl);
 	*((cmph_uint32 *) ptr) = hl_type;
 	ptr += sizeof(cmph_uint32);
 
 	// packing hl
-	hash_state_pack(data->hl, ptr);
+	hash_state_pack(&data->hl, ptr);
 	ptr += hash_state_packed_size(hl_type);
 
 	// packing r
@@ -581,7 +584,7 @@ void bdz_ph_pack(cmph_t *mphf, void *packed_mphf)
 cmph_uint32 bdz_ph_packed_size(cmph_t *mphf)
 {
 	bdz_ph_data_t *data = (bdz_ph_data_t *)mphf->data;
-	CMPH_HASH hl_type = hash_get_type(data->hl);
+	CMPH_HASH hl_type = hash_get_type(&data->hl);
 	cmph_uint32 sizeg = (cmph_uint32)ceil(data->n/5.0);
 	return (cmph_uint32) (sizeof(CMPH_ALGO) + hash_state_packed_size(hl_type) + 2*sizeof(cmph_uint32) + sizeof(cmph_uint8)*sizeg);
 }

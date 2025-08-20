@@ -34,12 +34,13 @@ brz_config_data_t *brz_config_new(void)
 	brz->hashfuncs[0] = CMPH_HASH_JENKINS;
 	brz->hashfuncs[1] = CMPH_HASH_JENKINS;
 	brz->hashfuncs[2] = CMPH_HASH_JENKINS;
+	brz->nhashfuncs = 1;
 	brz->size   = NULL;
 	brz->offset = NULL;
 	brz->g      = NULL;
 	brz->h1 = NULL;
 	brz->h2 = NULL;
-	brz->h0 = NULL;
+	//brz->h0 = NULL;
 	brz->memory_availability = 1024*1024;
 	brz->tmp_dir = (cmph_uint8 *)calloc((size_t)10, sizeof(cmph_uint8));
 	brz->mphf_fd = NULL;
@@ -56,16 +57,35 @@ void brz_config_destroy(cmph_config_t *mph)
 	free(data);
 }
 
+// support 3 independent hash functions, but mostly just one for all
 void brz_config_set_hashfuncs(cmph_config_t *mph, CMPH_HASH *hashfuncs)
 {
 	brz_config_data_t *brz = (brz_config_data_t *)mph->data;
 	CMPH_HASH *hashptr = hashfuncs;
 	cmph_uint32 i = 0;
-	while(*hashptr != CMPH_HASH_COUNT)
+	while (*hashptr != CMPH_HASH_COUNT)
 	{
-		if (i >= 3) break; //brz only uses three hash functions
+		if (i >= 3) break; // brz up to three hash functions
 		brz->hashfuncs[i] = *hashptr;
 		++i, ++hashptr;
+	}
+	if (i >= 3) {
+		if (brz->hashfuncs[0] == brz->hashfuncs[1] &&
+		    brz->hashfuncs[0] == brz->hashfuncs[2])
+			brz->nhashfuncs = 1;
+		else
+			brz->nhashfuncs = 3;
+	} else if (i == 1) {
+		brz->hashfuncs[2] = brz->hashfuncs[1] = brz->hashfuncs[0];
+		brz->nhashfuncs = 1;
+	} else { // 2 set, the third is the default jenkins
+		if (brz->hashfuncs[0] == brz->hashfuncs[1]) {
+			brz->nhashfuncs = 1;
+			brz->hashfuncs[2] = brz->hashfuncs[1];
+		} else {
+			brz->nhashfuncs = 3;
+			brz->hashfuncs[2] = brz->hashfuncs[1];
+		}
 	}
 }
 
@@ -136,7 +156,7 @@ cmph_t *brz_new(cmph_config_t *mph, double c)
         // the caller must set the file to store the resulting MPHF before calling
         // this function.
         if (brz->mphf_fd == NULL)
-        { 
+        {
             return NULL;
         }
 
@@ -173,14 +193,13 @@ cmph_t *brz_new(cmph_config_t *mph, double c)
 	{
 		int ok;
 		DEBUGP("hash function 3\n");
-		brz->h0 = hash_state_new(brz->hashfuncs[2], brz->k);
+		hash_state_init(&brz->h0, brz->k);
 		DEBUGP("Generating graphs\n");
 		ok = brz_gen_mphf(mph);
 		if (!ok)
 		{
 			--iterations;
-			hash_state_destroy(brz->h0);
-			brz->h0 = NULL;
+			hash_state_init(&brz->h0, brz->k);
 			DEBUGP("%u iterations remaining to create the graphs in a external file\n", iterations);
 			if (mph->verbosity)
 			{
@@ -214,7 +233,7 @@ cmph_t *brz_new(cmph_config_t *mph, double c)
 	brzf->h2 = brz->h2;
 	brz->h2 = NULL; //transfer memory ownership
 	brzf->h0 = brz->h0;
-	brz->h0 = NULL; //transfer memory ownership
+	//brz->h0 = NULL; //transfer memory ownership
 	brzf->size = brz->size;
 	brz->size = NULL; //transfer memory ownership
 	brzf->offset = brz->offset;
@@ -286,7 +305,7 @@ static int brz_gen_mphf(cmph_config_t *mph)
 			for(i = 0; i < nkeys_in_buffer; i++)
 			{
 				memcpy(&keylen1, buffer + memory_usage, sizeof(keylen1));
-				h0 = hash(brz->h0, (char *)(buffer + memory_usage + sizeof(keylen1)), keylen1) % brz->k;
+				h0 = hash(&brz->h0, (char *)(buffer + memory_usage + sizeof(keylen1)), keylen1) % brz->k;
 				keys_index[buckets_size[h0]] = memory_usage;
 				buckets_size[h0]++;
 				memory_usage +=  keylen1 + (cmph_uint32)sizeof(keylen1);
@@ -311,7 +330,7 @@ static int brz_gen_mphf(cmph_config_t *mph)
 		memcpy(buffer + memory_usage, &keylen, sizeof(keylen));
 		memcpy(buffer + memory_usage + sizeof(keylen), key, (size_t)keylen);
 		memory_usage += keylen + (cmph_uint32)sizeof(keylen);
-		h0 = hash(brz->h0, key, keylen) % brz->k;
+		h0 = hash(&brz->h0, key, keylen) % brz->k;
 
 		if ((brz->size[h0] == MAX_BUCKET_SIZE) || (brz->algo == CMPH_BMZ8 && ((brz->c >= 1.0) && (cmph_uint8)(brz->c * brz->size[h0]) < brz->size[h0])))
 		{
@@ -346,7 +365,7 @@ static int brz_gen_mphf(cmph_config_t *mph)
 		for(i = 0; i < nkeys_in_buffer; i++)
 		{
 			memcpy(&keylen1, buffer + memory_usage, sizeof(keylen1));
-			h0 = hash(brz->h0, (char *)(buffer + memory_usage + sizeof(keylen1)), keylen1) % brz->k;
+			h0 = hash(&brz->h0, (char *)(buffer + memory_usage + sizeof(keylen1)), keylen1) % brz->k;
 			keys_index[buckets_size[h0]] = memory_usage;
 			buckets_size[h0]++;
 			memory_usage +=  keylen1 + (cmph_uint32)sizeof(keylen1);
@@ -399,7 +418,7 @@ static int brz_gen_mphf(cmph_config_t *mph)
 		free(filename);
 		filename = NULL;
 		key = (char *)buffer_manager_read_key(buff_manager, i, &keylen);
-		h0 = hash(brz->h0, key+sizeof(keylen), keylen) % brz->k;
+		h0 = hash(&brz->h0, key+sizeof(keylen), keylen) % brz->k;
 		buffer_h0[i] = h0;
                 buffer_merge[i] = (cmph_uint8 *)key;
                 key = NULL; //transfer memory ownership
@@ -418,7 +437,7 @@ static int brz_gen_mphf(cmph_config_t *mph)
 			while(key)
 			{
 				//keylen = strlen(key);
-				h0 = hash(brz->h0, key+sizeof(keylen), keylen) % brz->k;
+				h0 = hash(&brz->h0, key+sizeof(keylen), keylen) % brz->k;
 				if (h0 != buffer_h0[i]) break;
 				keys_vd[nkeys_vd++] = (cmph_uint8 *)key;
 				key = NULL; //transfer memory ownership
@@ -538,8 +557,8 @@ static char * brz_copy_partial_fch_mphf(fch_data_t * fchf, cmph_uint32 *buflen)
 	char * bufh2 = NULL;
 	char * buf   = NULL;
 	cmph_uint32 n  = fchf->b;//brz->size[index];
-	hash_state_dump(fchf->h1, &bufh1, &buflenh1);
-	hash_state_dump(fchf->h2, &bufh2, &buflenh2);
+	hash_state_dump(&fchf->hashes[0], &bufh1, &buflenh1);
+	hash_state_dump(&fchf->hashes[1], &bufh2, &buflenh2);
 	*buflen = buflenh1 + buflenh2 + n + 2U * (cmph_uint32)sizeof(cmph_uint32);
 	buf = (char *)malloc((size_t)(*buflen));
 	memcpy(buf, &buflenh1, sizeof(cmph_uint32));
@@ -560,8 +579,8 @@ static char * brz_copy_partial_bmz8_mphf(brz_config_data_t *brz, bmz8_data_t * b
 	char * bufh2 = NULL;
 	char * buf   = NULL;
 	cmph_uint32 n = (cmph_uint32)ceil(brz->c * brz->size[index]);
-	hash_state_dump(bmzf->hashes[0], &bufh1, &buflenh1);
-	hash_state_dump(bmzf->hashes[1], &bufh2, &buflenh2);
+	hash_state_dump(&bmzf->hashes[0], &bufh1, &buflenh1);
+	hash_state_dump(&bmzf->hashes[1], &bufh2, &buflenh2);
 	*buflen = buflenh1 + buflenh2 + n + 2U * (cmph_uint32)sizeof(cmph_uint32);
 	buf = (char *)malloc((size_t)(*buflen));
 	memcpy(buf, &buflenh1, sizeof(cmph_uint32));
@@ -583,7 +602,7 @@ int brz_dump(cmph_t *mphf, FILE *fd)
 	DEBUGP("Dumping brzf\n");
 	// The initial part of the MPHF has already been dumped to disk during construction
 	// Dumping h0
-        hash_state_dump(data->h0, &buf, &buflen);
+        hash_state_dump(&data->h0, &buf, &buflen);
         DEBUGP("Dumping hash state with %u bytes to disk\n", buflen);
         CHK_FWRITE(&buflen, sizeof(cmph_uint32), (size_t)1, fd);
         CHK_FWRITE(buf, (size_t)buflen, (size_t)1, fd);
@@ -608,8 +627,8 @@ void brz_load(FILE *f, cmph_t *mphf)
 	CHK_FREAD(&(brz->k), sizeof(cmph_uint32), (size_t)1, f);
 	brz->size   = (cmph_uint8 *) malloc(sizeof(cmph_uint8)*brz->k);
 	CHK_FREAD(brz->size, sizeof(cmph_uint8)*(brz->k), (size_t)1, f);
-	brz->h1 = (hash_state_t **)malloc(sizeof(hash_state_t *)*brz->k);
-	brz->h2 = (hash_state_t **)malloc(sizeof(hash_state_t *)*brz->k);
+	brz->h1 = (hash_state_t *)malloc(sizeof(hash_state_t)*brz->k);
+	brz->h2 = (hash_state_t *)malloc(sizeof(hash_state_t)*brz->k);
 	brz->g  = (cmph_uint8 **)  calloc((size_t)brz->k, sizeof(cmph_uint8 *));
 	DEBUGP("Reading c = %f   k = %u   algo = %u \n", brz->c, brz->k, brz->algo);
 	//loading h_i1, h_i2 and g_i.
@@ -620,14 +639,16 @@ void brz_load(FILE *f, cmph_t *mphf)
 		DEBUGP("Hash state 1 has %u bytes\n", buflen);
 		buf = (char *)malloc((size_t)buflen);
 		CHK_FREAD(buf, (size_t)buflen, (size_t)1, f);
-		brz->h1[i] = hash_state_load(buf);
+		hash_state_t *state = hash_state_load(buf);
+		brz->h1[i] = *state;
 		free(buf);
 		//h2
 		CHK_FREAD(&buflen, sizeof(cmph_uint32), (size_t)1, f);
 		DEBUGP("Hash state 2 has %u bytes\n", buflen);
 		buf = (char *)malloc((size_t)buflen);
 		CHK_FREAD(buf, (size_t)buflen, (size_t)1, f);
-		brz->h2[i] = hash_state_load(buf);
+		state = hash_state_load(buf);
+		brz->h2[i] = *state;
 		free(buf);
 		switch(brz->algo)
 		{
@@ -648,7 +669,8 @@ void brz_load(FILE *f, cmph_t *mphf)
 	DEBUGP("Hash state has %u bytes\n", buflen);
 	buf = (char *)malloc((size_t)buflen);
 	CHK_FREAD(buf, (size_t)buflen, (size_t)1, f);
-	brz->h0 = hash_state_load(buf);
+	hash_state_t *state = hash_state_load(buf);
+	brz->h0 = *state;
 	free(buf);
 
 	//loading c, m, and the vector offset.
@@ -662,13 +684,13 @@ static cmph_uint32 brz_bmz8_search(brz_data_t *brz, const char *key, cmph_uint32
 {
 	register cmph_uint32 h0;
 
-	hash_vector(brz->h0, key, keylen, fingerprint);
+	hash_vector(&brz->h0, key, keylen, fingerprint);
 	h0 = fingerprint[2] % brz->k;
 
 	register cmph_uint32 m = brz->size[h0];
 	register cmph_uint32 n = (cmph_uint32)ceil(brz->c * m);
-	register cmph_uint32 h1 = hash(brz->h1[h0], key, keylen) % n;
-	register cmph_uint32 h2 = hash(brz->h2[h0], key, keylen) % n;
+	register cmph_uint32 h1 = hash(&brz->h1[h0], key, keylen) % n;
+	register cmph_uint32 h2 = hash(&brz->h2[h0], key, keylen) % n;
 	register cmph_uint8 mphf_bucket;
 
 	if (h1 == h2 && ++h2 >= n) h2 = 0;
@@ -684,15 +706,15 @@ static cmph_uint32 brz_fch_search(brz_data_t *brz, const char *key, cmph_uint32 
 {
 	register cmph_uint32 h0;
 
-	hash_vector(brz->h0, key, keylen, fingerprint);
+	hash_vector(&brz->h0, key, keylen, fingerprint);
 	h0 = fingerprint[2] % brz->k;
 
 	register cmph_uint32 m = brz->size[h0];
 	register cmph_uint32 b = fch_calc_b(brz->c, m);
 	register double p1 = fch_calc_p1(m);
 	register double p2 = fch_calc_p2(b);
-	register cmph_uint32 h1 = hash(brz->h1[h0], key, keylen) % m;
-	register cmph_uint32 h2 = hash(brz->h2[h0], key, keylen) % m;
+	register cmph_uint32 h1 = hash(&brz->h1[h0], key, keylen) % m;
+	register cmph_uint32 h2 = hash(&brz->h2[h0], key, keylen) % m;
 	register cmph_uint8 mphf_bucket = 0;
 	h1 = mixh10h11h12(b, p1, p2, h1);
 	mphf_bucket = (cmph_uint8)((h2 + brz->g[h0][h1]) % m);
@@ -722,14 +744,14 @@ void brz_destroy(cmph_t *mphf)
 		for(i = 0; i < data->k; i++)
 		{
 			free(data->g[i]);
-			hash_state_destroy(data->h1[i]);
-			hash_state_destroy(data->h2[i]);
+			//hash_state_destroy(data->h1[i]);
+			//hash_state_destroy(data->h2[i]);
 		}
 		free(data->g);
 		free(data->h1);
 		free(data->h2);
 	}
-	hash_state_destroy(data->h0);
+	//hash_state_destroy(data->h0);
 	free(data->size);
 	free(data->offset);
 	free(data);
@@ -746,7 +768,7 @@ void brz_pack(cmph_t *mphf, void *packed_mphf)
 	brz_data_t *data = (brz_data_t *)mphf->data;
 	cmph_uint8 * ptr = (cmph_uint8 *)packed_mphf;
 	cmph_uint32 i,n;
- 
+
         // This assumes that if one function pointer is NULL,
         // all the others will be as well.
         if (data->h1 == NULL)
@@ -758,12 +780,12 @@ void brz_pack(cmph_t *mphf, void *packed_mphf)
 	ptr += sizeof(data->algo);
 
 	// packing h0 type
-	CMPH_HASH h0_type = hash_get_type(data->h0);
+	CMPH_HASH h0_type = hash_get_type(&data->h0);
 	memcpy(ptr, &h0_type, sizeof(h0_type));
 	ptr += sizeof(h0_type);
 
 	// packing h0
-	hash_state_pack(data->h0, ptr);
+	hash_state_pack(&data->h0, ptr);
 	ptr += hash_state_packed_size(h0_type);
 
 	// packing k
@@ -775,12 +797,12 @@ void brz_pack(cmph_t *mphf, void *packed_mphf)
 	ptr += sizeof(data->c);
 
 	// packing h1 type
-	CMPH_HASH h1_type = hash_get_type(data->h1[0]);
+	CMPH_HASH h1_type = hash_get_type(&data->h1[0]);
 	memcpy(ptr, &h1_type, sizeof(h1_type));
 	ptr += sizeof(h1_type);
 
 	// packing h2 type
-	CMPH_HASH h2_type = hash_get_type(data->h2[0]);
+	CMPH_HASH h2_type = hash_get_type(&data->h2[0]);
 	memcpy(ptr, &h2_type, sizeof(h2_type));
 	ptr += sizeof(h2_type);
 
@@ -808,11 +830,11 @@ void brz_pack(cmph_t *mphf, void *packed_mphf)
         	*g_is_ptr++ = (cmph_uint32)g_i;
 #endif
 		// packing h1[i]
-		hash_state_pack(data->h1[i], g_i);
+		hash_state_pack(&data->h1[i], g_i);
 		g_i += hash_state_packed_size(h1_type);
 
 		// packing h2[i]
-		hash_state_pack(data->h2[i], g_i);
+		hash_state_pack(&data->h2[i], g_i);
 		g_i += hash_state_packed_size(h2_type);
 
 		// packing g_i
@@ -847,16 +869,16 @@ cmph_uint32 brz_packed_size(cmph_t *mphf)
 	CMPH_HASH h1_type;
 	CMPH_HASH h2_type;
 
-    // This assumes that if one function pointer is NULL, 
+    // This assumes that if one function pointer is NULL,
     // all the others will be as well.
-    if (data->h1 == NULL) 
+    if (data->h1 == NULL)
     {
         return 0U;
     }
 
-	h0_type = hash_get_type(data->h0);
-	h1_type = hash_get_type(data->h1[0]);
-	h2_type = hash_get_type(data->h2[0]);
+	h0_type = hash_get_type(&data->h0);
+	h1_type = hash_get_type(&data->h1[0]);
+	h2_type = hash_get_type(&data->h2[0]);
 
 	size = (cmph_uint32)(2*sizeof(CMPH_ALGO) + 3*sizeof(CMPH_HASH) + hash_state_packed_size(h0_type) + sizeof(cmph_uint32) +
 			sizeof(double) + sizeof(cmph_uint8)*data->k + sizeof(cmph_uint32)*data->k);

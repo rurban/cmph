@@ -1,25 +1,24 @@
 #include "sdbm_hash.h"
+#include <assert.h>
 #include <stdlib.h>
 #include <string.h>
 #include <limits.h>
 #include "hash.h"
 #include "debug.h"
 
-hash_state_t *sdbm_state_new(cmph_uint32 size)
+void sdbm_state_init(hash_state_t *state, cmph_uint32 size)
 {
-	hash_state_t *state = (hash_state_t *)malloc(sizeof(hash_state_t));
-        if (!state) return NULL;
+	assert (state);
 	state->hashfunc = CMPH_HASH_SDBM;
 	if (size > 0) state->seed = (cmph_uint32)rand();
 	else state->seed = 0;
 	DEBUGP("Initializing sdbm hash with seed %u\n", state->seed);
-	return state;
 }
 
-void sdbm_state_destroy(hash_state_t *state)
-{
-	free(state);
-}
+//void sdbm_state_destroy(hash_state_t *state)
+//{
+//	free(state);
+//}
 
 cmph_uint32 sdbm_hash(hash_state_t *state, const char *k, const cmph_uint32 keylen)
 {

@@ -3,7 +3,7 @@
 
 #include "hash.h"
 
-hash_state_t *sdbm_state_new(cmph_uint32 size);
+void sdbm_state_init(hash_state_t *state, cmph_uint32 size);
 cmph_uint32 sdbm_hash(hash_state_t *state, const char *k, const cmph_uint32 keylen);
 void sdbm_state_dump(hash_state_t *state, char **buf, cmph_uint32 *buflen);
 //hash_state_t *sdbm_state_copy(hash_state_t *src_state);

@@ -2,8 +2,8 @@
 #define __JENKINS_HASH_H__
 
 #include "hash.h"
-	
-hash_state_t *jenkins_state_new(cmph_uint32 size); //size of hash table
+
+void jenkins_state_init(hash_state_t *state, cmph_uint32 size); //size of hash table
 
 /** \fn cmph_uint32 jenkins_hash(hash_state_t *state, const char *k, cmph_uint32 keylen);
  *  \param state is a pointer to a hash_state_t structure
@@ -18,25 +18,26 @@ cmph_uint32 jenkins_hash(hash_state_t *state, const char *k, cmph_uint32 keylen)
  *  \param key is a pointer to a key
  *  \param keylen is the key length
  *  \param hashes is a pointer to a memory large enough to fit three 32-bit integers.
+ *  \brief Computes three independent 32-bit hashes for the key.
  */
 void jenkins_hash_vector_(hash_state_t *state, const char *k, cmph_uint32 keylen, cmph_uint32 * hashes);
 
 void jenkins_state_dump(hash_state_t *state, char **buf, cmph_uint32 *buflen);
 //hash_state_t *jenkins_state_copy(hash_state_t *src_state);
 hash_state_t *jenkins_state_load(const char *buf);
-void jenkins_state_destroy(hash_state_t *state);
+//void jenkins_state_destroy(hash_state_t *state);
 
 /** \fn void jenkins_state_pack(hash_state_t *state, void *jenkins_packed);
  *  \brief Support the ability to pack a jenkins function into a preallocated contiguous memory space pointed by jenkins_packed.
  *  \param state points to the jenkins function
- *  \param jenkins_packed pointer to the contiguous memory area used to store the jenkins function. The size of jenkins_packed must be at least jenkins_state_packed_size() 
+ *  \param jenkins_packed pointer to the contiguous memory area used to store the jenkins function. The size of jenkins_packed must be at least jenkins_state_packed_size()
  */
 void jenkins_state_pack(hash_state_t *state, void *jenkins_packed);
 
 /** \fn cmph_uint32 jenkins_state_packed_size();
  *  \brief Return the amount of space needed to pack a jenkins function.
  *  \return the size of the packed function or zero for failures
- */ 
+ */
 cmph_uint32 jenkins_state_packed_size(void);
 
 

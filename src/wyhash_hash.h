@@ -3,7 +3,7 @@
 
 #include "hash.h"
 
-hash_state_t *wyhash_state_new(cmph_uint32 size); //size of hash table
+void wyhash_state_init(hash_state_t *state, cmph_uint32 size); //size of hash table
 
 /** \fn cmph_uint32 wyhash_hash(hash_state_t *state, const char *k, cmph_uint32 keylen);
  *  \param state is a pointer to a hash_state_t structure

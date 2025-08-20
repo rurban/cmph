@@ -1,4 +1,5 @@
 #include "jenkins_hash.h"
+#include <assert.h>
 #include <stdlib.h>
 #ifdef WIN32
 #define _USE_MATH_DEFINES //For M_LOG2E
@@ -23,6 +24,7 @@
 /*
    --------------------------------------------------------------------
    mix -- mix 3 32-bit values reversibly.
+   Mix from a and b into c.
    For every delta with one or two bits set, and the deltas of all three
    high bits or all three low bits, whether the original value of a,b,c
    is almost all zero or is uniformly distributed,
@@ -86,19 +88,18 @@ Use for hash table lookup, or anything where one collision in 2^^32 is
 acceptable.  Do NOT use for cryptographic purposes.
 --------------------------------------------------------------------
  */
-hash_state_t *jenkins_state_new(cmph_uint32 size) //size of hash table
+void jenkins_state_init(hash_state_t *state, cmph_uint32 size) // size of hash table
 {
-	hash_state_t *state = (hash_state_t *)malloc(sizeof(hash_state_t));
-	if (!state) return NULL;
+	assert (state);
+	state->hashfunc = CMPH_HASH_JENKINS;
 	if (size > 0) state->seed = ((cmph_uint32)rand() % size);
 	else state->seed = 0;
 	DEBUGP("Initializing jenkins hash with seed %u\n", state->seed);
-	return state;
 }
-void jenkins_state_destroy(hash_state_t *state)
-{
-	free(state);
-}
+//void jenkins_state_destroy(hash_state_t *state)
+//{
+//	free(state);
+//}
 
 
 static inline void __jenkins_hash_vector(cmph_uint32 seed, const unsigned char *k, cmph_uint32 keylen, cmph_uint32 * hashes)

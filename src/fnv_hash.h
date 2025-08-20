@@ -3,7 +3,7 @@
 
 #include "hash.h"
 
-hash_state_t *fnv_state_new(cmph_uint32 size);
+void fnv_state_init(hash_state_t *state, cmph_uint32 size);
 cmph_uint32 fnv_hash(hash_state_t *state, const char *k, cmph_uint32 keylen);
 void fnv_state_dump(hash_state_t *state, char **buf, cmph_uint32 *buflen);
 //hash_state_t *fnv_state_copy(hash_state_t *src_state);

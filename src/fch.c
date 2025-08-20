@@ -30,8 +30,8 @@ fch_config_data_t *fch_config_new()
 	fch->m = fch->b = 0;
 	fch->c = fch->p1 = fch->p2 = 0.0;
 	fch->g = NULL;
-	fch->h1 = NULL;
-	fch->h2 = NULL;
+	fch->hashes[0].hashfunc = fch->hashfuncs[0];
+	fch->hashes[1].hashfunc = fch->hashfuncs[1];
 	return fch;
 }
 
@@ -42,16 +42,26 @@ void fch_config_destroy(cmph_config_t *mph)
 	free(data);
 }
 
+// support 2 independent hash functions, but mostly just one for both
 void fch_config_set_hashfuncs(cmph_config_t *mph, CMPH_HASH *hashfuncs)
 {
 	fch_config_data_t *fch = (fch_config_data_t *)mph->data;
 	CMPH_HASH *hashptr = hashfuncs;
 	cmph_uint32 i = 0;
-	while(*hashptr != CMPH_HASH_COUNT)
+	while (*hashptr != CMPH_HASH_COUNT)
 	{
-		if (i >= 2) break; //fch only uses two hash functions
+		if (i >= 2) break; // fch only uses two hash functions
 		fch->hashfuncs[i] = *hashptr;
 		++i, ++hashptr;
+	}
+	if (i >= 2) {
+		if (fch->hashfuncs[0] == fch->hashfuncs[1])
+			fch->nhashfuncs = 1;
+		else
+			fch->nhashfuncs = 2;
+	} else {
+		fch->hashfuncs[1] = fch->hashfuncs[0];
+		fch->nhashfuncs = 1;
 	}
 }
 
@@ -87,8 +97,8 @@ static fch_buckets_t * mapping(cmph_config_t *mph)
 	cmph_uint32 i = 0;
 	fch_buckets_t *buckets = NULL;
 	fch_config_data_t *fch = (fch_config_data_t *)mph->data;
-	if (fch->h1) hash_state_destroy(fch->h1);
-	fch->h1 = hash_state_new(fch->hashfuncs[0], fch->m);
+	//if (fch->h1) hash_state_destroy(fch->h1);
+	hash_state_init(&fch->hashes[0], fch->m);
 	fch->b = fch_calc_b(fch->c, fch->m);
 	fch->p1 = fch_calc_p1(fch->m);
 	fch->p2 = fch_calc_p2(fch->b);
@@ -101,7 +111,7 @@ static fch_buckets_t * mapping(cmph_config_t *mph)
 		cmph_uint32 h1, keylen;
 		char *key = NULL;
 		mph->key_source->read(mph->key_source->data, &key, &keylen);
-		h1 = hash(fch->h1, key, keylen) % fch->m;
+		h1 = hash(&fch->hashes[0], key, keylen) % fch->m;
 		h1 = mixh10h11h12 (fch->b, fch->p1, fch->p2, h1);
 		fch_buckets_insert(buckets, h1, key, keylen);
 		key = NULL; // transger memory ownership
@@ -133,7 +143,7 @@ static cmph_uint8 check_for_collisions_h2(fch_config_data_t *fch, fch_buckets_t 
 		{
 			char * key = fch_buckets_get_key(buckets, sorted_indexes[i], j);
 			cmph_uint32 keylen = fch_buckets_get_keylength(buckets, sorted_indexes[i], j);
-			index = hash(fch->h2, key, keylen) % fch->m;
+			index = hash(&fch->hashes[1], key, keylen) % fch->m;
 			if(hashtable[index]) { // collision detected
 				free(hashtable);
 				return 1;
@@ -180,8 +190,8 @@ static cmph_uint8 searching(fch_config_data_t *fch, fch_buckets_t *buckets, cmph
 		map_table[random_table[i]] = i;
 	}
 	do {
-		if (fch->h2) hash_state_destroy(fch->h2);
-		fch->h2 = hash_state_new(fch->hashfuncs[1], fch->m);
+	        //if (fch->h2) hash_state_destroy(fch->h2);
+		hash_state_init(&fch->hashes[1], fch->m);
 		restart = check_for_collisions_h2(fch, buckets, sorted_indexes);
 		filled_count = 0;
 		if (!restart)
@@ -204,7 +214,7 @@ static cmph_uint8 searching(fch_config_data_t *fch, fch_buckets_t *buckets, cmph
 			for(z = 0; (z < (fch->m - filled_count)) && restart; z++) {
 				char * key = fch_buckets_get_key(buckets, sorted_indexes[i], INDEX);
 				cmph_uint32 keylen = fch_buckets_get_keylength(buckets, sorted_indexes[i], INDEX);
-				cmph_uint32 h2 = hash(fch->h2, key, keylen) % fch->m;
+				cmph_uint32 h2 = hash(&fch->hashes[1], key, keylen) % fch->m;
 				counter = 0;
 				restart = 0; // false
 				fch->g[sorted_indexes[i]] = (fch->m + random_table[filled_count + z] - h2) % fch->m;
@@ -214,7 +224,7 @@ static cmph_uint8 searching(fch_config_data_t *fch, fch_buckets_t *buckets, cmph
 					cmph_uint32 index = 0;
 					key = fch_buckets_get_key(buckets, sorted_indexes[i], j);
 					keylen = fch_buckets_get_keylength(buckets, sorted_indexes[i], j);
-					h2 = hash(fch->h2, key, keylen) % fch->m;
+					h2 = hash(&fch->hashes[1], key, keylen) % fch->m;
 					index = (h2 + fch->g[sorted_indexes[i]]) % fch->m;
 					DEBUGP("key:%s  keylen:%u  index: %u  h2:%u  bucketsize:%u\n",
                                                key, keylen, index, h2, bucketsize);
@@ -261,8 +271,8 @@ cmph_t *fch_new(cmph_config_t *mph, double c)
 	if (c <= 2) c = 2.6; // validating restrictions over parameter c.
 	fch->c = c;
 	DEBUGP("c: %f\n", fch->c);
-	fch->h1 = NULL;
-	fch->h2 = NULL;
+	//fch->h1 = NULL;
+	//fch->h2 = NULL;
 	fch->g = NULL;
 	do
 	{
@@ -294,10 +304,11 @@ cmph_t *fch_new(cmph_config_t *mph, double c)
 	fchf = (fch_data_t *)malloc(sizeof(fch_data_t));
 	fchf->g = fch->g;
 	fch->g = NULL; //transfer memory ownership
-	fchf->h1 = fch->h1;
-	fch->h1 = NULL; //transfer memory ownership
-	fchf->h2 = fch->h2;
-	fch->h2 = NULL; //transfer memory ownership
+	fchf->hashes[0] = fch->hashes[0];
+	fchf->hashes[1] = fch->hashes[1];
+	//fch->h1 = NULL; //transfer memory ownership
+	//fchf->h2 = fch->h2;
+	//fch->h2 = NULL; //transfer memory ownership
 	fchf->p2 = fch->p2;
 	fchf->p1 = fch->p1;
 	fchf->b = fch->b;
@@ -321,13 +332,13 @@ int fch_dump(cmph_t *mphf, FILE *fd)
 	fch_data_t *data = (fch_data_t *)mphf->data;
 	__cmph_dump(mphf, fd);
 
-	hash_state_dump(data->h1, &buf, &buflen);
+	hash_state_dump(&data->hashes[0], &buf, &buflen);
 	DEBUGP("Dumping hash state with %u bytes to disk\n", buflen);
 	CHK_FWRITE(&buflen, sizeof(cmph_uint32), (size_t)1, fd);
 	CHK_FWRITE(buf, (size_t)buflen, (size_t)1, fd);
 	free(buf);
 
-	hash_state_dump(data->h2, &buf, &buflen);
+	hash_state_dump(&data->hashes[1], &buf, &buflen);
 	DEBUGP("Dumping hash state with %u bytes to disk\n", buflen);
 	CHK_FWRITE(&buflen, sizeof(cmph_uint32), (size_t)1, fd);
 	CHK_FWRITE(buf, (size_t)buflen, (size_t)1, fd);
@@ -357,22 +368,24 @@ void fch_load(FILE *f, cmph_t *mphf)
 	DEBUGP("Loading fch mphf\n");
 	mphf->data = fch;
 	DEBUGP("Reading h1\n");
-	fch->h1 = NULL;
+	//fch->h1 = NULL;
 	CHK_FREAD(&buflen, sizeof(cmph_uint32), (size_t)1, f);
 	DEBUGP("Hash state of h1 has %u bytes\n", buflen);
 	buf = (char *)malloc((size_t)buflen);
 	CHK_FREAD(buf, (size_t)buflen, (size_t)1, f);
-	fch->h1 = hash_state_load(buf);
+	hash_state_t *state = hash_state_load(buf);
+	fch->hashes[0] = *state;
 	free(buf);
 
 	mphf->data = fch;
 	DEBUGP("Reading h2\n");
-	fch->h2 = NULL;
+	//fch->h2 = NULL;
 	CHK_FREAD(&buflen, sizeof(cmph_uint32), (size_t)1, f);
 	DEBUGP("Hash state of h2 has %u bytes\n", buflen);
 	buf = (char *)malloc((size_t)buflen);
 	CHK_FREAD(buf, (size_t)buflen, (size_t)1, f);
-	fch->h2 = hash_state_load(buf);
+	state = hash_state_load(buf);
+	fch->hashes[1] = *state;
 	free(buf);
 
 
@@ -397,8 +410,9 @@ void fch_load(FILE *f, cmph_t *mphf)
 cmph_uint32 fch_search(cmph_t *mphf, const char *key, cmph_uint32 keylen)
 {
 	fch_data_t *fch = (fch_data_t *)mphf->data;
-	cmph_uint32 h1 = hash(fch->h1, key, keylen) % fch->m;
-	cmph_uint32 h2 = hash(fch->h2, key, keylen) % fch->m;
+	// TODO vector
+	cmph_uint32 h1 = hash(&fch->hashes[0], key, keylen) % fch->m;
+	cmph_uint32 h2 = hash(&fch->hashes[1], key, keylen) % fch->m;
 	h1 = mixh10h11h12 (fch->b, fch->p1, fch->p2, h1);
 	DEBUGP("key: %s h1: %u h2: %u  g[h1]: %u\n", key, h1, h2, fch->g[h1]);
 	return (h2 + fch->g[h1]) % fch->m;
@@ -407,8 +421,8 @@ void fch_destroy(cmph_t *mphf)
 {
 	fch_data_t *data = (fch_data_t *)mphf->data;
 	free(data->g);
-	hash_state_destroy(data->h1);
-	hash_state_destroy(data->h2);
+	//hash_state_destroy(data->h1);
+	//hash_state_destroy(data->h2);
 	free(data);
 	free(mphf);
 }
@@ -424,21 +438,21 @@ void fch_pack(cmph_t *mphf, void *packed_mphf)
 	cmph_uint8 * ptr = (cmph_uint8 *)packed_mphf;
 
 	// packing h1 type
-	CMPH_HASH h1_type = hash_get_type(data->h1);
+	CMPH_HASH h1_type = hash_get_type(&data->hashes[0]);
 	*((cmph_uint32 *) ptr) = h1_type;
 	ptr += sizeof(cmph_uint32);
 
 	// packing h1
-	hash_state_pack(data->h1, ptr);
+	hash_state_pack(&data->hashes[0], ptr);
 	ptr += hash_state_packed_size(h1_type);
 
 	// packing h2 type
-	CMPH_HASH h2_type = hash_get_type(data->h2);
+	CMPH_HASH h2_type = hash_get_type(&data->hashes[1]);
 	*((cmph_uint32 *) ptr) = h2_type;
 	ptr += sizeof(cmph_uint32);
 
 	// packing h2
-	hash_state_pack(data->h2, ptr);
+	hash_state_pack(&data->hashes[1], ptr);
 	ptr += hash_state_packed_size(h2_type);
 
 	// packing m
@@ -469,8 +483,8 @@ void fch_pack(cmph_t *mphf, void *packed_mphf)
 cmph_uint32 fch_packed_size(cmph_t *mphf)
 {
 	fch_data_t *data = (fch_data_t *)mphf->data;
-	CMPH_HASH h1_type = hash_get_type(data->h1);
-	CMPH_HASH h2_type = hash_get_type(data->h2);
+	CMPH_HASH h1_type = hash_get_type(&data->hashes[0]);
+	CMPH_HASH h2_type = hash_get_type(&data->hashes[1]);
 
 	return (cmph_uint32)(sizeof(CMPH_ALGO) + hash_state_packed_size(h1_type) + hash_state_packed_size(h2_type) +
 			4*sizeof(cmph_uint32) + 2*sizeof(double) + sizeof(cmph_uint32)*(data->b));

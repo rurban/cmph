@@ -1,5 +1,6 @@
 #include "wyhash_hash.h"
 #include "hash.h"
+#include <assert.h>
 #include <stdlib.h>
 #include <stdint.h>
 #ifdef WIN32
@@ -24,20 +25,18 @@ len     : the length of the key, counting by bytes
 initval : can be any 4-byte value
 --------------------------------------------------------------------
  */
-hash_state_t *wyhash_state_new(cmph_uint32 size) //size of hash table
+void wyhash_state_init(hash_state_t *state, cmph_uint32 size) //size of hash table
 {
-	hash_state_t *state = (hash_state_t *)malloc(sizeof(hash_state_t));
-        if (!state) return NULL;
+        assert (state);
+	state->hashfunc = CMPH_HASH_WYHASH;
 	if (size > 0) state->seed = ((cmph_uint32)rand() % size);
 	else state->seed = 0;
 	DEBUGP("Initializing wyhash hash with seed %u\n", state->seed);
-	return state;
 }
-void wyhash_state_destroy(hash_state_t *state)
-{
-	free(state);
-}
-
+//void wyhash_state_destroy(hash_state_t *state)
+//{
+//	free(state);
+//}
 
 static inline void __wyhash_hash_vector(cmph_uint32 seed, const unsigned char *k, cmph_uint32 len, cmph_uint32 * hashes)
 {
@@ -57,7 +56,7 @@ static inline void __wyhash_hash_vector(cmph_uint32 seed, const unsigned char *k
                 else a=b=0;
         }
         else {
-                size_t i=len; 
+                size_t i=len;
                 if(_unlikely_(i>48)){
                         uint64_t see1=seed, see2=seed;
                         do {
@@ -87,6 +86,7 @@ cmph_uint32 wyhash_hash(hash_state_t *state, const char *k, cmph_uint32 keylen)
 	return hashes[2];
 }
 
+// sets 3x 32bit hashes
 void wyhash_hash_vector_(hash_state_t *state, const char *k, cmph_uint32 keylen, cmph_uint32 * hashes)
 {
 	__wyhash_hash_vector(state->seed, (const unsigned char*)k, keylen, hashes);

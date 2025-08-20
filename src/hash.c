@@ -18,41 +18,39 @@
 // the matching enum is at cmph_types.h
 const char *cmph_hash_names[] = { "jenkins", "wyhash", "djb2", "fnv", "sdbm", "crc32", NULL };
 
-hash_state_t *hash_state_new(CMPH_HASH hashfunc, cmph_uint32 hashsize)
+void hash_state_init(hash_state_t *state, cmph_uint32 hashsize)
 {
-	hash_state_t *state = NULL;
-	switch (hashfunc)
+	switch (state->hashfunc)
 	{
 		case CMPH_HASH_JENKINS:
 	  		DEBUGP("Jenkins function - %u\n", hashsize);
-			state = jenkins_state_new(hashsize);
+			jenkins_state_init(state, hashsize);
 			break;
 		case CMPH_HASH_WYHASH:
 	  		DEBUGP("Wyhash function - %u\n", hashsize);
-			state = wyhash_state_new(hashsize);
+			wyhash_state_init(state, hashsize);
 			break;
 		case CMPH_HASH_DJB2:
 	  		DEBUGP("DJB2 function - %u\n", hashsize);
-			state = djb2_state_new(hashsize);
+			djb2_state_init(state, hashsize);
 			break;
 		case CMPH_HASH_FNV:
 	  		DEBUGP("FNV function - %u\n", hashsize);
-			state = fnv_state_new(hashsize);
+			fnv_state_init(state, hashsize);
 			break;
 		case CMPH_HASH_SDBM:
 	  		DEBUGP("SDBM function - %u\n", hashsize);
-			state = sdbm_state_new(hashsize);
+			sdbm_state_init(state, hashsize);
 			break;
 		case CMPH_HASH_CRC32:
 	  		DEBUGP("CRC32 function - %u\n", hashsize);
-			state = crc32_state_new(hashsize);
+			crc32_state_init(state, hashsize);
 			break;
 		default:
 			assert(0);
 	}
-	state->hashfunc = hashfunc;
-	return state;
 }
+
 cmph_uint32 hash(hash_state_t *state, const char *key, cmph_uint32 keylen)
 {
 	switch (state->hashfunc)
@@ -76,6 +74,7 @@ cmph_uint32 hash(hash_state_t *state, const char *key, cmph_uint32 keylen)
 	return 0;
 }
 
+// all vectors set 3 independent hashes
 void hash_vector(hash_state_t *state, const char *key, cmph_uint32 keylen, cmph_uint32 * hashes)
 {
 	switch (state->hashfunc)
@@ -102,7 +101,6 @@ void hash_vector(hash_state_t *state, const char *key, cmph_uint32 keylen, cmph_
 			assert(0);
 	}
 }
-
 
 void hash_state_dump(hash_state_t *state, char **buf, cmph_uint32 *buflen)
 {
@@ -226,8 +224,11 @@ hash_state_t *hash_state_load(const char *buf)
 	}
 	return NULL;
 }
+
 void hash_state_destroy(hash_state_t *state)
 {
+	(void)state;
+/*
 	switch (state->hashfunc)
 	{
 		case CMPH_HASH_JENKINS:
@@ -251,6 +252,7 @@ void hash_state_destroy(hash_state_t *state)
 		default:
 			assert(0);
 	}
+*/
 	return;
 }
 

@@ -8,18 +8,20 @@ struct __bmz8_data_t
 	cmph_uint8 m; //edges (words) count
 	cmph_uint8 n; //vertex count
 	cmph_uint8 *g;
-	hash_state_t **hashes;
+	hash_state_t hashes[3];
+	cmph_uint8 nhashes;
 };
 
 
 struct __bmz8_config_data_t
 {
-	CMPH_HASH hashfuncs[2];
+	//CMPH_HASH hashfuncs[2]; // deprecated, use hashes instead
+	cmph_uint32 nhashfuncs; // if independent. else take just the hashes from the vector
 	cmph_uint8 m; //edges (words) count
 	cmph_uint8 n; //vertex count
 	graph_t *graph;
 	cmph_uint8 *g;
-	hash_state_t **hashes;
+	hash_state_t hashes[2];
 };
 
 #endif

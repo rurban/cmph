@@ -25,11 +25,13 @@ bmz8_config_data_t *bmz8_config_new(void)
 	bmz8 = (bmz8_config_data_t *)malloc(sizeof(bmz8_config_data_t));
         if (!bmz8) return NULL;
 	memset(bmz8, 0, sizeof(bmz8_config_data_t));
-	bmz8->hashfuncs[0] = CMPH_HASH_JENKINS;
-	bmz8->hashfuncs[1] = CMPH_HASH_JENKINS;
+	bmz8->hashes[0].hashfunc = CMPH_HASH_JENKINS;
+	bmz8->hashes[1].hashfunc = CMPH_HASH_JENKINS;
+	bmz8->nhashfuncs = 1;
+	bmz8->hashes[0].seed = 0;
+	bmz8->hashes[1].seed = 0;
 	bmz8->g = NULL;
 	bmz8->graph = NULL;
-	bmz8->hashes = NULL;
 	return bmz8;
 }
 
@@ -40,6 +42,7 @@ void bmz8_config_destroy(cmph_config_t *mph)
 	free(data);
 }
 
+// support 2 independent hash functions, but mostly just one for both
 void bmz8_config_set_hashfuncs(cmph_config_t *mph, CMPH_HASH *hashfuncs)
 {
 	bmz8_config_data_t *bmz8 = (bmz8_config_data_t *)mph->data;
@@ -47,9 +50,18 @@ void bmz8_config_set_hashfuncs(cmph_config_t *mph, CMPH_HASH *hashfuncs)
 	cmph_uint8 i = 0;
 	while(*hashptr != CMPH_HASH_COUNT)
 	{
-		if (i >= 2) break; //bmz8 only uses two hash functions
-		bmz8->hashfuncs[i] = *hashptr;
+		if (i >= 2) break; // bmz8 only uses two hash functions
+		bmz8->hashes[i].hashfunc = *hashptr;
 		++i, ++hashptr;
+	}
+	if (i >= 2) {
+		if (bmz8->hashes[0].hashfunc == bmz8->hashes[1].hashfunc)
+			bmz8->nhashfuncs = 1;
+		else
+			bmz8->nhashfuncs = 2;
+	} else {
+		bmz8->hashes[1].hashfunc = bmz8->hashes[0].hashfunc;
+		bmz8->nhashfuncs = 1;
 	}
 }
 
@@ -84,7 +96,6 @@ cmph_t *bmz8_new(cmph_config_t *mph, double c)
 	bmz8->graph = graph_new(bmz8->n, bmz8->m);
 	DEBUGP("Created graph\n");
 
-	bmz8->hashes = (hash_state_t **)calloc(2, sizeof(hash_state_t *));
 	do
 	{
 	  // Mapping step
@@ -98,24 +109,20 @@ cmph_t *bmz8_new(cmph_config_t *mph, double c)
 	  while(1)
 	  {
 		int ok;
-		if (bmz8->hashes[0])
-		{
-		    hash_state_destroy(bmz8->hashes[0]);
-		    hash_state_destroy(bmz8->hashes[1]);
-		}
 		DEBUGP("hash function 1\n");
-		bmz8->hashes[0] = hash_state_new(bmz8->hashfuncs[0], bmz8->n);
-		DEBUGP("hash function 2\n");
-		bmz8->hashes[1] = hash_state_new(bmz8->hashfuncs[1], bmz8->n);
+		hash_state_init(&bmz8->hashes[0], bmz8->n);
+		if (bmz8->nhashfuncs > 1) {
+		    DEBUGP("hash function 2\n");
+		    hash_state_init(&bmz8->hashes[1], bmz8->n);
+		}
 		DEBUGP("Generating edges\n");
 		ok = bmz8_gen_edges(mph);
 		if (!ok)
 		{
 			--iterations;
-			hash_state_destroy(bmz8->hashes[0]);
-			bmz8->hashes[0] = NULL;
-			hash_state_destroy(bmz8->hashes[1]);
-			bmz8->hashes[1] = NULL;
+			hash_state_init(&bmz8->hashes[0], bmz8->n);
+			if (bmz8->nhashfuncs > 1)
+			    hash_state_init(&bmz8->hashes[1], bmz8->n);
 			DEBUGP("%u iterations remaining\n", iterations);
 			if (mph->verbosity)
 			{
@@ -130,10 +137,6 @@ cmph_t *bmz8_new(cmph_config_t *mph, double c)
 	  if (iterations == 0)
 	  {
 		graph_destroy(bmz8->graph);
-		hash_state_destroy(bmz8->hashes[0]);
-		bmz8->hashes[0] = NULL;
-		hash_state_destroy(bmz8->hashes[1]);
-		bmz8->hashes[1] = NULL;
 		return NULL;
 	  }
 
@@ -189,6 +192,7 @@ cmph_t *bmz8_new(cmph_config_t *mph, double c)
 	  free(visited);
 
 	} while(restart_mapping && iterations_map > 0);
+
 	graph_destroy(bmz8->graph);
 	bmz8->graph = NULL;
 	if (iterations_map == 0)
@@ -200,8 +204,9 @@ cmph_t *bmz8_new(cmph_config_t *mph, double c)
 	bmz8f = (bmz8_data_t *)malloc(sizeof(bmz8_data_t));
 	bmz8f->g = bmz8->g;
 	bmz8->g = NULL; //transfer memory ownership
-	bmz8f->hashes = bmz8->hashes;
-	bmz8->hashes = NULL; //transfer memory ownership
+	bmz8f->hashes[0] = bmz8->hashes[0];
+	bmz8f->hashes[1] = bmz8->hashes[1];
+	//bmz8->hashes = NULL; //transfer memory ownership
 	bmz8f->n = bmz8->n;
 	bmz8f->m = bmz8->m;
 	mphf->data = bmz8f;
@@ -449,6 +454,7 @@ static int bmz8_gen_edges(cmph_config_t *mph)
 	cmph_uint8 e;
 	bmz8_config_data_t *bmz8 = (bmz8_config_data_t *)mph->data;
 	cmph_uint8 multiple_edges = 0;
+	cmph_uint32 hashes[2];
 	DEBUGP("Generating edges for %u vertices\n", bmz8->n);
 	graph_clear_edges(bmz8->graph);
 	mph->key_source->rewind(mph->key_source->data);
@@ -460,8 +466,14 @@ static int bmz8_gen_edges(cmph_config_t *mph)
 		mph->key_source->read(mph->key_source->data, &key, &keylen);
 
 //		if (key == NULL)fprintf(stderr, "key = %s -- read BMZ\n", key);
-		h1 = (cmph_uint8)(hash(bmz8->hashes[0], key, keylen) % bmz8->n);
-		h2 = (cmph_uint8)(hash(bmz8->hashes[1], key, keylen) % bmz8->n);
+		if (bmz8->nhashfuncs > 1) {
+		    h1 = (cmph_uint8)(hash(&bmz8->hashes[0], key, keylen) % bmz8->n);
+		    h2 = (cmph_uint8)(hash(&bmz8->hashes[1], key, keylen) % bmz8->n);
+		} else {
+		    hash_vector(&bmz8->hashes[0], key, keylen, hashes);
+		    h1 = hashes[0] % bmz8->n;
+		    h2 = hashes[1] % bmz8->n;
+		}
 		if (h1 == h2) if (++h2 >= bmz8->n) h2 = 0;
 		if (h1 == h2)
 		{
@@ -484,23 +496,25 @@ int bmz8_dump(cmph_t *mphf, FILE *fd)
 {
 	char *buf = NULL;
 	cmph_uint32 buflen;
-	cmph_uint8 two = 2; //number of hash functions
 	bmz8_data_t *data = (bmz8_data_t *)mphf->data;
+	cmph_uint8 nhashes = data->nhashes; //number of hash functions
 
 	__cmph_dump(mphf, fd);
 
-	CHK_FWRITE(&two, sizeof(cmph_uint8), (size_t)1, fd);
+	CHK_FWRITE(&nhashes, sizeof(cmph_uint8), (size_t)1, fd);
 
-	hash_state_dump(data->hashes[0], &buf, &buflen);
+	hash_state_dump(&data->hashes[0], &buf, &buflen);
 	DEBUGP("Dumping hash state with %u bytes to disk\n", buflen);
 	CHK_FWRITE(&buflen, sizeof(cmph_uint32), (size_t)1, fd);
 	CHK_FWRITE(buf, (size_t)buflen, (size_t)1, fd);
-	free(buf);
 
-	hash_state_dump(data->hashes[1], &buf, &buflen);
-	DEBUGP("Dumping hash state with %u bytes to disk\n", buflen);
-	CHK_FWRITE(&buflen, sizeof(cmph_uint32), (size_t)1, fd);
-	CHK_FWRITE(buf, (size_t)buflen, (size_t)1, fd);
+	if (nhashes > 1) {
+	    free(buf);
+	    hash_state_dump(&data->hashes[1], &buf, &buflen);
+	    DEBUGP("Dumping 2nd hash state with %u bytes to disk\n", buflen);
+	    CHK_FWRITE(&buflen, sizeof(cmph_uint32), (size_t)1, fd);
+	    CHK_FWRITE(buf, (size_t)buflen, (size_t)1, fd);
+	}
 	free(buf);
 
 	CHK_FWRITE(&(data->n), sizeof(cmph_uint8), (size_t)1, fd);
@@ -526,8 +540,8 @@ void bmz8_load(FILE *f, cmph_t *mphf)
 	DEBUGP("Loading bmz8 mphf\n");
 	mphf->data = bmz8;
 	CHK_FREAD(&nhashes, sizeof(cmph_uint8), (size_t)1, f);
-	bmz8->hashes = (hash_state_t **)malloc(sizeof(hash_state_t *)*(size_t)(nhashes + 1));
-	bmz8->hashes[nhashes] = NULL;
+	//bmz8->hashes = (hash_state_t **)malloc(sizeof(hash_state_t *)*(size_t)(nhashes + 1));
+	//bmz8->hashes[nhashes] = NULL;
 	DEBUGP("Reading %u hashes\n", nhashes);
 	for (i = 0; i < nhashes; ++i)
 	{
@@ -537,7 +551,7 @@ void bmz8_load(FILE *f, cmph_t *mphf)
 		buf = (char *)malloc((size_t)buflen);
 		CHK_FREAD(buf, (size_t)buflen, (size_t)1, f);
 		state = hash_state_load(buf);
-		bmz8->hashes[i] = state;
+		bmz8->hashes[i] = *state;
 		free(buf);
 	}
 
@@ -559,8 +573,8 @@ void bmz8_load(FILE *f, cmph_t *mphf)
 cmph_uint8 bmz8_search(cmph_t *mphf, const char *key, cmph_uint32 keylen)
 {
 	bmz8_data_t *bmz8 = (bmz8_data_t *)mphf->data;
-	cmph_uint8 h1 = (cmph_uint8)(hash(bmz8->hashes[0], key, keylen) % bmz8->n);
-	cmph_uint8 h2 = (cmph_uint8)(hash(bmz8->hashes[1], key, keylen) % bmz8->n);
+	cmph_uint8 h1 = (cmph_uint8)(hash(&bmz8->hashes[0], key, keylen) % bmz8->n);
+	cmph_uint8 h2 = (cmph_uint8)(hash(&bmz8->hashes[1], key, keylen) % bmz8->n);
 	DEBUGP("key: %s h1: %u h2: %u\n", key, h1, h2);
 	if (h1 == h2 && ++h2 > bmz8->n) h2 = 0;
 	DEBUGP("key: %s g[h1]: %u g[h2]: %u edges: %u\n", key, bmz8->g[h1], bmz8->g[h2], bmz8->m);
@@ -570,9 +584,9 @@ void bmz8_destroy(cmph_t *mphf)
 {
 	bmz8_data_t *data = (bmz8_data_t *)mphf->data;
 	free(data->g);
-	hash_state_destroy(data->hashes[0]);
-	hash_state_destroy(data->hashes[1]);
-	free(data->hashes);
+	//hash_state_destroy(data->hashes[0]);
+	//hash_state_destroy(data->hashes[1]);
+	//free(data->hashes);
 	free(data);
 	free(mphf);
 }
@@ -588,21 +602,21 @@ void bmz8_pack(cmph_t *mphf, void *packed_mphf)
 	cmph_uint8 * ptr = (cmph_uint8 *)packed_mphf;
 
 	// packing h1 type
-	CMPH_HASH h1_type = hash_get_type(data->hashes[0]);
+	CMPH_HASH h1_type = hash_get_type(&data->hashes[0]);
 	*((cmph_uint32 *) ptr) = h1_type;
 	ptr += sizeof(cmph_uint32);
 
 	// packing h1
-	hash_state_pack(data->hashes[0], ptr);
+	hash_state_pack(&data->hashes[0], ptr);
 	ptr += hash_state_packed_size(h1_type);
 
 	// packing h2 type
-	CMPH_HASH h2_type = hash_get_type(data->hashes[1]);
+	CMPH_HASH h2_type = hash_get_type(&data->hashes[1]);
 	*((cmph_uint32 *) ptr) = h2_type;
 	ptr += sizeof(cmph_uint32);
 
 	// packing h2
-	hash_state_pack(data->hashes[1], ptr);
+	hash_state_pack(&data->hashes[1], ptr);
 	ptr += hash_state_packed_size(h2_type);
 
 	// packing n
@@ -620,8 +634,8 @@ void bmz8_pack(cmph_t *mphf, void *packed_mphf)
 cmph_uint32 bmz8_packed_size(cmph_t *mphf)
 {
 	bmz8_data_t *data = (bmz8_data_t *)mphf->data;
-	CMPH_HASH h1_type = hash_get_type(data->hashes[0]);
-	CMPH_HASH h2_type = hash_get_type(data->hashes[1]);
+	CMPH_HASH h1_type = hash_get_type(&data->hashes[0]);
+	CMPH_HASH h2_type = hash_get_type(&data->hashes[1]);
 
 	return (cmph_uint32)(sizeof(CMPH_ALGO) + hash_state_packed_size(h1_type) + hash_state_packed_size(h2_type) +
 			2*sizeof(cmph_uint32) + sizeof(cmph_uint8) + sizeof(cmph_uint8)*data->n);

@@ -71,8 +71,8 @@ cmph_t *hashtree_new(cmph_config_t *mph, double c)
 	while(1)
 	{
 		int ok;
-		hashtree->hashes[0] = hash_state_new(hashtree->hashfuncs[0], hashtree->n);
-		hashtree->hashes[1] = hash_state_new(hashtree->hashfuncs[1], hashtree->n);
+		hashtree->hashes[0] = hash_state_init(state,hashtree->hashfuncs[0], hashtree->n);
+		hashtree->hashes[1] = hash_state_init(state,hashtree->hashfuncs[1], hashtree->n);
 		ok = hashtree_gen_edges(mph);
 		if (!ok)
 		{

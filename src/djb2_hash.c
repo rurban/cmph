@@ -1,24 +1,23 @@
 #include "djb2_hash.h"
+#include <assert.h>
 #include <stdlib.h>
 #include <string.h>
 #include <limits.h>
 #include "debug.h"
 
-hash_state_t *djb2_state_new(cmph_uint32 size)
+void djb2_state_init(hash_state_t *state, cmph_uint32 size)
 {
-	hash_state_t *state = (hash_state_t *)malloc(sizeof(hash_state_t));
-        if (!state) return NULL;
+	assert (state);
 	state->hashfunc = CMPH_HASH_DJB2;
 	if (size > 0) state->seed = ((cmph_uint32)rand() % size);
         else state->seed = 5381;
 	DEBUGP("Initializing djb2 hash with seed %u\n", state->seed);
-	return state;
 }
 
-void djb2_state_destroy(hash_state_t *state)
-{
-	free(state);
-}
+//void djb2_state_destroy(hash_state_t *state)
+//{
+//	free(state);
+//}
 
 cmph_uint32 djb2_hash(hash_state_t *state, const char *k, cmph_uint32 keylen)
 {

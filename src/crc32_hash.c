@@ -1,5 +1,6 @@
 #include "config.h"
 #include "crc32_hash.h"
+#include <assert.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdint.h>
@@ -7,10 +8,9 @@
 #include "hash.h"
 #include "debug.h"
 
-hash_state_t *crc32_state_new(cmph_uint32 size)
+void crc32_state_init(hash_state_t *state, cmph_uint32 size)
 {
-	hash_state_t *state = (hash_state_t *)malloc(sizeof(hash_state_t));
-        if (!state) return NULL;
+	assert (state);
 	state->hashfunc = CMPH_HASH_CRC32;
 	if (size > 0) state->seed = ((cmph_uint32)rand() % size);
 	else state->seed = 0;
@@ -19,7 +19,6 @@ hash_state_t *crc32_state_new(cmph_uint32 size)
 #else
 	DEBUGP("Initializing SW crc32 hash with seed %u\n", state->seed);
 #endif
-	return state;
 }
 
 void crc32_state_destroy(hash_state_t *state)

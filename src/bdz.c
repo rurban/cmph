@@ -234,9 +234,9 @@ bdz_config_data_t *bdz_config_new(void)
 	bdz = (bdz_config_data_t *)malloc(sizeof(bdz_config_data_t));
         if (!bdz) return NULL;
 	memset(bdz, 0, sizeof(bdz_config_data_t));
-	bdz->hashfunc = CMPH_HASH_JENKINS;
+	bdz->hl.hashfunc = CMPH_HASH_JENKINS;
+	//bdz->hashfunc = ;
 	bdz->g = NULL;
-	bdz->hl = NULL;
 	bdz->k = 0; //kth index in ranktable, $k = log_2(n=3r)/\varepsilon$
 	bdz->b = 7; // number of bits of k
 	bdz->ranktablesize = 0; //number of entries in ranktable, $n/k +1$
@@ -267,10 +267,12 @@ void bdz_config_set_hashfuncs(cmph_config_t *mph, CMPH_HASH *hashfuncs)
 	cmph_uint32 i = 0;
 	while(*hashptr != CMPH_HASH_COUNT)
 	{
-		if (i >= 1) break; //bdz only uses one linear hash function
-		bdz->hashfunc = *hashptr;	
+		if (i >= 1) break; // bdz only uses one linear hash function
+		//bdz->hashfunc = *hashptr;
+		bdz->hl.hashfunc = *hashptr;
 		++i, ++hashptr;
 	}
+	//bdz->nhashfuncs = 1;
 }
 
 cmph_t *bdz_new(cmph_config_t *mph, double c)
@@ -287,10 +289,9 @@ cmph_t *bdz_new(cmph_config_t *mph, double c)
 	ELAPSED_TIME_IN_SECONDS(&construction_time_begin);
 #endif
 
-
 	if (c == 0) c = 1.23; // validating restrictions over parameter c.
 	DEBUGP("c: %f\n", c);
-	bdz->m = mph->key_source->nkeys;	
+	bdz->m = mph->key_source->nkeys;
 	bdz->r = (cmph_uint32)ceil((c * mph->key_source->nkeys)/3);
 	if ((bdz->r % 2) == 0) bdz->r+=1;
 
@@ -298,19 +299,19 @@ cmph_t *bdz_new(cmph_config_t *mph, double c)
                 bdz->r = 3;
         }
 
+	//bdz->hl.hashfunc = bdz->hashfunc;
 	bdz->n = 3*bdz->r;
-
 	bdz->k = (1U << bdz->b);
 	DEBUGP("b: %u -- k: %u\n", bdz->b, bdz->k);
-	
+
 	bdz->ranktablesize = (cmph_uint32)ceil(bdz->n/(double)bdz->k);
 	DEBUGP("ranktablesize: %u\n", bdz->ranktablesize);
 
-	
+
 	bdz_alloc_graph3(&graph3, bdz->m, bdz->n);
 	bdz_alloc_queue(&edges,bdz->m);
 	DEBUGP("Created hypergraph\n");
-	
+
 	DEBUGP("m (edges): %u n (vertices): %u  r: %u c: %f \n", bdz->m, bdz->n, bdz->r, c);
 
 	// Mapping step
@@ -323,14 +324,15 @@ cmph_t *bdz_new(cmph_config_t *mph, double c)
 	{
 		int ok;
 		DEBUGP("linear hash function \n");
-		bdz->hl = hash_state_new(bdz->hashfunc, 15);
+		hash_state_init(&bdz->hl, bdz->n);
 
 		ok = bdz_mapping(mph, &graph3, edges);
 		if (!ok)
 		{
 			--iterations;
-			hash_state_destroy(bdz->hl);
-			bdz->hl = NULL;
+			hash_state_init(&bdz->hl, bdz->n);
+			//hash_state_destroy(bdz->hl);
+			//bdz->hl = NULL;
 			DEBUGP("%u iterations remaining\n", iterations);
 			if (mph->verbosity)
 			{
@@ -374,7 +376,7 @@ cmph_t *bdz_new(cmph_config_t *mph, double c)
 	bdzf->g = bdz->g;
 	bdz->g = NULL; //transfer memory ownership
 	bdzf->hl = bdz->hl;
-	bdz->hl = NULL; //transfer memory ownership
+	//bdz->hl = NULL; //transfer memory ownership
 	bdzf->ranktable = bdz->ranktable;
 	bdz->ranktable = NULL; //transfer memory ownership
 	bdzf->ranktablesize = bdz->ranktablesize;
@@ -419,7 +421,7 @@ static int bdz_mapping(cmph_config_t *mph, bdz_graph3_t* graph3, bdz_queue_t que
 		cmph_uint32 keylen;
 		char *key = NULL;
 		mph->key_source->read(mph->key_source->data, &key, &keylen);
-		hash_vector(bdz->hl, key, keylen,hl);
+		hash_vector(&bdz->hl, key, keylen,hl);
 		h0 = hl[0] % bdz->r;
 		h1 = hl[1] % bdz->r + bdz->r;
 		h2 = hl[2] % bdz->r + (bdz->r << 1);
@@ -508,7 +510,7 @@ int bdz_dump(cmph_t *mphf, FILE *fd)
 	bdz_data_t *data = (bdz_data_t *)mphf->data;
 	__cmph_dump(mphf, fd);
 
-	hash_state_dump(data->hl, &buf, &buflen);
+	hash_state_dump(&data->hl, &buf, &buflen);
 	DEBUGP("Dumping hash state with %u bytes to disk\n", buflen);
 	CHK_FWRITE(&buflen, sizeof(cmph_uint32), (size_t)1, fd);
 	CHK_FWRITE(buf, (size_t)buflen, (size_t)1, fd);
@@ -548,7 +550,8 @@ void bdz_load(FILE *f, cmph_t *mphf)
 	DEBUGP("Hash state has %u bytes\n", buflen);
 	buf = (char *)malloc((size_t)buflen);
 	CHK_FREAD(buf, (size_t)buflen, (size_t)1, f);
-	bdz->hl = hash_state_load(buf);
+	hash_state_t *hl = hash_state_load(buf);
+	bdz->hl = *hl;
 	free(buf);
 
 	DEBUGP("Reading m and n\n");
@@ -606,7 +609,7 @@ cmph_uint32 bdz_search(cmph_t *mphf, const char *key, cmph_uint32 keylen)
 	register cmph_uint32 vertex;
 	register bdz_data_t *bdz = (bdz_data_t *)mphf->data;
 	cmph_uint32 hl[3];
-	hash_vector(bdz->hl, key, keylen, hl);
+	hash_vector(&bdz->hl, key, keylen, hl);
 	hl[0] = hl[0] % bdz->r;
 	hl[1] = hl[1] % bdz->r + bdz->r;
 	hl[2] = hl[2] % bdz->r + (bdz->r << 1);
@@ -620,7 +623,7 @@ void bdz_destroy(cmph_t *mphf)
 {
 	bdz_data_t *data = (bdz_data_t *)mphf->data;
 	free(data->g);
-	hash_state_destroy(data->hl);
+	//hash_state_destroy(data->hl);
 	free(data->ranktable);
 	free(data);
 	free(mphf);
@@ -629,7 +632,7 @@ void bdz_destroy(cmph_t *mphf)
 /** \fn void bdz_pack(cmph_t *mphf, void *packed_mphf);
  *  \brief Support the ability to pack a perfect hash function into a preallocated contiguous memory space pointed by packed_mphf.
  *  \param mphf pointer to the resulting mphf
- *  \param packed_mphf pointer to the contiguous memory area used to store the resulting mphf. The size of packed_mphf must be at least cmph_packed_size() 
+ *  \param packed_mphf pointer to the contiguous memory area used to store the resulting mphf. The size of packed_mphf must be at least cmph_packed_size()
  */
 void bdz_pack(cmph_t *mphf, void *packed_mphf)
 {
@@ -637,12 +640,12 @@ void bdz_pack(cmph_t *mphf, void *packed_mphf)
 	cmph_uint8 * ptr = (cmph_uint8 *)packed_mphf;
 
 	// packing hl type
-	CMPH_HASH hl_type = hash_get_type(data->hl);
+	CMPH_HASH hl_type = hash_get_type(&data->hl);
 	*((cmph_uint32 *) ptr) = hl_type;
 	ptr += sizeof(cmph_uint32);
 
 	// packing hl
-	hash_state_pack(data->hl, ptr);
+	hash_state_pack(&data->hl, ptr);
 	ptr += hash_state_packed_size(hl_type);
 
 	// packing r
@@ -674,7 +677,7 @@ cmph_uint32 bdz_packed_size(cmph_t *mphf)
 {
 	bdz_data_t *data = (bdz_data_t *)mphf->data;
 
-	CMPH_HASH hl_type = hash_get_type(data->hl);
+	CMPH_HASH hl_type = hash_get_type(&data->hl);
 	cmph_uint32 sizeg = (cmph_uint32)ceil(data->n/4.0);
 
 	return (cmph_uint32)(sizeof(CMPH_ALGO) + hash_state_packed_size(hl_type) +
