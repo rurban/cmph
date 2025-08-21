@@ -27,7 +27,7 @@ bmz8_config_data_t *bmz8_config_new(void)
 	memset(bmz8, 0, sizeof(bmz8_config_data_t));
 	//bmz8->hashfuncs[0] = CMPH_HASH_JENKINS;
 	//bmz8->hashfuncs[1] = CMPH_HASH_JENKINS;
-	bmz8->nhashfuncs = 1;
+	bmz8->nhashfuncs = 2;
 	//bmz8->g = NULL;
 	//bmz8->graph = NULL;
 	//bmz8->hashes = NULL;
@@ -50,17 +50,9 @@ void bmz8_config_set_hashfuncs(cmph_config_t *mph, CMPH_HASH *hashfuncs)
 	while(*hashptr != CMPH_HASH_COUNT)
 	{
 		if (i >= 2) break; // bmz8 only uses two hash functions
-		bmz8->hashfuncs[i] = *hashptr;
+		for (int j=i; j<2; j++)
+		    bmz8->hashfuncs[j] = *hashptr;
 		++i, ++hashptr;
-	}
-	if (i >= 2) {
-		if (bmz8->hashfuncs[0] == bmz8->hashfuncs[1])
-			bmz8->nhashfuncs = 1;
-		else
-			bmz8->nhashfuncs = 2;
-	} else {
-		bmz8->hashfuncs[1] = bmz8->hashfuncs[0];
-		bmz8->nhashfuncs = 1;
 	}
 }
 
