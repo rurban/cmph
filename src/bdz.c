@@ -112,9 +112,9 @@ static void bdz_dump_graph(bdz_graph3_t* graph3)
 {
 	cmph_uint32 i;
 	for(i=0;i<graph3->nedges;i++){
-		printf("edge [%u] %d %d %d, ",i,graph3->edges[i].vertices[0],
+		fprintf(stderr, "edge [%u] %d %d %d, ",i,graph3->edges[i].vertices[0],
 			graph3->edges[i].vertices[1],graph3->edges[i].vertices[2]);
-		printf("next %d %d %d\n",graph3->edges[i].next_edges[0],
+		fprintf(stderr, "next %d %d %d\n",graph3->edges[i].next_edges[0],
 		       graph3->edges[i].next_edges[1],
 		       graph3->edges[i].next_edges[2]);
 	};
@@ -472,7 +472,7 @@ static void assigning(bdz_config_data_t *bdz, bdz_graph3_t* graph3, bdz_queue_t 
 		}else {
 			SETVALUE1(bdz->g, v2, (8-(GETVALUE(bdz->g,v0)+GETVALUE(bdz->g, v1)))%3);
 			SETBIT(marked_vertices, v2);
-		}		
+		}
 		DEBUGP("A:%u %u %u -- %u %u %u\n", v0, v1, v2,
                        GETVALUE(bdz->g, v0), GETVALUE(bdz->g, v1), GETVALUE(bdz->g, v2));
 	};
@@ -486,7 +486,7 @@ static void ranking(bdz_config_data_t *bdz)
                 nbytes_total = (cmph_uint32)ceil(bdz->n/4.0), nbytes;
 	bdz->ranktable = (cmph_uint32 *)calloc((size_t)bdz->ranktablesize, sizeof(cmph_uint32));
 	// ranktable computation (number of bits in g)
-	bdz->ranktable[0] = 0;	
+	bdz->ranktable[0] = 0;
 	for (cmph_uint32 i=1; i < bdz->ranktablesize; i++) {
 		nbytes = size < nbytes_total? size : nbytes_total;
 		for (j = 0; j < nbytes; j++) {
@@ -498,12 +498,97 @@ static void ranking(bdz_config_data_t *bdz)
 	}
 }
 
-int bdz_compile(cmph_t *mphf)
+int bdz_compile(cmph_t *mphf, cmph_config_t *mph)
 {
-	bdz_data_t *data = (bdz_data_t *)mphf->data;
+	bdz_data_t *bdz = (bdz_data_t *)mphf->data;
+	bdz_config_data_t *config = (bdz_config_data_t *)mph->data;
 	DEBUGP("Compiling bdz\n");
-	printf("// NYI\n");
+	hash_state_compile(1, &bdz->hl);
+	printf("#include <assert.h>\n");
+	printf("#ifdef DEBUG\n");
+	printf("#include <stdio.h>\n");
+	printf("#endif\n");
+	printf("#define UNASSIGNED 3U\n");
+	//printf("#define NULL_EDGE 0xffffffff\n");
+	printf("#define GETVALUE(array, i) ((uint8_t)((array[i >> 2] >> ((i & UNASSIGNED) << 1U)) & UNASSIGNED))\n\n");
+	printf("const uint8_t bdz_lookup_table[256] = {\n");
+	printf("    4, 4, 4, 3, 4, 4, 4, 3, 4, 4, 4, 3, 3, 3, 3, 2,\n");
+	printf("    4, 4, 4, 3, 4, 4, 4, 3, 4, 4, 4, 3, 3, 3, 3, 2,\n");
+	printf("    4, 4, 4, 3, 4, 4, 4, 3, 4, 4, 4, 3, 3, 3, 3, 2,\n");
+	printf("    3, 3, 3, 2, 3, 3, 3, 2, 3, 3, 3, 2, 2, 2, 2, 1,\n");
+	printf("    4, 4, 4, 3, 4, 4, 4, 3, 4, 4, 4, 3, 3, 3, 3, 2,\n");
+	printf("    4, 4, 4, 3, 4, 4, 4, 3, 4, 4, 4, 3, 3, 3, 3, 2,\n");
+	printf("    4, 4, 4, 3, 4, 4, 4, 3, 4, 4, 4, 3, 3, 3, 3, 2,\n");
+	printf("    3, 3, 3, 2, 3, 3, 3, 2, 3, 3, 3, 2, 2, 2, 2, 1,\n");
+	printf("    4, 4, 4, 3, 4, 4, 4, 3, 4, 4, 4, 3, 3, 3, 3, 2,\n");
+	printf("    4, 4, 4, 3, 4, 4, 4, 3, 4, 4, 4, 3, 3, 3, 3, 2,\n");
+	printf("    4, 4, 4, 3, 4, 4, 4, 3, 4, 4, 4, 3, 3, 3, 3, 2,\n");
+	printf("    3, 3, 3, 2, 3, 3, 3, 2, 3, 3, 3, 2, 2, 2, 2, 1,\n");
+	printf("    3, 3, 3, 2, 3, 3, 3, 2, 3, 3, 3, 2, 2, 2, 2, 1,\n");
+	printf("    3, 3, 3, 2, 3, 3, 3, 2, 3, 3, 3, 2, 2, 2, 2, 1,\n");
+	printf("    3, 3, 3, 2, 3, 3, 3, 2, 3, 3, 3, 2, 2, 2, 2, 1,\n");
+	printf("    2, 2, 2, 1, 2, 2, 2, 1, 2, 2, 2, 1, 1, 1, 1, 0\n");
+	printf("};\n");
+	printf("const uint32_t ranktable[%u] = {\n    ", bdz->ranktablesize);
+	for (cmph_uint32 i=0; i < bdz->ranktablesize - 1; i++) {
+		printf("%u, ", bdz->ranktable[i]);
+		if (i % 16 == 15)
+			printf("\n    ");
+	}
+	printf("    %u\n};\n", bdz->ranktable[bdz->ranktablesize - 1]);
+	printf("\nstatic inline uint32_t rank(const uint32_t *ranktable, const uint8_t *g, uint32_t vertex) {\n");
+	printf("    uint32_t index = vertex >> %u;\n", bdz->b);
+	printf("    assert(index < %u);\n", bdz->ranktablesize);
+	printf("    uint32_t base_rank = ranktable[index];\n");
+	printf("    uint32_t beg_idx_v = index << %u;\n", bdz->b);
+	printf("    uint32_t beg_idx_b = beg_idx_v >> 2;\n");
+	printf("    uint32_t end_idx_b = vertex >> 2;\n");
+	printf("    while (beg_idx_b < end_idx_b) {\n");
+	printf("    	base_rank += bdz_lookup_table[*(g + beg_idx_b++)];\n");
+	printf("    }\n");
+	printf("    beg_idx_v = beg_idx_b << 2;\n");
+	printf("    while (beg_idx_v < vertex) {\n");
+	printf("    	if (GETVALUE(g, beg_idx_v) != UNASSIGNED) base_rank++;\n");
+	printf("    	beg_idx_v++;\n");
+	printf("    }\n");
+#ifdef DEBUG
+	printf("#ifdef DEBUG\n");
+	printf("    fprintf(stderr, \"rank: %%u\\n\", base_rank);\n");
+	printf("#endif\n");
+#endif
+	printf("    return base_rank;\n");
+	printf("}\n");
+	printf("\nuint32_t cmph_search(const char* key, uint32_t keylen) {\n");
+	printf("    /* n: %u */\n", bdz->n);
+	printf("    /* m: %u */\n", bdz->m);
+	cmph_uint32 sizeg = (cmph_uint32)ceil(bdz->n/4.0);
+	printf("    const uint8_t g[%u] = {\n        ", sizeg);
+	for (unsigned i=0; i < sizeg - 1; i++) {
+		printf("%u, ", bdz->g[i]);
+		if (i % 16 == 15)
+			printf("\n        ");
+	}
+	printf("%u\n    };\n", bdz->g[sizeg - 1]);
+	printf("    uint32_t vertex;\n");
+	printf("    uint32_t hl[3];\n");
+	printf("    %s_hash_vector(%u, (const unsigned char*)key, keylen, hl);\n",
+	       cmph_hash_names[config->hashfunc], bdz->hl->seed);
+	printf("    hl[0] = hl[0] %% %u;\n", bdz->r);
+	printf("    hl[1] = hl[1] %% %u + %u;\n", bdz->r, bdz->r);
+	printf("    hl[2] = hl[2] %% %u + (%u << 1);\n", bdz->r, bdz->r);
+	printf("    vertex = hl[(GETVALUE(g, hl[0]) + GETVALUE(g, hl[1]) + GETVALUE(g, hl[2])) %% 3];\n");
+#ifdef DEBUG
+	printf("#ifdef DEBUG\n");
+	printf("    fprintf(stderr, \"key: %%s\\n\", key);\n");
+	printf("    fprintf(stderr, \"hl: {%%u, %%u, %%u}, \", hl[0], hl[1], hl[2]);\n");
+	printf("    fprintf(stderr, \"vertex: %%u, \", vertex);\n");
+	printf("#endif\n");
+#endif
+	printf("    return rank(ranktable, g, vertex);\n");
+	printf("};\n");
+	return 1;
 }
+
 int bdz_dump(cmph_t *mphf, FILE *fd)
 {
 	char *buf = NULL;
@@ -601,6 +686,7 @@ static inline cmph_uint32 rank(cmph_uint32 b, cmph_uint32 * ranktable, cmph_uint
 		beg_idx_v++;
 	}
 
+	DEBUGP("rank %u\n", base_rank);
 	return base_rank;
 }
 
@@ -632,7 +718,7 @@ void bdz_destroy(cmph_t *mphf)
 /** \fn void bdz_pack(cmph_t *mphf, void *packed_mphf);
  *  \brief Support the ability to pack a perfect hash function into a preallocated contiguous memory space pointed by packed_mphf.
  *  \param mphf pointer to the resulting mphf
- *  \param packed_mphf pointer to the contiguous memory area used to store the resulting mphf. The size of packed_mphf must be at least cmph_packed_size() 
+ *  \param packed_mphf pointer to the contiguous memory area used to store the resulting mphf. The size of packed_mphf must be at least cmph_packed_size()
  */
 void bdz_pack(cmph_t *mphf, void *packed_mphf)
 {

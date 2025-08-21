@@ -456,6 +456,7 @@ int bdz_ph_compile(cmph_t *mphf)
 	bdz_ph_data_t *data = (bdz_ph_data_t *)mphf->data;
 	DEBUGP("Compiling bdz_ph\n");
 	printf("// NYI\n");
+	exit(1);
 }
 int bdz_ph_dump(cmph_t *mphf, FILE *fd)
 {

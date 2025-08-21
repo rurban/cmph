@@ -599,6 +599,7 @@ int brz_compile(cmph_t *mphf)
 	brz_data_t *data = (brz_data_t *)mphf->data;
 	DEBUGP("Compiling brz\n");
 	printf("// NYI\n");
+	exit(1);
 }
 int brz_dump(cmph_t *mphf, FILE *fd)
 {

@@ -613,23 +613,25 @@ int cmph_compile(cmph_t *mphf, cmph_config_t *config, const char *keys_file)
 		case CMPH_CHM:
 		    return chm_compile(mphf, config);
 		case CMPH_BMZ:
-			return bmz_compile(mphf);
-		case CMPH_BMZ8:
-			return bmz8_compile(mphf);
-		case CMPH_BRZ:
-			return brz_compile(mphf);
-		case CMPH_FCH:
-			return fch_compile(mphf);
+		    return bmz_compile(mphf, config);
 		case CMPH_BDZ:
-			return bdz_compile(mphf);
+		    return bdz_compile(mphf, config);
+		/*
+		case CMPH_BMZ8:
+		    return bmz8_compile(mphf);
+		case CMPH_BRZ:
+		    return brz_compile(mphf);
+		case CMPH_FCH:
+		    return fch_compile(mphf);
 		case CMPH_BDZ_PH:
-			return bdz_ph_compile(mphf);
+		    return bdz_ph_compile(mphf);
 		case CMPH_CHD_PH:
-			return chd_ph_compile(mphf);
+		    return chd_ph_compile(mphf);
 		case CMPH_CHD:
-			return chd_compile(mphf);
+		    return chd_compile(mphf);
+		*/
 		default:
-			assert(0);
+		    assert(0);
 	}
 	assert(0);
 	return 0;

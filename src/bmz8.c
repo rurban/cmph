@@ -490,6 +490,7 @@ int bmz8_compile(cmph_t *mphf)
 	bmz8_data_t *data = (bmz8_data_t *)mphf->data;
 	DEBUGP("Compiling bmz8\n");
 	printf("// NYI\n");
+	exit(1);
 }
 int bmz8_dump(cmph_t *mphf, FILE *fd)
 {
