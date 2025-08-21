@@ -1,4 +1,4 @@
-TESTS = $(check_PROGRAMS) cmph_tests
+TESTS = $(check_PROGRAMS) cmph_tests cmph_compile_tests
 check_PROGRAMS = graph_tests select_tests compressed_seq_tests compressed_rank_tests cmph_benchmark_test
 noinst_PROGRAMS = packed_mphf_tests mphf_tests
 EXTRA_DIST = cmph_tests
@@ -27,5 +27,5 @@ compressed_rank_tests_LDADD = ../src/libcmph.la
 cmph_benchmark_test_SOURCES = cmph_benchmark_test.c
 cmph_benchmark_test_LDADD = ../src/libcmph.la
 
-CLEANFILES = test-suite.log _words _words.mph TAGS
-
+CLEANFILES = test-suite.log _words _words.mph _words100 _words100.mph TAGS \
+  cmph_compile_run.o cmph_compile_run

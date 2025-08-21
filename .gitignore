@@ -171,3 +171,6 @@ tests/select_tests.log
 tests/select_tests.o
 tests/select_tests.trs
 tests/test-suite.log
+tests/compile_run
+tests/cmph_compile_tests
+.build*

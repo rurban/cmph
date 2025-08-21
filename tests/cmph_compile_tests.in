@@ -1,0 +1,63 @@
+#!/bin/sh
+# Example:
+# src/cmph -C -s 0 -a bdz tests/_words >bdz.c && tests/compile_run bdz tests/_words
+# ./cmph_compile_run bdz tests/_words
+
+cd "$(dirname "$0")" || exit 1
+set -e
+N=10000
+WORDS=/usr/share/dict/words
+
+test -e _words || head -n $N <${WORDS} >_words
+test -e _words100 || head -n 100 <${WORDS} >_words100
+
+all="bmz chm brz fch bdz bdz_ph bmz8 chd chd_ph"
+algos="chm bmz bdz"
+for a in $algos; do
+    rm -f _words.mph
+    if [ $a = bmz8 ] || [ $a = fch ]; then
+        rm -f _words100.mph
+        words=_words100
+    else
+        words=_words
+    fi
+    echo "** cmph -C -a $a $words >$a.c"
+    ../src/cmph -C -a $a $words >$a.c
+    echo "** cc -O2 -Wall -Wextra -c $a.c"
+    cc -O2 -Wall -Wextra -c $a.c
+    echo "** compile_run $a $words"
+    ./compile_run $a $words && rm $a.c $a.o
+done
+
+all_funcs="jenkins wyhash crc32 fnv djb2 sdbm"
+funcs="jenkins wyhash"
+for f in $funcs; do
+    # cmh uses hash_vector
+    rm -f _words.mph _words100.mph
+    if [ $f = crc32 ] || [ $f = sdbm ] || [ $f = djb2 ]
+    then
+        echo too weak $f hash, use a seperate hashfunc and a seed
+        f="$f -f jenkins -s 11"
+    fi
+    echo "** cmph -C -f $f _words"
+    ../src/cmph -C -f $f _words >$f.c
+    echo "** cc -O2 -Wall -Wextra -c $a.c"
+    cc -O2 -Wall -Wextra -c $f.c
+    echo "** compile_run $f $words"
+    ./compile_run $f _words && rm $f.c $f.o
+
+    # bdz uses the hash_vector API, 3x in one
+    case $f in
+        sdbm|djb2*)
+            echo too weak $f hash with BDZ
+            break
+            ;;
+    esac
+    echo "** cmph -C -f $f -a bdz $words >${f}_bdz.c"
+    ../src/cmph -C -f $f -a bdz $words >${f}_bdz.c
+    echo "** cc -O2 -Wall -Wextra -c ${f}_bdz.c"
+    cc -O2 -Wall -Wextra -c ${f}_bdz
+    echo "** compile_run ${f}_bdz $words"
+    ./compile_run ${f}_bdz $words  && rm ${f}_bdz.c ${f}_bdz.o
+done
+rm -f _words _words.mph _words100 _words100.mph
