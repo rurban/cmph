@@ -173,8 +173,8 @@ all: $(doc_HTML)
 
 COMMON_T2T = $(srcdir)/FOOTER.t2t $(srcdir)/GOOGLEANALYTICS.t2t $(srcdir)/CONFIG.t2t
 
-#cmph.1: CMPH.t2t
-#	txt2tags -t man -i CMPH.t2t -o $@
+cmph.1: CMPH.t2t
+	txt2tags -t man -i CMPH.t2t -o $@
 index.html: $(srcdir)/README.t2t $(srcdir)/CMPH.t2t $(srcdir)/LOGO.t2t $(srcdir)/NEWSLOG.t2t $(COMMON_T2T)
 	cd $(srcdir) && txt2tags -t html -i README.t2t -o $(abs_builddir)/$@
 	cd $(srcdir) && txt2tags -t txt -i README.t2t -o $(abs_top_builddir)/README

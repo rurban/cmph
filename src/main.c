@@ -41,8 +41,8 @@ void usage_long(const char *prg)
 	fprintf(stderr, "  -V\t print version number and exit\n");
 	fprintf(stderr, "  -v\t increase verbosity (may be used multiple times)\n");
 	fprintf(stderr, "  -k\t number of keys\n");
-	fprintf(stderr, "  -g\t generate .mph file\n");
-	fprintf(stderr, "  -C\t generate and emit C file\n");
+	fprintf(stderr, "  -g\t generate a .mph file\n");
+	fprintf(stderr, "  -C\t generate a C file\n");
 	fprintf(stderr, "  -s\t random seed\n");
 	fprintf(stderr, "  -m\t minimum perfect hash function file \n");
 	fprintf(stderr, "  -M\t main memory availability (in MB) used in BRZ algorithm \n");

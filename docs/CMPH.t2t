@@ -1,7 +1,7 @@
 cmph
 
 ```
-usage: cmph [-v] [-h] [-V] [-k nkeys] [-f hash_function] [-g [-c algorithm_dependent_value][-s seed] ]
+usage: cmph [-v][-h][-V][-C] [-k nkeys] [-f hash_function] [-g [-c algorithm_dependent_value][-s seed] ]
             [-a algorithm] [-M memory_in_MB] [-b algorithm_dependent_value] [-t keys_per_bin] [-d tmp_dir]
             [-m file.mph] keysfile
 Minimum perfect hashing tool
@@ -31,11 +31,12 @@ Minimum perfect hashing tool
   -V	 print version number and exit
   -v	 increase verbosity (may be used multiple times)
   -k	 number of keys
-  -g	 generation mode
+  -g	 generate a .mph file
+  -C	 generate a C file
   -s	 random seed
-  -m	 minimum perfect hash function file 
-  -M	 main memory availability (in MB) used in BRZ algorithm 
-  -d	 temporary directory used in BRZ algorithm 
+  -m	 minimum perfect hash function .mph file
+  -M	 main memory availability (in MB) used in BRZ algorithm
+  -d	 temporary directory used in BRZ algorithm
   -b	 the meaning of this parameter depends on the algorithm selected in the -a option:
     	  * For BRZ it is used to make the maximal number of keys in a bucket lower than 256.
     	    In this case its value should be an integer in the range [64,175]. Default is 128.
