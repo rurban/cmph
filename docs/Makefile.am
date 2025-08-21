@@ -171,36 +171,38 @@ EXTRA_DIST = $(T2T) gendocs $(FIGS) $(PAPERS)
 
 all: $(doc_HTML)
 
-COMMON_T2T := $(addprefix,$(srcdir)/, FOOTER.t2t GOOGLEANALYTICS.t2t CONFIG.t2t)
+COMMON_T2T = $(srcdir)/FOOTER.t2t $(srcdir)/GOOGLEANALYTICS.t2t $(srcdir)/CONFIG.t2t
 
 #cmph.1: CMPH.t2t
 #	txt2tags -t man -i CMPH.t2t -o $@
-index.html: $(addprefix,$(srcdir)/, README.t2t CMPH.t2t LOGO.t2t NEWSLOG.t2t) $(COMMON_T2T)
+index.html: $(srcdir)/README.t2t $(srcdir)/CMPH.t2t $(srcdir)/LOGO.t2t $(srcdir)/NEWSLOG.t2t $(COMMON_T2T)
 	cd $(srcdir) && txt2tags -t html -i README.t2t -o $(abs_builddir)/$@
 	cd $(srcdir) && txt2tags -t txt -i README.t2t -o $(abs_top_builddir)/README
-chd.html: $(addprefix,$(srcdir)/, CHD.t2t ALGORITHMS.t2t) $(COMMON_T2T)
+chd.html: $(srcdir)/CHD.t2t $(srcdir)/ALGORITHMS.t2t $(COMMON_T2T)
 	cd $(srcdir) && txt2tags -t html -i CHD.t2t -o $(abs_builddir)/$@
-bdz.html: $(addprefix,$(srcdir)/, BDZ.t2t ALGORITHMS.t2t) $(COMMON_T2T)
+bdz.html: $(srcdir)/BDZ.t2t $(srcdir)/ALGORITHMS.t2t $(COMMON_T2T)
 	cd $(srcdir) && txt2tags -t html -i BDZ.t2t -o $(abs_builddir)/$@
-bmz.html: $(addprefix,$(srcdir)/, BMZ.t2t ALGORITHMS.t2t) $(COMMON_T2T)
+bmz.html: $(srcdir)/BMZ.t2t $(srcdir)/ALGORITHMS.t2t $(COMMON_T2T)
 	cd $(srcdir) && txt2tags -t html -i BMZ.t2t -o $(abs_builddir)/$@
-brz.html: $(addprefix,$(srcdir)/, BRZ.t2t ALGORITHMS.t2t TABLEBRZ1.t2t TABLEBRZ2.t2t TABLEBRZ3.t2t) $(COMMON_T2T) 
+brz.html: $(srcdir)/BRZ.t2t $(srcdir)/ALGORITHMS.t2t $(srcdir)/TABLEBRZ1.t2t \
+	  $(srcdir)/TABLEBRZ2.t2t $(srcdir)/TABLEBRZ3.t2t $(COMMON_T2T)
 	cd $(srcdir) && txt2tags -t html -i BRZ.t2t -o $(abs_builddir)/$@
-chm.html: $(addprefix,$(srcdir)/, CHM.t2t ALGORITHMS.t2t) $(COMMON_T2T)
+chm.html: $(srcdir)/CHM.t2t $(srcdir)/ALGORITHMS.t2t $(COMMON_T2T)
 	cd $(srcdir) && txt2tags -t html -i CHM.t2t -o $(abs_builddir)/$@
-fch.html: $(addprefix,$(srcdir)/, FCH.t2t ALGORITHMS.t2t) $(COMMON_T2T)
+fch.html: $(srcdir)/FCH.t2t $(srcdir)/ALGORITHMS.t2t $(COMMON_T2T)
 	cd $(srcdir) && txt2tags -t html -i FCH.t2t -o $(abs_builddir)/$@
-comparison.html: $(addprefix,$(srcdir)/, COMPARISON.t2t ALGORITHMS.t2t TABLE1.t2t TABLE4.t2t TABLE5.t2t) $(COMMON_T2T) 
+comparison.html: $(srcdir)/COMPARISON.t2t $(srcdir)/ALGORITHMS.t2t $(srcdir)/TABLE1.t2t \
+	         $(srcdir)/TABLE4.t2t $(srcdir)/TABLE5.t2t $(COMMON_T2T)
 	cd $(srcdir) && txt2tags -t html -i COMPARISON.t2t -o $(abs_builddir)/$@
-gperf.html: $(addprefix,$(srcdir)/, GPERF.t2t ALGORITHMS.t2t) $(COMMON_T2T)
+gperf.html: $(srcdir)/GPERF.t2t $(srcdir)/ALGORITHMS.t2t $(COMMON_T2T)
 	cd $(srcdir) && txt2tags -t html -i GPERF.t2t -o $(abs_builddir)/$@
-faq.html: $(addprefix,$(srcdir)/, FAQ.t2t ALGORITHMS.t2t) $(COMMON_T2T)
+faq.html: $(srcdir)/FAQ.t2t $(srcdir)/ALGORITHMS.t2t $(COMMON_T2T)
 	cd $(srcdir) && txt2tags -t html -i FAQ.t2t -o $(abs_builddir)/$@
-concepts.html: $(addprefix,$(srcdir)/, CONCEPTS.t2t ALGORITHMS.t2t) $(COMMON_T2T)
+concepts.html: $(srcdir)/CONCEPTS.t2t $(srcdir)/ALGORITHMS.t2t $(COMMON_T2T)
 	cd $(srcdir) && txt2tags -t html -i CONCEPTS.t2t -o $(abs_builddir)/$@
-newslog.html: $(addprefix,$(srcdir)/, NEWSLOG.t2t ALGORITHMS.t2t) $(COMMON_T2T)
+newslog.html: $(srcdir)/NEWSLOG.t2t $(srcdir)/ALGORITHMS.t2t $(COMMON_T2T)
 	cd $(srcdir) && txt2tags -t html -i NEWSLOG.t2t -o $(abs_builddir)/$@
-examples.html: $(addprefix,$(srcdir)/, EXAMPLES.t2t ALGORITHMS.t2t) $(COMMON_T2T)
+examples.html: $(srcdir)/EXAMPLES.t2t $(srcdir)/ALGORITHMS.t2t $(COMMON_T2T)
 	cd $(srcdir) && txt2tags -t html -i EXAMPLES.t2t -o $(abs_builddir)/$@
 
 DISTCLEANFILES = $(doc_HTML)
