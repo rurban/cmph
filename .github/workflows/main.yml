@@ -21,6 +21,6 @@ jobs:
     #  --enable-check --enable-cxxmph
     - run: ./configure CFLAGS="${{ matrix.CFLAGS }}"
     - run: make
-    - run: make check || cat tests/test-suite.log
+    - run: make check || (cat tests/test-suite.log; false)
     - if: matrix.CFLAGS == ''
-      run: make distcheck || cat tests/test-suite.log
+      run: make distcheck || (cat tests/test-suite.log; false)
