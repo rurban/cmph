@@ -62,11 +62,11 @@ void cmph_config_destroy(cmph_config_t *mph);
 cmph_t *cmph_new(cmph_config_t *mph);
 
 /** cmph_uint32 cmph_search(cmph_t *mphf, const char *key, cmph_uint32 keylen);
- *  \brief Computes the mphf value. 
+ *  \brief Computes the mphf value.
  *  \param mphf pointer to the resulting function
  *  \param key is the key to be hashed
  *  \param keylen is the key legth in bytes
- *  \return The mphf value
+ *  \return The found index in the keys array
  */
 cmph_uint32 cmph_search(cmph_t *mphf, const char *key, cmph_uint32 keylen);
 

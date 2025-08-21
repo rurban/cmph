@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <string.h>
+#include <assert.h>
 
 #include "bitbool.h"
 #include "cmph.h"
@@ -23,7 +24,7 @@ cmph_uint32* random_numbers_vector_new(cmph_uint32 size) {
   return vec;
 }
 
-int cmph_uint32_cmp(const void *a, const void *b) { 
+int cmph_uint32_cmp(const void *a, const void *b) {
   return *(const cmph_uint32*)a - *(const cmph_uint32*)b;
 }
 
@@ -57,8 +58,10 @@ void bm_create(CMPH_ALGO algo, int iters) {
   cmph_config_set_graphsize(config, 5);
   mphf = cmph_new(config);
   if (!mphf) {
-    fprintf(stderr, "Failed to create mphf for algorithm %s with %u keys",
+    fprintf(stderr, "Failed to create mphf for algorithm %s with %u keys\n",
             cmph_names[algo], iters);
+    cmph_config_destroy(config);
+    cmph_io_struct_vector_adapter_destroy(source);
     return;
   }
   cmph_config_destroy(config);
@@ -69,7 +72,7 @@ void bm_create(CMPH_ALGO algo, int iters) {
 void bm_search(CMPH_ALGO algo, int iters) {
   int i = 0;
   char *mphf_name;
-  cmph_t* mphf = NULL; 
+  cmph_t* mphf = NULL;
 
   mphf_name = create_lsmap_key(algo, iters);
   mphf = (cmph_t*)lsmap_search(g_created_mphf, mphf_name);
@@ -81,13 +84,15 @@ void bm_search(CMPH_ALGO algo, int iters) {
   }
 
   cmph_uint32* count = (cmph_uint32*)calloc(iters, sizeof(cmph_uint32));
-  cmph_uint32* hash_count = (cmph_uint32*)calloc(iters, sizeof(cmph_uint32));
+  cmph_uint32 size = cmph_size(mphf);
+  cmph_uint32* hash_count = (cmph_uint32*)calloc(size, sizeof(cmph_uint32));
 
   for (i = 0; i < iters * 100; ++i) {
     cmph_uint32 pos = random() % iters;
     const char* buf = (const char*)(g_numbers + pos);
     cmph_uint32 h = cmph_search(mphf, buf, sizeof(cmph_uint32));
     ++count[pos];
+    assert(h < size && "h out of bounds");
     ++hash_count[h];
   }
 
@@ -119,7 +124,7 @@ int main(void) {
   g_created_mphf = lsmap_new();
   g_expected_probes = lsmap_new();
   g_mphf_probes = lsmap_new();
-
+#if 1
   BM_REGISTER(bm_create_CMPH_BMZ, SIZE);
   BM_REGISTER(bm_search_CMPH_BMZ, SIZE);
   BM_REGISTER(bm_create_CMPH_CHM, SIZE);
@@ -134,11 +139,12 @@ int main(void) {
   BM_REGISTER(bm_search_CMPH_CHD, SIZE);
   BM_REGISTER(bm_create_CMPH_CHD_PH, SIZE);
   BM_REGISTER(bm_search_CMPH_CHD_PH, SIZE);
+#endif
   // instable:
   BM_REGISTER(bm_create_CMPH_BRZ, SIZE);
   BM_REGISTER(bm_search_CMPH_BRZ, SIZE);
-  BM_REGISTER(bm_create_CMPH_BMZ8, 255);
-  BM_REGISTER(bm_search_CMPH_BMZ8, 255);
+  //BM_REGISTER(bm_create_CMPH_BMZ8, 255); // only really needed for BRZ subgraphs
+  //BM_REGISTER(bm_search_CMPH_BMZ8, 255);
   run_benchmarks(/*argc, argv*/);
 
   verify();
