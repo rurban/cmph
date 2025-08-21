@@ -51,13 +51,14 @@ int main(int argc, char **argv)
 	CMPH_HASH *hashes = NULL;
 	cmph_uint32 nhashes = 0;
 	cmph_uint32 nkeys = UINT_MAX;
+	cmph_uint32 seed = UINT_MAX;
 	cmph_uint32 i = 0;
 	cmph_t *mphf = NULL;
 	cmph_config_t *config;
 	cmph_io_adapter_t *source;
 	while (1)
 	{
-		char ch = (char)getopt(argc, argv, "hVvk:m:f:a:");
+		char ch = (char)getopt(argc, argv, "hVvs:k:m:f:a:");
 		if (ch == -1) break;
 		switch (ch)
 		{
@@ -73,6 +74,16 @@ int main(int argc, char **argv)
 				break;
 			case 'm':
 				mphf_file = strdup(optarg);
+				break;
+			case 's':
+				{
+					char *cptr;
+					seed = (cmph_uint32)strtoul(optarg, &cptr, 10);
+					if(*cptr != 0) {
+						fprintf(stderr, "Invalid seed %s\n", optarg);
+						exit(1);
+					}
+				}
 				break;
 			case 'a':
 				{
@@ -173,6 +184,9 @@ int main(int argc, char **argv)
 	config = cmph_config_new(source);
 	cmph_config_set_algo(config, mph_algo);
 	if (nhashes) cmph_config_set_hashfuncs(config, hashes);
+	if (seed == UINT_MAX) seed = (cmph_uint32)time(NULL);
+	srand(seed);
+
 	cmph_uint8 * hashtable = NULL;
 	mphf_fd = fopen(mphf_file, "rb");
 	if (mphf_fd == NULL)
