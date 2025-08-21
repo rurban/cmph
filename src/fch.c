@@ -66,10 +66,10 @@ void fch_config_set_hashfuncs(cmph_config_t *mph, CMPH_HASH *hashfuncs)
 	}
 #ifdef DEBUG
 	if (fch->nhashfuncs == 1) {
-	    DEBUGP("Same hash functions, use hash_vector\n");
+	    DEBUGP("Same hash functions\n");
 	}
 	else {
-	    DEBUGP("Different hash functions, use seperate hash calls\n");
+	    DEBUGP("Different hash functions\n");
 	}
 #endif
 }
