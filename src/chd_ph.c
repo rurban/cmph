@@ -869,6 +869,8 @@ int chd_ph_compile(cmph_t *mphf)
 	chd_ph_data_t *data = (chd_ph_data_t *)mphf->data;
 	DEBUGP("Compiling chd_ph\n");
 	printf("// NYI\n");
+	printf("uint32_t cmph_size(void) {\n");
+	printf("    return %u;\n}\n", data->m);
 	exit(1);
 }
 int chd_ph_dump(cmph_t *mphf, FILE *fd)

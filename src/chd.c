@@ -196,6 +196,8 @@ int chd_compile(cmph_t *mphf)
 	chd_data_t *data = (chd_data_t *)mphf->data;
 	DEBUGP("Compiling chd\n");
 	printf("// NYI\n");
+	printf("uint32_t cmph_size(void) {\n");
+	printf("    return %u;\n}\n", data->m);
 	exit(1);
 }
 int chd_dump(cmph_t *mphf, FILE *fd)

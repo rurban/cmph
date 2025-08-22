@@ -592,6 +592,8 @@ int bdz_compile(cmph_t *mphf, cmph_config_t *mph)
 #endif
 	printf("    return rank(ranktable, g, vertex);\n");
 	printf("};\n");
+	printf("\nuint32_t cmph_size(void) {\n");
+	printf("    return %u;\n}\n", bdz->m);
 	return 1;
 }
 

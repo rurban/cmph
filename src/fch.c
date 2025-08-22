@@ -337,6 +337,8 @@ int fch_compile(cmph_t *mphf)
 	fch_data_t *data = (fch_data_t *)mphf->data;
 	DEBUGP("Compiling fch\n");
 	printf("// NYI\n");
+	printf("uint32_t cmph_size(void) {\n");
+	printf("    return %u;\n}\n", data->m);
 	exit(1);
 }
 int fch_dump(cmph_t *mphf, FILE *fd)

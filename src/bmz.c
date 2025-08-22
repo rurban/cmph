@@ -499,7 +499,6 @@ int bmz_compile(cmph_t *mphf, cmph_config_t *mph)
 	hash_state_compile(data->nhashes, data->hashes);
 	printf("\nuint32_t cmph_search(const char* key, uint32_t keylen) {\n");
 	printf("    /* n: %u */\n", data->n);
-	printf("    /* m: %u */\n", data->m);
 	printf("    const uint32_t g[%u] = {\n        ", data->n);
 	for (unsigned i=0; i < data->n - 1; i++) {
 		printf("%u, ", data->g[i]);
@@ -525,6 +524,8 @@ int bmz_compile(cmph_t *mphf, cmph_config_t *mph)
 	printf("    if (h1 == h2 && ++h2 >= %u) h2 = 0;\n", data->n);
 	printf("    return (g[h1] + g[h2]) %% %u;\n", data->m);
 	printf("};\n");
+	printf("uint32_t cmph_size(void) {\n");
+	printf("    return %u;\n}\n", data->m);
 	return 1;
 }
 

@@ -273,6 +273,8 @@ int chm_compile(cmph_t *mphf, cmph_config_t *mph)
 	//DEBUGP("key: %s g[h1]: %u g[h2]: %u edges: %u\n", key, chm->g[h1], chm->g[h2], chm->m);
 	printf("    return (g[h1] + g[h2]) %% %u;\n", data->m);
 	printf("};\n");
+	printf("uint32_t cmph_size(void) {\n");
+	printf("    return %u;\n}\n", data->m);
 	return 0;
 }
 int chm_dump(cmph_t *mphf, FILE *fd)

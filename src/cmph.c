@@ -665,6 +665,7 @@ int cmph_compile(cmph_t *mphf, cmph_config_t *config, const char *keys_file)
 	assert(0);
 	return 0;
 }
+
 cmph_t *cmph_load(FILE *f)
 {
 	cmph_t *mphf = NULL;

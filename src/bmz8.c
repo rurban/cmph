@@ -490,6 +490,8 @@ int bmz8_compile(cmph_t *mphf)
 	bmz8_data_t *data = (bmz8_data_t *)mphf->data;
 	DEBUGP("Compiling bmz8\n");
 	printf("// NYI\n");
+	printf("uint32_t cmph_size(void) {\n");
+	printf("    return %u;\n}\n", data->m);
 	exit(1);
 }
 int bmz8_dump(cmph_t *mphf, FILE *fd)
