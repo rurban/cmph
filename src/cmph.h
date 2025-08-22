@@ -78,6 +78,13 @@ int cmph_dump(cmph_t *mphf, FILE *f);
 cmph_t *cmph_load(FILE *f);
 int cmph_compile(cmph_t *mphf, cmph_config_t *config, const char *keys_file);
 
+/** \fn int cmph_is_order_preserving(cmph_t *mphf);
+ *  \brief Returns 1 if the algo preserves the order of keys. (only CHM)
+ *  \param mphf pointer to a mphf
+ *  \return 0 or 1
+ */
+int cmph_is_order_preserving(cmph_t *mphf);
+ 
 /** \fn void cmph_pack(cmph_t *mphf, void *packed_mphf);
  *  \brief Support the ability to pack a perfect hash function into a preallocated contiguous memory space pointed by packed_mphf.
  *  \param mphf pointer to the resulting mphf

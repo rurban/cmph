@@ -13,12 +13,9 @@ The number of vertices of [figs/img32.png] is equal
 to [figs/img12.png] and [figs/img237.png] for BMZ algorithm and the CHM algorithm, respectively.
 This measure is related to the amount of space to store the array [figs/img37.png].
 This improves the space required to store a function in BMZ algorithm to [figs/img238.png] of the space required by the CHM algorithm.
-The number of critical edges is [figs/img76.png] and 0, for BMZ algorithm and the CHM algorithm,
-respectively.
+The number of critical edges is [figs/img76.png] and 0, for BMZ algorithm and the CHM algorithm, respectively.
 BMZ algorithm generates random graphs that necessarily contains cycles and the
-CHM algorithm
-generates 
-acyclic random graphs.
+CHM algorithm generates acyclic random graphs.
 Finally, the CHM algorithm generates [order preserving functions concepts.html]
 while BMZ algorithm does not preserve order.
 

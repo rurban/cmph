@@ -519,6 +519,35 @@ void cmph_config_set_graphsize(cmph_config_t *mph, double c)
 	return;
 }
 
+int cmph_is_order_preserving(cmph_t *mphf)
+{
+	switch (mphf->algo)
+	{
+		case CMPH_CHM:
+		    return 1;
+		case CMPH_BMZ:
+		    return 0;
+		case CMPH_BMZ8:
+		    return 0;
+		case CMPH_BRZ:
+		    return 0;
+		case CMPH_FCH:
+		    return 0;
+		case CMPH_BDZ:
+		    return 0;
+		case CMPH_BDZ_PH:
+		    return 0;
+		case CMPH_CHD_PH:
+		    return 0;
+		case CMPH_CHD:
+		    return 0;
+		default:
+		    assert(0);
+	}
+	assert(0);
+	return 0;
+}
+
 cmph_t *cmph_new(cmph_config_t *mph)
 {
 	cmph_t *mphf = NULL;

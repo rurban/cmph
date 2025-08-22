@@ -187,7 +187,6 @@ int main(int argc, char **argv)
 	if (seed == UINT_MAX) seed = (cmph_uint32)time(NULL);
 	srand(seed);
 
-	cmph_uint8 * hashtable = NULL;
 	mphf_fd = fopen(mphf_file, "rb");
 	if (mphf_fd == NULL)
 	{
@@ -209,8 +208,7 @@ int main(int argc, char **argv)
 		return -1;
 	}
 	cmph_uint32 siz = cmph_size(mphf);
-	hashtable = (cmph_uint8*)malloc(siz*sizeof(cmph_uint8));
-	memset(hashtable, 0, (size_t)siz);
+	cmph_uint32 *hasharray = (cmph_uint32*)calloc(siz, sizeof(cmph_uint32));
 	//check all keys
 	for (i = 0; i < source->nkeys; ++i)
 	{
@@ -219,15 +217,23 @@ int main(int argc, char **argv)
 		cmph_uint32 buflen = 0;
 		source->read(source->data, &buf, &buflen);
 		h = cmph_search(mphf, buf, buflen);
+		// TODO: with the order-preserving algo CHM,
+		// check h against the key index also.
 		if (!(h < siz))
 		{
 			fprintf(stderr, "Unknown key %*s in the input.\n", buflen, buf);
 			ret = 1;
-		} else if(hashtable[h])
+		} else if(hasharray[h])
 		{
 			fprintf(stderr, "Duplicated or unknown key %*s in the input\n", buflen, buf);
 			ret = 1;
-		} else hashtable[h] = 1;
+		} else hasharray[h] = 1;
+		// check order-preserving CHM
+		if (mph_algo == CMPH_CHM && i != h)
+		{
+			fprintf(stderr, "Keys are not in the right order: %u, expected %u\n", h, i);
+			ret = 1;
+		}
 
 		if (verbosity)
 		{
@@ -237,7 +243,7 @@ int main(int argc, char **argv)
 	}
 
 	cmph_destroy(mphf);
-	free(hashtable);
+	free(hasharray);
 	free(hashes);
 
 	fclose(keys_fd);

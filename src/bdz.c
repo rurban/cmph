@@ -547,13 +547,19 @@ int bdz_compile(cmph_t *mphf, cmph_config_t *mph)
 	printf("    	base_rank += bdz_lookup_table[*(g + beg_idx_b++)];\n");
 	printf("    }\n");
 	printf("    beg_idx_v = beg_idx_b << 2;\n");
+#ifdef DEBUG
+	printf("#ifdef DEBUG\n");
+	printf("    fprintf(stderr, \"base rank %%u\\n\", base_rank);\n");
+	printf("    fprintf(stderr, \"beg_idx_v %%u\\n\", beg_idx_v);\n");
+	printf("#endif\n");
+#endif
 	printf("    while (beg_idx_v < vertex) {\n");
 	printf("    	if (GETVALUE(g, beg_idx_v) != UNASSIGNED) base_rank++;\n");
 	printf("    	beg_idx_v++;\n");
 	printf("    }\n");
 #ifdef DEBUG
 	printf("#ifdef DEBUG\n");
-	printf("    fprintf(stderr, \"rank: %%u\\n\", base_rank);\n");
+	printf("    fprintf(stderr, \"rank %%u\\n\", base_rank);\n");
 	printf("#endif\n");
 #endif
 	printf("    return base_rank;\n");
@@ -579,7 +585,7 @@ int bdz_compile(cmph_t *mphf, cmph_config_t *mph)
 	printf("    vertex = hl[(GETVALUE(g, hl[0]) + GETVALUE(g, hl[1]) + GETVALUE(g, hl[2])) %% 3];\n");
 #ifdef DEBUG
 	printf("#ifdef DEBUG\n");
-	printf("    fprintf(stderr, \"key: %%s\\n\", key);\n");
+	printf("    fprintf(stderr, \"search key: \\\"%%s\\\"\\n\", key);\n");
 	printf("    fprintf(stderr, \"hl: {%%u, %%u, %%u}, \", hl[0], hl[1], hl[2]);\n");
 	printf("    fprintf(stderr, \"vertex: %%u, \", vertex);\n");
 	printf("#endif\n");
@@ -690,6 +696,7 @@ static inline cmph_uint32 rank(cmph_uint32 b, cmph_uint32 * ranktable, cmph_uint
 	return base_rank;
 }
 
+/* bdz is not order-preserving! thus the result is not the index into the keys */
 cmph_uint32 bdz_search(cmph_t *mphf, const char *key, cmph_uint32 keylen)
 {
 	register cmph_uint32 vertex;
@@ -700,10 +707,10 @@ cmph_uint32 bdz_search(cmph_t *mphf, const char *key, cmph_uint32 keylen)
 	hl[1] = hl[1] % bdz->r + bdz->r;
 	hl[2] = hl[2] % bdz->r + (bdz->r << 1);
 	vertex = hl[(GETVALUE(bdz->g, hl[0]) + GETVALUE(bdz->g, hl[1]) + GETVALUE(bdz->g, hl[2])) % 3];
-        DEBUGP("Search found vertex %u\n", vertex);
+        DEBUGP("search key: \"%s\"\n", key);
+        DEBUGP("hl: {%u, %u, %u}, vertex %u\n", hl[0], hl[1], hl[2], vertex);
 	return rank(bdz->b, bdz->ranktable, bdz->g, vertex);
 }
-
 
 void bdz_destroy(cmph_t *mphf)
 {

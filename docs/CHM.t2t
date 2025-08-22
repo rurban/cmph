@@ -3,12 +3,19 @@ CHM Algorithm
 
 %!includeconf: CONFIG.t2t
 
-----------------------------------------
+==Properties==
 
+  - Construct minimal MPHFs in linear time. 
+  - It is based on acyclic random graphs
+  - The resulting MPHFs are order preserving.
+  - The resulting MPHFs are stored in //4cn// bytes, where //c// is greater than 2.
+
+----------------------------------------
 ==The Algorithm==
-The algorithm is presented in [[1,2,3 #papers]].
-----------------------------------------
 
+The algorithm is presented in [[1,2,3 #papers]].
+
+----------------------------------------
 ==Memory Consumption==
 
 Now we detail the memory consumption to generate and to store minimal perfect hash functions

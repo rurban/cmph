@@ -3,6 +3,13 @@ External Memory Based Algorithm
 
 %!includeconf: CONFIG.t2t
 
+==Properties==
+
+  - A very fast external memory based algorithm for constructing minimal perfect hash functions  for sets in the order of billions of keys.
+  - It works in linear time. 
+  - The resulting MPHFs are not order preserving.
+  - The resulting MPHFs can be stored using less than //8.0// bits per key.
+
 ----------------------------------------
 ==Introduction==
 
