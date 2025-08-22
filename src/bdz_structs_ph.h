@@ -12,7 +12,6 @@ struct __bdz_ph_data_t
 	hash_state_t *hl; // linear hashing
 };
 
-
 struct __bdz_ph_config_data_t
 {
 	CMPH_HASH hashfunc;

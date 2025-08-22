@@ -13,6 +13,7 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <string.h>
+#include <limits.h>
 // #define DEBUG
 #include "debug.h"
 
@@ -348,6 +349,7 @@ void cmph_config_set_algo(cmph_config_t *mph, CMPH_ALGO algo)
 				break;
 			case CMPH_BMZ8:
 				mph->data = bmz8_config_new();
+				mph->nhashfuncs = 2;
 				break;
 			case CMPH_BRZ:
 				mph->data = brz_config_new();
@@ -472,6 +474,10 @@ void cmph_config_destroy(cmph_config_t *mph)
 	}
 }
 
+void cmph_config_set_seed(cmph_config_t *mph, cmph_uint32 seed)
+{
+	mph->seed = seed;
+}
 void cmph_config_set_verbosity(cmph_config_t *mph, cmph_uint32 verbosity)
 {
 	mph->verbosity = verbosity;
@@ -513,6 +519,12 @@ void cmph_config_set_hashfuncs(cmph_config_t *mph, CMPH_HASH *hashfuncs)
 	}
 	return;
 }
+CMPH_HASH* cmph_config_hashfuncs(cmph_config_t *mph, cmph_uint32 *nhashfuncs)
+{
+    *nhashfuncs = mph->nhashfuncs;
+    return mph->hashfuncs;
+}
+
 void cmph_config_set_graphsize(cmph_config_t *mph, double c)
 {
 	mph->c = c;
@@ -632,8 +644,19 @@ int cmph_compile(cmph_t *mphf, cmph_config_t *config, const char *keys_file)
 {
 	DEBUGP("Compiling mphf with algorithm %s\n", cmph_names[mphf->algo]);
 	printf("/* ex: set ro ft=c: -*- mode: c; buffer-read-only: t -*- */\n");
-	printf("/* Created via cmph -C -a %s \"%s\" */\n",
-	       cmph_names[mphf->algo], keys_file);
+	printf("/* Created via cmph -C ");
+	if (mphf->algo != CMPH_CHM)
+	    printf("-a %s ", cmph_names[mphf->algo]);
+	if (config->seed != UINT_MAX)
+	    printf("-s %u ", config->seed);
+	for (unsigned i=0; i<config->nhashfuncs; ++i)
+	{
+	    if (config->hashfuncs[i] == CMPH_HASH_COUNT)
+		break;
+	    if (i>0 || config->hashfuncs[i] != CMPH_HASH_JENKINS)
+		printf("-f %s ", cmph_hash_names[config->hashfuncs[i]]);
+	}
+	printf("\"%s\" */\n", keys_file);
 	printf("/* Do not modify */\n\n");
 	printf("/* n: %u */\n", config->key_source->nkeys);
 	printf("/* c: %f */\n", config->c);

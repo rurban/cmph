@@ -232,9 +232,10 @@ void bdz_ph_config_set_hashfuncs(cmph_config_t *mph, CMPH_HASH *hashfuncs)
 	{
 		if (i >= 1) break; // bdz_ph only uses one linear hash function
 		bdz_ph->hashfunc = *hashptr;
+		mph->hashfuncs[0] = *hashptr;
 		++i, ++hashptr;
 	}
-	//bdz_ph->nhashfuncs = 1;
+	//mph->nhashfuncs = 1;
 }
 
 cmph_t *bdz_ph_new(cmph_config_t *mph, double c)

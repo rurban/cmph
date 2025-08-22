@@ -17,7 +17,7 @@ static fch_buckets_t * mapping(cmph_config_t *mph);
 static cmph_uint32 * ordering(fch_buckets_t * buckets);
 static cmph_uint8 check_for_collisions_h2(fch_config_data_t *fch, fch_buckets_t * buckets, cmph_uint32 *sorted_indexes);
 static void permut(cmph_uint32 * vector, cmph_uint32 n);
-static cmph_uint8 searching(fch_config_data_t *fch, fch_buckets_t *buckets, cmph_uint32 *sorted_indexes);
+static cmph_uint8 searching(cmph_config_t *mph, fch_buckets_t *buckets, cmph_uint32 *sorted_indexes);
 
 fch_config_data_t *fch_config_new()
 {
@@ -25,14 +25,11 @@ fch_config_data_t *fch_config_new()
 	fch = (fch_config_data_t *)malloc(sizeof(fch_config_data_t));
         if (!fch) return NULL;
 	memset(fch, 0, sizeof(fch_config_data_t));
-	fch->hashfuncs[0] = CMPH_HASH_JENKINS;
-	fch->hashfuncs[1] = CMPH_HASH_JENKINS;
-	fch->nhashfuncs = 1;
-	fch->m = fch->b = 0;
-	fch->c = fch->p1 = fch->p2 = 0.0;
-	fch->g = NULL;
-	fch->h1 = NULL;
-	fch->h2 = NULL;
+	//fch->m = fch->b = 0;
+	//fch->c = fch->p1 = fch->p2 = 0.0;
+	//fch->g = NULL;
+	//fch->h1 = NULL;
+	//fch->h2 = NULL;
 	return fch;
 }
 
@@ -46,26 +43,26 @@ void fch_config_destroy(cmph_config_t *mph)
 // support 2 independent hash functions, but mostly just one for both
 void fch_config_set_hashfuncs(cmph_config_t *mph, CMPH_HASH *hashfuncs)
 {
-	fch_config_data_t *fch = (fch_config_data_t *)mph->data;
+        //fch_config_data_t *fch = (fch_config_data_t *)mph->data;
 	CMPH_HASH *hashptr = hashfuncs;
 	cmph_uint32 i = 0;
 	while (*hashptr != CMPH_HASH_COUNT)
 	{
 		if (i >= 2) break; // fch only uses two hash functions
-		fch->hashfuncs[i] = *hashptr;
+		mph->hashfuncs[i] = *hashptr;
 		++i, ++hashptr;
 	}
 	if (i >= 2) {
-		if (fch->hashfuncs[0] == fch->hashfuncs[1])
-			fch->nhashfuncs = 1;
+		if (mph->hashfuncs[0] == mph->hashfuncs[1])
+			mph->nhashfuncs = 1;
 		else
-			fch->nhashfuncs = 2;
+			mph->nhashfuncs = 2;
 	} else {
-		fch->hashfuncs[1] = fch->hashfuncs[0];
-		fch->nhashfuncs = 1;
+		mph->hashfuncs[1] = mph->hashfuncs[0];
+		mph->nhashfuncs = 1;
 	}
 #ifdef DEBUG
-	if (fch->nhashfuncs == 1) {
+	if (mph->nhashfuncs == 1) {
 	    DEBUGP("Same hash functions\n");
 	}
 	else {
@@ -107,7 +104,7 @@ static fch_buckets_t * mapping(cmph_config_t *mph)
 	fch_buckets_t *buckets = NULL;
 	fch_config_data_t *fch = (fch_config_data_t *)mph->data;
 	if (fch->h1) hash_state_destroy(fch->h1);
-	fch->h1 = hash_state_new(fch->hashfuncs[0], fch->m);
+	fch->h1 = hash_state_new(mph->hashfuncs[0], fch->m);
 	fch->b = fch_calc_b(fch->c, fch->m);
 	fch->p1 = fch_calc_p1(fch->m);
 	fch->p2 = fch_calc_p2(fch->b);
@@ -175,8 +172,9 @@ static void permut(cmph_uint32 * vector, cmph_uint32 n)
   }
 }
 
-static cmph_uint8 searching(fch_config_data_t *fch, fch_buckets_t *buckets, cmph_uint32 *sorted_indexes)
+static cmph_uint8 searching(cmph_config_t *mph, fch_buckets_t *buckets, cmph_uint32 *sorted_indexes)
 {
+	fch_config_data_t *fch = (fch_config_data_t *)mph->data;
 	cmph_uint32 * random_table = (cmph_uint32 *) calloc((size_t)fch->m, sizeof(cmph_uint32));
 	cmph_uint32 * map_table    = (cmph_uint32 *) calloc((size_t)fch->m, sizeof(cmph_uint32));
 	cmph_uint32 iteration_to_generate_h2 = 0;
@@ -200,7 +198,7 @@ static cmph_uint8 searching(fch_config_data_t *fch, fch_buckets_t *buckets, cmph
 	}
 	do {
 		if (fch->h2) hash_state_destroy(fch->h2);
-		fch->h2 = hash_state_new(fch->hashfuncs[1], fch->m);
+		fch->h2 = hash_state_new(mph->hashfuncs[1], fch->m);
 		restart = check_for_collisions_h2(fch, buckets, sorted_indexes);
 		filled_count = 0;
 		if (!restart)
@@ -301,7 +299,7 @@ cmph_t *fch_new(cmph_config_t *mph, double c)
 		{
 			fprintf(stderr, "Starting searching step.\n");
 		}
-		restart_mapping = searching(fch, buckets, sorted_indexes);
+		restart_mapping = searching(mph, buckets, sorted_indexes);
 		iterations--;
 
         } while(restart_mapping && iterations > 0);

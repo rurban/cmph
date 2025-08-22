@@ -175,7 +175,6 @@ void chd_ph_config_destroy(cmph_config_t *mph)
 	free(data);
 }
 
-
 void chd_ph_config_set_hashfuncs(cmph_config_t *mph, CMPH_HASH *hashfuncs)
 {
 	chd_ph_config_data_t *chd_ph = (chd_ph_config_data_t *)mph->data;
@@ -185,10 +184,10 @@ void chd_ph_config_set_hashfuncs(cmph_config_t *mph, CMPH_HASH *hashfuncs)
 	{
 		if (i >= 1) break; //chd_ph only uses one linear hash function
 		chd_ph->hashfunc = *hashptr;
+		mph->hashfuncs[0] = *hashptr;
 		++i, ++hashptr;
 	}
 }
-
 
 void chd_ph_config_set_b(cmph_config_t *mph, cmph_uint32 keys_per_bucket)
 {

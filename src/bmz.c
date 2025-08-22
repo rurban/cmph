@@ -26,9 +26,6 @@ bmz_config_data_t *bmz_config_new(void)
 	bmz = (bmz_config_data_t *)malloc(sizeof(bmz_config_data_t));
         if (!bmz) return NULL;
 	memset(bmz, 0, sizeof(bmz_config_data_t));
-	bmz->hashfuncs[0] = CMPH_HASH_JENKINS;
-	bmz->hashfuncs[1] = CMPH_HASH_JENKINS;
-	bmz->nhashfuncs = 1;
 	return bmz;
 }
 
@@ -42,26 +39,25 @@ void bmz_config_destroy(cmph_config_t *mph)
 // support 2 independent hash functions, but mostly just one for both
 void bmz_config_set_hashfuncs(cmph_config_t *mph, CMPH_HASH *hashfuncs)
 {
-	bmz_config_data_t *bmz = (bmz_config_data_t *)mph->data;
 	CMPH_HASH *hashptr = hashfuncs;
 	cmph_uint32 i = 0;
 	while(*hashptr != CMPH_HASH_COUNT)
 	{
 		if (i >= 2) break; // bmz only uses two hash functions
-		bmz->hashfuncs[i] = *hashptr;
+		mph->hashfuncs[i] = *hashptr;
 		++i, ++hashptr;
 	}
 	if (i >= 2) {
-		if (bmz->hashfuncs[0] == bmz->hashfuncs[1])
-			bmz->nhashfuncs = 1;
+		if (mph->hashfuncs[0] == mph->hashfuncs[1])
+			mph->nhashfuncs = 1;
 		else
-			bmz->nhashfuncs = 2;
+			mph->nhashfuncs = 2;
 	} else {
-		bmz->hashfuncs[1] = bmz->hashfuncs[0];
-		bmz->nhashfuncs = 1;
+		mph->hashfuncs[1] = mph->hashfuncs[0];
+		mph->nhashfuncs = 1;
 	}
 #ifdef DEBUG
-	if (bmz->nhashfuncs == 1) {
+	if (mph->nhashfuncs == 1) {
 	    DEBUGP("Same hash functions, use hash_vector\n");
 	}
 	else {
@@ -112,14 +108,14 @@ cmph_t *bmz_new(cmph_config_t *mph, double c)
 		if (bmz->hashes[0])
 		{
 		    hash_state_destroy(bmz->hashes[0]);
-		    if (bmz->nhashfuncs > 1)
+		    if (mph->nhashfuncs > 1)
 			hash_state_destroy(bmz->hashes[1]);
 		}
 		DEBUGP("hash function 1\n");
-		bmz->hashes[0] = hash_state_new(bmz->hashfuncs[0], bmz->n);
-		if (bmz->nhashfuncs > 1) {
+		bmz->hashes[0] = hash_state_new(mph->hashfuncs[0], bmz->n);
+		if (mph->nhashfuncs > 1) {
 		    DEBUGP("hash function 2\n");
-		    bmz->hashes[1] = hash_state_new(bmz->hashfuncs[1], bmz->n);
+		    bmz->hashes[1] = hash_state_new(mph->hashfuncs[1], bmz->n);
 		}
 		DEBUGP("Generating edges\n");
 		ok = bmz_gen_edges(mph);
@@ -128,7 +124,7 @@ cmph_t *bmz_new(cmph_config_t *mph, double c)
 			--iterations;
 			hash_state_destroy(bmz->hashes[0]);
 			bmz->hashes[0] = NULL;
-			if (bmz->nhashfuncs > 1) {
+			if (mph->nhashfuncs > 1) {
 			    hash_state_destroy(bmz->hashes[1]);
 			    bmz->hashes[1] = NULL;
 			}
@@ -144,6 +140,7 @@ cmph_t *bmz_new(cmph_config_t *mph, double c)
 	  if (iterations == 0)
 	  {
 		graph_destroy(bmz->graph);
+		free(bmz->hashes);
 		return NULL;
 	  }
 	  // Ordering step
@@ -179,15 +176,14 @@ cmph_t *bmz_new(cmph_config_t *mph, double c)
 	  if(!restart_mapping)
 	  {
 	        if (mph->verbosity)
-	        {
-		  fprintf(stderr, "\tTraversing non critical vertices.\n");
-		}
+		    fprintf(stderr, "\tTraversing non critical vertices.\n");
 		bmz_traverse_non_critical_nodes(bmz, used_edges, visited); // non_critical_nodes
 	  }
 	  else
 	  {
  	        iterations_map--;
-		if (mph->verbosity) fprintf(stderr, "Restarting mapping step. %u iterations remaining.\n", iterations_map);
+		if (mph->verbosity)
+		    fprintf(stderr, "Restarting mapping step. %u iterations remaining.\n", iterations_map);
 	  }
 	  free(used_edges);
 	  free(visited);
@@ -209,7 +205,7 @@ cmph_t *bmz_new(cmph_config_t *mph, double c)
 	bmzf = (bmz_data_t *)malloc(sizeof(bmz_data_t));
 	bmzf->g = bmz->g;
 	bmz->g = NULL; //transfer memory ownership
-	bmzf->nhashes = bmz->nhashfuncs;
+	bmzf->nhashes = mph->nhashfuncs;
 	bmzf->hashes = bmz->hashes;
 	bmz->hashes = NULL; //transfer memory ownership
 	bmzf->n = bmz->n;
@@ -219,9 +215,7 @@ cmph_t *bmz_new(cmph_config_t *mph, double c)
 
 	DEBUGP("Successfully generated minimal perfect hash\n");
 	if (mph->verbosity)
-	{
 		fprintf(stderr, "Successfully generated minimal perfect hash function\n");
-	}
 	return mphf;
 }
 
@@ -464,7 +458,7 @@ static int bmz_gen_edges(cmph_config_t *mph)
 		char *key = NULL;
 		mph->key_source->read(mph->key_source->data, &key, &keylen);
 
-		if (bmz->nhashfuncs > 1) {
+		if (mph->nhashfuncs > 1) {
 		    h1 = hash(bmz->hashes[0], key, keylen) % bmz->n;
 		    h2 = hash(bmz->hashes[1], key, keylen) % bmz->n;
 		} else {
@@ -494,7 +488,6 @@ static int bmz_gen_edges(cmph_config_t *mph)
 int bmz_compile(cmph_t *mphf, cmph_config_t *mph)
 {
 	bmz_data_t *data = (bmz_data_t *)mphf->data;
-	bmz_config_data_t *config = (bmz_config_data_t *)mph->data;
 	DEBUGP("Compiling bmz\n");
 	hash_state_compile(data->nhashes, data->hashes);
 	printf("\nuint32_t cmph_search(const char* key, uint32_t keylen) {\n");
@@ -509,15 +502,15 @@ int bmz_compile(cmph_t *mphf, cmph_config_t *mph)
 	printf("    uint32_t h1, h2;\n");
 	if (data->nhashes > 1) {
 		printf("   h1 = %s0(%u, (const unsigned char*)key, keylen) %% %u;\n",
-		       cmph_hash_names[config->hashfuncs[0]], data->hashes[0]->seed, data->n);
+		       cmph_hash_names[mph->hashfuncs[0]], data->hashes[0]->seed, data->n);
 		printf("   h2 = %s1(%u, (const unsigned char*)key, keylen) %% %u;\n",
-		       cmph_hash_names[config->hashfuncs[1]], data->hashes[1]->seed,
+		       cmph_hash_names[mph->hashfuncs[1]], data->hashes[1]->seed,
 		       data->n);
 	}
 	else {
 		printf("    uint32_t hv[3];\n");
 		printf("    %s_hash_vector(%u, (const unsigned char*)key, keylen, hv);\n",
-		       cmph_hash_names[config->hashfuncs[0]], data->hashes[0]->seed);
+		       cmph_hash_names[mph->hashfuncs[0]], data->hashes[0]->seed);
 		printf("    h1 = hv[0] %% %u;\n", data->n);
 		printf("    h2 = hv[1] %% %u;\n", data->n);
 	}

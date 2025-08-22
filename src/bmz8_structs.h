@@ -14,8 +14,6 @@ struct __bmz8_data_t
 
 struct __bmz8_config_data_t
 {
-	CMPH_HASH hashfuncs[2];
-	cmph_uint8 nhashfuncs;
 	cmph_uint8 m; //edges (words) count
 	cmph_uint8 n; //vertex count
 	graph_t *graph;

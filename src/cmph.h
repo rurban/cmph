@@ -47,7 +47,9 @@ void cmph_io_struct_vector_adapter_destroy(cmph_io_adapter_t * key_source);
 
 /** Hash configuration API **/
 cmph_config_t *cmph_config_new(cmph_io_adapter_t *key_source);
+void cmph_config_set_seed(cmph_config_t *mph, cmph_uint32 seed);
 void cmph_config_set_hashfuncs(cmph_config_t *mph, CMPH_HASH *hashfuncs);
+CMPH_HASH* cmph_config_hashfuncs(cmph_config_t *mph, cmph_uint32 *nhashfuncs);
 void cmph_config_set_verbosity(cmph_config_t *mph, cmph_uint32 verbosity);
 void cmph_config_set_graphsize(cmph_config_t *mph, double c);
 void cmph_config_set_algo(cmph_config_t *mph, CMPH_ALGO algo);

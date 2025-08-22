@@ -23,9 +23,9 @@ chm_config_data_t *chm_config_new(void)
 	chm = (chm_config_data_t *)malloc(sizeof(chm_config_data_t));
         if (!chm) return NULL;
 	memset(chm, 0, sizeof(chm_config_data_t));
-	chm->hashfuncs[0] = CMPH_HASH_JENKINS;
-	chm->hashfuncs[1] = CMPH_HASH_JENKINS;
-	chm->nhashfuncs = 1;
+	//chm->hashfuncs[0] = CMPH_HASH_JENKINS;
+	//chm->hashfuncs[1] = CMPH_HASH_JENKINS;
+	//mph->nhashfuncs = 1;
 	chm->g = NULL;
 	chm->graph = NULL;
 	chm->hashes = NULL;
@@ -41,25 +41,24 @@ void chm_config_destroy(cmph_config_t *mph)
 // support 2 independent hash functions, but mostly just one for both
 void chm_config_set_hashfuncs(cmph_config_t *mph, CMPH_HASH *hashfuncs)
 {
-	chm_config_data_t *data = (chm_config_data_t *)mph->data;
 	CMPH_HASH *hashptr = hashfuncs;
 	cmph_uint32 i = 0;
 	while (*hashptr != CMPH_HASH_COUNT)
 	{
 		if (i >= 2) break; // chm uses two hash functions
-		data->hashfuncs[i] = *hashptr;
+		mph->hashfuncs[i] = *hashptr;
 		DEBUGP("Set %d%s hashfunc to %s\n", i+1,
 		       i==0 ? "st" : i==1 ? "nd" : i==2 ? "rd" : "th", cmph_hash_names[*hashptr]);
 		++i, ++hashptr;
 	}
 	if (i >= 2) {
-		if (data->hashfuncs[0] == data->hashfuncs[1])
-			data->nhashfuncs = 1;
+		if (mph->hashfuncs[0] == mph->hashfuncs[1])
+			mph->nhashfuncs = 1;
 		else
-			data->nhashfuncs = 2;
+			mph->nhashfuncs = 2;
 	} else {
-		data->hashfuncs[1] = data->hashfuncs[0];
-		data->nhashfuncs = 1;
+		mph->hashfuncs[1] = mph->hashfuncs[0];
+		mph->nhashfuncs = 1;
 	}
 }
 
@@ -77,9 +76,9 @@ cmph_t *chm_new(cmph_config_t *mph, double c)
 	chm->n = (cmph_uint32)ceil(c * mph->key_source->nkeys);
 	DEBUGP("m (edges): %u n (vertices): %u c: %f\n", chm->m, chm->n, c);
 #ifdef DEBUG
-	if (chm->nhashfuncs == 1) {
+	if (mph->nhashfuncs == 1) {
 		DEBUGP("Same hash functions, use %s hash_vector\n",
-		       cmph_hash_names[chm->hashfuncs[0]]);
+		       cmph_hash_names[mph->hashfuncs[0]]);
 	}
 	else {
 	    DEBUGP("Different hash functions, use seperate hash calls\n");
@@ -99,16 +98,16 @@ cmph_t *chm_new(cmph_config_t *mph, double c)
 	while(1)
 	{
 		int ok;
-		chm->hashes[0] = hash_state_new(chm->hashfuncs[0], chm->n);
-		if (chm->nhashfuncs > 1)
-			chm->hashes[1] = hash_state_new(chm->hashfuncs[1], chm->n);
+		chm->hashes[0] = hash_state_new(mph->hashfuncs[0], chm->n);
+		if (mph->nhashfuncs > 1)
+			chm->hashes[1] = hash_state_new(mph->hashfuncs[1], chm->n);
 		ok = chm_gen_edges(mph);
 		if (!ok)
 		{
 			--iterations;
 			hash_state_destroy(chm->hashes[0]);
 			chm->hashes[0] = NULL;
-			if (chm->nhashfuncs > 1) {
+			if (mph->nhashfuncs > 1) {
 				hash_state_destroy(chm->hashes[1]);
 				chm->hashes[1] = NULL;
 			}
@@ -158,7 +157,7 @@ cmph_t *chm_new(cmph_config_t *mph, double c)
 	chm->g = NULL; //transfer memory ownership
 	chmf->hashes = chm->hashes;
 	chm->hashes = NULL; //transfer memory ownership
-	chmf->nhashes = chm->nhashfuncs;
+	chmf->nhashes = mph->nhashfuncs;
 	chmf->n = chm->n;
 	chmf->m = chm->m;
 	mphf->data = chmf;
@@ -198,7 +197,7 @@ static int chm_gen_edges(cmph_config_t *mph)
 	int cycles = 0;
 
 	DEBUGP("Generating edges for %u vertices with hash functions %s and %s\n", chm->n,
-               cmph_hash_names[chm->hashfuncs[0]], cmph_hash_names[chm->hashfuncs[1]]);
+               cmph_hash_names[mph->hashfuncs[0]], cmph_hash_names[mph->hashfuncs[1]]);
 	graph_clear_edges(chm->graph);
 	mph->key_source->rewind(mph->key_source->data);
 	for (e = 0; e < mph->key_source->nkeys; ++e)
@@ -208,7 +207,7 @@ static int chm_gen_edges(cmph_config_t *mph)
 		char *key;
 
 		mph->key_source->read(mph->key_source->data, &key, &keylen);
-		if (chm->nhashfuncs > 1) {
+		if (mph->nhashfuncs > 1) {
 			h1 = hash(chm->hashes[0], key, keylen) % chm->n;
 			h2 = hash(chm->hashes[1], key, keylen) % chm->n;
 		} else {
@@ -238,7 +237,7 @@ static int chm_gen_edges(cmph_config_t *mph)
 int chm_compile(cmph_t *mphf, cmph_config_t *mph)
 {
 	chm_data_t *data = (chm_data_t *)mphf->data;
-	chm_config_data_t *config = (chm_config_data_t *)mph->data;
+	//chm_config_data_t *config = (chm_config_data_t *)mph->data;
 	DEBUGP("Compiling chm\n");
 	hash_state_compile(data->nhashes, data->hashes);
 	// single hash: jenkins_hash%d
@@ -256,15 +255,15 @@ int chm_compile(cmph_t *mphf, cmph_config_t *mph)
 	printf("    uint32_t h1, h2;\n");
 	if (data->nhashes > 1) {
 		printf("   h1 = %s0(%u, (const unsigned char*)key, keylen) %% %u;\n",
-		       cmph_hash_names[config->hashfuncs[0]], data->hashes[0]->seed, data->n);
+		       cmph_hash_names[mph->hashfuncs[0]], data->hashes[0]->seed, data->n);
 		printf("   h2 = %s1(%u, (const unsigned char*)key, keylen) %% %u;\n",
-		       cmph_hash_names[config->hashfuncs[1]], data->hashes[1]->seed,
+		       cmph_hash_names[mph->hashfuncs[1]], data->hashes[1]->seed,
 		       data->n);
 	}
 	else {
 		printf("    uint32_t hv[3];\n");
 		printf("    %s_hash_vector(%u, (const unsigned char*)key, keylen, hv);\n",
-		       cmph_hash_names[config->hashfuncs[0]], data->hashes[0]->seed);
+		       cmph_hash_names[mph->hashfuncs[0]], data->hashes[0]->seed);
 		printf("    h1 = hv[0] %% %u;\n", data->n);
 		printf("    h2 = hv[1] %% %u;\n", data->n);
 	}
