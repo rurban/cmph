@@ -167,55 +167,55 @@ doc_HTML = \
 	bdz.html brz.html chm.html fch.html bmz.html chd.html \
 	faq.html concepts.html gperf.html newslog.html comparison.html  \
 	examples.html index.html
-EXTRA_DIST = $(T2T) gendocs $(FIGS) $(PAPERS)
+EXTRA_DIST = $(T2T) gendocs $(FIGS) $(PAPERS) $(doc_HTML)
 
 all: $(doc_HTML)
 
 COMMON_T2T = $(srcdir)/FOOTER.t2t $(srcdir)/GOOGLEANALYTICS.t2t $(srcdir)/CONFIG.t2t
 
-cmph.1: CMPH.t2t
-	txt2tags -t man -i CMPH.t2t -o $@ && cp $@ $(srcdir)/cmph.1
+#cmph.1: CMPH.t2t
+#	cd $(srcdir) && txt2tags -t man -i CMPH.t2t -o $@ && cp $@ $(top_srcdir)/man/cmph.1
 index.html: $(srcdir)/README.t2t $(srcdir)/CMPH.t2t $(srcdir)/LOGO.t2t $(srcdir)/NEWSLOG.t2t $(COMMON_T2T)
-	cd $(srcdir) && txt2tags -t html -i README.t2t -o $(abs_builddir)/$@ && \
-	  cp $(abs_builddir)/$@ index.html
-	cd $(srcdir) && txt2tags -t txt -i README.t2t -o $(abs_top_srcdir)/README
+	cd $(srcdir) && txt2tags -t html -i README.t2t -o index.html && \
+	  cp $@ $(abs_builddir)/index.html
+	cd $(srcdir) && txt2tags -t txt -i README.t2t -o ../README
 chd.html: $(srcdir)/CHD.t2t $(srcdir)/ALGORITHMS.t2t $(COMMON_T2T)
-	cd $(srcdir) && txt2tags -t html -i CHD.t2t -o $(abs_builddir)/$@ && \
-	  cp $(abs_builddir)/$@ chd.html
+	cd $(srcdir) && txt2tags -t html -i CHD.t2t -o chd.html && \
+	  cp $@ $(abs_builddir)/chd.html
 bdz.html: $(srcdir)/BDZ.t2t $(srcdir)/ALGORITHMS.t2t $(COMMON_T2T)
-	cd $(srcdir) && txt2tags -t html -i BDZ.t2t -o $(abs_builddir)/$@ && \
-	  cp $(abs_builddir)/$@ bdz.html
+	cd $(srcdir) && txt2tags -t html -i BDZ.t2t -o bdz.html && \
+	  cp $@ $(abs_builddir)/bdz.html
 bmz.html: $(srcdir)/BMZ.t2t $(srcdir)/ALGORITHMS.t2t $(COMMON_T2T)
-	cd $(srcdir) && txt2tags -t html -i BMZ.t2t -o $(abs_builddir)/$@ && \
-	  cp $(abs_builddir)/$@ bmz.html
+	cd $(srcdir) && txt2tags -t html -i BMZ.t2t -o bmz.html && \
+	  cp $@ $(abs_builddir)/bmz.html
 brz.html: $(srcdir)/BRZ.t2t $(srcdir)/ALGORITHMS.t2t $(srcdir)/TABLEBRZ1.t2t \
 	  $(srcdir)/TABLEBRZ2.t2t $(srcdir)/TABLEBRZ3.t2t $(COMMON_T2T)
-	cd $(srcdir) && txt2tags -t html -i BRZ.t2t -o $(abs_builddir)/$@ && \
-	  cp $(abs_builddir)/$@ brz.html
+	cd $(srcdir) && txt2tags -t html -i BRZ.t2t -o brz.html && \
+	  cp $@ $(abs_builddir)/brz.html
 chm.html: $(srcdir)/CHM.t2t $(srcdir)/ALGORITHMS.t2t $(COMMON_T2T)
-	cd $(srcdir) && txt2tags -t html -i CHM.t2t -o $(abs_builddir)/$@ && \
-	  cp $(abs_builddir)/$@ chm.html
+	cd $(srcdir) && txt2tags -t html -i CHM.t2t -o chm.html && \
+	  cp $@ $(abs_builddir)/chm.html
 fch.html: $(srcdir)/FCH.t2t $(srcdir)/ALGORITHMS.t2t $(COMMON_T2T)
-	cd $(srcdir) && txt2tags -t html -i FCH.t2t -o $(abs_builddir)/$@ && \
-	  cp $(abs_builddir)/$@ fch.html
+	cd $(srcdir) && txt2tags -t html -i FCH.t2t -o fch.html && \
+	  cp $@ $(abs_builddir)/fch.html
 comparison.html: $(srcdir)/COMPARISON.t2t $(srcdir)/ALGORITHMS.t2t $(srcdir)/TABLE1.t2t \
 	         $(srcdir)/TABLE4.t2t $(srcdir)/TABLE5.t2t $(COMMON_T2T)
-	cd $(srcdir) && txt2tags -t html -i COMPARISON.t2t -o $(abs_builddir)/$@ && \
-	  cp $(abs_builddir)/$@ comparison.html
+	cd $(srcdir) && txt2tags -t html -i COMPARISON.t2t -o comparison.html && \
+	  cp $@ $(abs_builddir)/comparison.html
 gperf.html: $(srcdir)/GPERF.t2t $(srcdir)/ALGORITHMS.t2t $(COMMON_T2T)
-	cd $(srcdir) && txt2tags -t html -i GPERF.t2t -o $(abs_builddir)/$@ && \
-	  cp $(abs_builddir)/$@ gperf.html
+	cd $(srcdir) && txt2tags -t html -i GPERF.t2t -o gperf.html && \
+	  cp $@ $(abs_builddir)/gperf.html
 faq.html: $(srcdir)/FAQ.t2t $(srcdir)/ALGORITHMS.t2t $(COMMON_T2T)
-	cd $(srcdir) && txt2tags -t html -i FAQ.t2t -o $(abs_builddir)/$@ && \
-	  cp $(abs_builddir)/$@ faq.html
+	cd $(srcdir) && txt2tags -t html -i FAQ.t2t -o faq.html && \
+	  cp $@ $(abs_builddir)/faq.html
 concepts.html: $(srcdir)/CONCEPTS.t2t $(srcdir)/ALGORITHMS.t2t $(COMMON_T2T)
-	cd $(srcdir) && txt2tags -t html -i CONCEPTS.t2t -o $(abs_builddir)/$@ && \
-	  cp $(abs_builddir)/$@ concepts.html
+	cd $(srcdir) && txt2tags -t html -i CONCEPTS.t2t -o concepts.html && \
+	  cp $@ $(abs_builddir)/concepts.html
 newslog.html: $(srcdir)/NEWSLOG.t2t $(srcdir)/ALGORITHMS.t2t $(COMMON_T2T)
-	cd $(srcdir) && txt2tags -t html -i NEWSLOG.t2t -o $(abs_builddir)/$@ && \
-	  cp $(abs_builddir)/$@ newslog.html
+	cd $(srcdir) && txt2tags -t html -i NEWSLOG.t2t -o newslog.html && \
+	  cp $@ $(abs_builddir)/newslog.html
 examples.html: $(srcdir)/EXAMPLES.t2t $(srcdir)/ALGORITHMS.t2t $(COMMON_T2T)
-	cd $(srcdir) && txt2tags -t html -i EXAMPLES.t2t -o $(abs_builddir)/$@ && \
-	  cp $(abs_builddir)/$@ examples.html
+	cd $(srcdir) && txt2tags -t html -i EXAMPLES.t2t -o examples.html && \
+	  cp $@ $(abs_builddir)/examples.html
 
 DISTCLEANFILES = $(doc_HTML)

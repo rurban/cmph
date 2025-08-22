@@ -29,3 +29,5 @@ txt2tags -t txt -i NEWSLOG.t2t -o NEWSLOG
 # txt2tags struggles with the lower cap examples directory
 txt2tags -t txt -i EXAMPLES.t2t -o EXAMPLES.txt
 mv -v EXAMPLES.txt EXAMPLES
+
+cd ../man && txt2tags -t man -i CMPH.t2t -o CMPH.1; cd -
