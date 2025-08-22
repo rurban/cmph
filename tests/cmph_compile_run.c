@@ -3,8 +3,8 @@
 #include <string.h>
 #include <stdint.h>
 
-//uint32_t cmph_size(void);
 uint32_t cmph_search(const char* key, uint32_t keylen);
+uint32_t cmph_size(void);
 
 int main(int argc, char **argv) {
     if (argc != 4) {
@@ -17,19 +17,22 @@ int main(int argc, char **argv) {
         exit(1);
     }
     uint32_t nkeys = strtol(argv[3], NULL, 10);
-    printf("compile %s for %s [%u]\n", argv[1], argv[2], nkeys);
+    printf("cmph_compile_run %s for %s [%u]\n", argv[1], argv[2], nkeys);
     int is_order_preserving = strcmp(argv[1], "chm") == 0;
     char key[128];
     unsigned l = 0;
     unsigned failed = 0;
     uint32_t h;
-    // FIXME: some funcs over-allocate. we need an exported cmph_size()
+    // some funcs over-allocate. we need an exported cmph_size()
+    nkeys = cmph_size();
     uint32_t *hasharray = (uint32_t*)calloc(nkeys, 4);
     while (fgets(key, sizeof(key), f)) {
         // delete the ending \n
         int len = (int)strlen(key);
         key[len-1] = '\0';
+
         h = cmph_search(key, len-1);
+
         if (h >= nkeys) {
             fprintf(stderr, "Unknown key %*s, h %u too large\n", len-1, key, h);
             failed++;
@@ -45,6 +48,7 @@ int main(int argc, char **argv) {
         }
         l++;
     }
+    free(hasharray);
     fclose(f);
     if (failed)
         exit(1);
