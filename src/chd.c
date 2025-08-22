@@ -10,6 +10,7 @@
 #include "chd_structs.h"
 #include "chd.h"
 #include "bitbool.h"
+#include "hash.h"
 //#define DEBUG
 #include "debug.h"
 
@@ -191,13 +192,46 @@ void chd_load(FILE *fd, cmph_t *mphf)
 	CHK_FREAD(chd->packed_cr, chd->packed_cr_size, (size_t)1, fd);
 }
 
-int chd_compile(cmph_t *mphf)
+int chd_compile(cmph_t *mphf, cmph_config_t *mph)
 {
 	chd_data_t *data = (chd_data_t *)mphf->data;
+	chd_config_data_t *config = (chd_config_data_t *)mph->data;
+	chd_ph_config_data_t *chd_ph = (chd_ph_config_data_t *)config->chd_ph->data;
 	DEBUGP("Compiling chd\n");
-	printf("// NYI\n");
+	/*
+	cmph_uint32 bin_idx = chd_pf_search_packed(packed_chd_phf, key, keylen);
+	cmph_uint32 rank = compressed_rank_query_packed(packed_cr, bin_idx);
+	return bin_idx - rank;
+	 */
+	//hash_state_compile(3, &chd_ph->hl);
+	printf("\nuint32_t cmph_search(const char* key, uint32_t keylen) {\n");
+	printf("    /* n: %u */\n", chd_ph->n);
+	printf("    /* m: %u */\n", chd_ph->m);
+	cmph_uint32 occup_size = chd_ph->n;
+	if (chd_ph->keys_per_bin <= 1)
+		occup_size  = ((chd_ph->n + 31)/32) * 4;
+	printf("    const uint8_t occup_table[%u] = {\n        ", occup_size);
+	for (unsigned i=0; i < occup_size - 1; i++) {
+		printf("%u, ", chd_ph->occup_table[i]);
+		if (i % 16 == 15)
+			printf("\n        ");
+	}
+	printf("%u\n    };\n", chd_ph->occup_table[occup_size - 1]);
+	printf("    uint32_t disp, position, probe0_num, probe1_num, f, g, h;\n");
+	printf("    uint32_t hv[3];\n");
+	printf("    %s_hash_vector(%u, (const unsigned char*)key, keylen, hv);\n",
+	       cmph_hash_names[chd_ph->hashfunc], 0/*chd_ph->hl->seed*/);
+	printf("    g = hv[0] %% %u;\n", chd_ph->nbuckets);
+	printf("    f = hv[1] %% %u;\n", chd_ph->n);
+	printf("    h = hv[1] %% %u + 1;\n", chd_ph->n - 1);
+	printf("    disp = compressed_seq_query_packed(ptr, g);\n");
+	printf("    probe0_num = disp %% %u\n", chd_ph->n);
+	printf("    probe1_num = disp / %u\n", chd_ph->n);
+	printf("    return (uint32_t)((f + ((cmph_uint64_t)h)*probe0_num + probe1_num) %% %u);\n",
+	       chd_ph->n);
+	printf("};\n");
 	printf("uint32_t cmph_size(void) {\n");
-	printf("    return %u;\n}\n", data->m);
+	printf("    return %u;\n}\n", chd_ph->m);
 	exit(1);
 }
 int chd_dump(cmph_t *mphf, FILE *fd)

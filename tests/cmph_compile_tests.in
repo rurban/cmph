@@ -12,7 +12,7 @@ test -e _words || head -n $N <${WORDS} >_words
 test -e _words100 || head -n 100 <${WORDS} >_words100
 
 all="bmz chm brz fch bdz bdz_ph bmz8 chd chd_ph"
-algos="chm bmz bdz"
+algos="chm bmz bdz" # brz chd
 for a in $algos; do
     rm -f _words.mph
     if [ $a = bmz8 ] || [ $a = fch ]; then

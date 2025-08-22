@@ -594,13 +594,14 @@ static char * brz_copy_partial_bmz8_mphf(brz_config_data_t *brz, bmz8_data_t * b
 	return buf;
 }
 
-int brz_compile(cmph_t *mphf)
+int brz_compile(cmph_t *mphf, cmph_config_t *mph)
 {
 	brz_data_t *data = (brz_data_t *)mphf->data;
+	//brz_config_data_t *config = (brz_config_data_t *)mph->data;
 	hash_state_t *hashes[3];
 	DEBUGP("Compiling brz\n");
-	hashes[0] = data->h1[0];
-	hashes[1] = data->h2[0];
+	hashes[0] = data->h1 ? data->h1[0] : data->h0;
+	hashes[1] = data->h2 ? data->h2[0] : data->h0;
 	hashes[2] = data->h0;
 	hash_state_compile(3, hashes);
 	printf("// NYI\n");

@@ -864,13 +864,15 @@ void chd_ph_load(FILE *fd, cmph_t *mphf)
 	CHK_FREAD(&(chd_ph->nbuckets), sizeof(cmph_uint32), (size_t)1, fd);
 }
 
-int chd_ph_compile(cmph_t *mphf)
+int chd_ph_compile(cmph_t *mphf, cmph_config_t *mph)
 {
-	chd_ph_data_t *data = (chd_ph_data_t *)mphf->data;
+        //chd_ph_data_t *data = (chd_ph_data_t *)mphf->data;
+	chd_ph_config_data_t *chd_ph = (chd_ph_config_data_t *)mph->data;
 	DEBUGP("Compiling chd_ph\n");
+	hash_state_compile(3, &chd_ph->hl);
 	printf("// NYI\n");
 	printf("uint32_t cmph_size(void) {\n");
-	printf("    return %u;\n}\n", data->m);
+	printf("    return %u;\n}\n", chd_ph->m);
 	exit(1);
 }
 int chd_ph_dump(cmph_t *mphf, FILE *fd)

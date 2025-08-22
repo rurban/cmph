@@ -309,10 +309,10 @@ int main(int argc, char **argv)
 			free(source);
 			return -1;
 		}
-		if (generate)
-			cmph_dump(mphf, mphf_fd);
 		if (compile)
 			cmph_compile(mphf, config, keys_file);
+		if (generate)
+			cmph_dump(mphf, mphf_fd);
 		cmph_config_destroy(config);
 		cmph_destroy(mphf);
 		if (generate)
