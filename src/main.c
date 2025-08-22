@@ -276,6 +276,7 @@ int main(int argc, char **argv)
 		if (generate)
 			mphf_fd = fopen(mphf_file, "wb");
 		config = cmph_config_new(source);
+		cmph_config_set_seed(config, seed);
 		cmph_config_set_algo(config, mph_algo);
 		if (nhashes) cmph_config_set_hashfuncs(config, hashes);
 		cmph_config_set_verbosity(config, verbosity);

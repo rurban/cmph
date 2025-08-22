@@ -31,10 +31,6 @@ brz_config_data_t *brz_config_new(void)
         if (!brz) return NULL;
         brz->algo = CMPH_FCH;
 	brz->b = 128;
-	brz->hashfuncs[0] = CMPH_HASH_JENKINS;
-	brz->hashfuncs[1] = CMPH_HASH_JENKINS;
-	brz->hashfuncs[2] = CMPH_HASH_JENKINS;
-	brz->nhashfuncs = 1;
 	brz->size   = NULL;
 	brz->offset = NULL;
 	brz->g      = NULL;
@@ -60,31 +56,30 @@ void brz_config_destroy(cmph_config_t *mph)
 // support 3 independent hash functions, but mostly just one for all
 void brz_config_set_hashfuncs(cmph_config_t *mph, CMPH_HASH *hashfuncs)
 {
-	brz_config_data_t *brz = (brz_config_data_t *)mph->data;
 	CMPH_HASH *hashptr = hashfuncs;
 	cmph_uint32 i = 0;
 	while (*hashptr != CMPH_HASH_COUNT)
 	{
 		if (i >= 3) break; // brz up to three hash functions
-		brz->hashfuncs[i] = *hashptr;
+		mph->hashfuncs[i] = *hashptr;
 		++i, ++hashptr;
 	}
 	if (i >= 3) {
-		if (brz->hashfuncs[0] == brz->hashfuncs[1] &&
-		    brz->hashfuncs[0] == brz->hashfuncs[2])
-			brz->nhashfuncs = 1;
+		if (mph->hashfuncs[0] == mph->hashfuncs[1] &&
+		    mph->hashfuncs[0] == mph->hashfuncs[2])
+			mph->nhashfuncs = 1;
 		else
-			brz->nhashfuncs = 3;
+			mph->nhashfuncs = 3;
 	} else if (i == 1) {
-		brz->hashfuncs[2] = brz->hashfuncs[1] = brz->hashfuncs[0];
-		brz->nhashfuncs = 1;
+		mph->hashfuncs[2] = mph->hashfuncs[1] = mph->hashfuncs[0];
+		mph->nhashfuncs = 1;
 	} else { // 2 set, the third is the default jenkins
-		if (brz->hashfuncs[0] == brz->hashfuncs[1]) {
-			brz->nhashfuncs = 1;
-			brz->hashfuncs[2] = brz->hashfuncs[1];
+		if (mph->hashfuncs[0] == mph->hashfuncs[1]) {
+			mph->nhashfuncs = 1;
+			mph->hashfuncs[2] = mph->hashfuncs[1];
 		} else {
-			brz->nhashfuncs = 3;
-			brz->hashfuncs[2] = brz->hashfuncs[1];
+			mph->nhashfuncs = 3;
+			mph->hashfuncs[2] = mph->hashfuncs[1];
 		}
 	}
 }
@@ -193,7 +188,7 @@ cmph_t *brz_new(cmph_config_t *mph, double c)
 	{
 		int ok;
 		DEBUGP("hash function 3\n");
-		brz->h0 = hash_state_new(brz->hashfuncs[2], brz->k);
+		brz->h0 = hash_state_new(mph->hashfuncs[2], brz->k);
 		DEBUGP("Generating graphs\n");
 		ok = brz_gen_mphf(mph);
 		if (!ok)
@@ -475,7 +470,7 @@ static int brz_gen_mphf(cmph_config_t *mph)
 			source = cmph_io_byte_vector_adapter(keys_vd, (cmph_uint32)nkeys_vd);
 			config = cmph_config_new(source);
 			cmph_config_set_algo(config, brz->algo);
-			cmph_config_set_hashfuncs(config, brz->hashfuncs);
+			cmph_config_set_hashfuncs(config, mph->hashfuncs);
 			cmph_config_set_graphsize(config, brz->c);
 			mphf_tmp = cmph_new(config);
 			if (mphf_tmp == NULL)
@@ -599,6 +594,7 @@ int brz_compile(cmph_t *mphf, cmph_config_t *mph)
 	brz_data_t *data = (brz_data_t *)mphf->data;
 	//brz_config_data_t *config = (brz_config_data_t *)mph->data;
 	hash_state_t *hashes[3];
+	(void)mph; // TODO
 	DEBUGP("Compiling brz\n");
 	hashes[0] = data->h1 ? data->h1[0] : data->h0;
 	hashes[1] = data->h2 ? data->h2[0] : data->h0;
