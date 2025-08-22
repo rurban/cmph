@@ -2,4 +2,4 @@
 set -e
 echo "** cc @CFLAGS@ @srcdir@/cmph_compile_run.c $1.c -o cmph_compile_run"
 @CC@ @CFLAGS@ @abs_srcdir@/cmph_compile_run.c "$1".c -o cmph_compile_run
-./cmph_compile_run "$1" "$2"
+./cmph_compile_run $@

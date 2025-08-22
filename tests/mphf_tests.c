@@ -217,8 +217,6 @@ int main(int argc, char **argv)
 		cmph_uint32 buflen = 0;
 		source->read(source->data, &buf, &buflen);
 		h = cmph_search(mphf, buf, buflen);
-		// TODO: with the order-preserving algo CHM,
-		// check h against the key index also.
 		if (!(h < siz))
 		{
 			fprintf(stderr, "Unknown key %*s in the input.\n", buflen, buf);
@@ -228,7 +226,7 @@ int main(int argc, char **argv)
 			fprintf(stderr, "Duplicated or unknown key %*s in the input\n", buflen, buf);
 			ret = 1;
 		} else hasharray[h] = 1;
-		// check order-preserving CHM
+		// with the order-preserving algo CHM, check h against the key index also.
 		if (mph_algo == CMPH_CHM && i != h)
 		{
 			fprintf(stderr, "Keys are not in the right order: %u, expected %u\n", h, i);

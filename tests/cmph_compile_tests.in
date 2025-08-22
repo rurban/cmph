@@ -18,22 +18,25 @@ for a in $algos; do
     if [ $a = bmz8 ] || [ $a = fch ]; then
         rm -f _words100.mph
         words=_words100
+        nwords=100
     else
         words=_words
+        nwords=$N
     fi
     echo "** cmph -C -a $a $words >$a.c"
     ../src/cmph -C -a $a $words >$a.c
     echo "** cc -O2 -Wall -Wextra -c $a.c"
     cc -O2 -Wall -Wextra -c $a.c
-    echo "** compile_run $a $words"
-    ./compile_run $a $words && rm $a.c $a.o
+    echo "** compile_run $a $words $nwords"
+    ./compile_run $a $words $nwords && rm $a.c $a.o
 done
+rm -f _words100.mph
 
 all_funcs="jenkins wyhash crc32 fnv djb2 sdbm"
 funcs="jenkins wyhash"
 for f in $funcs; do
     # cmh uses hash_vector
-    rm -f _words.mph _words100.mph
+    rm -f _words.mph
     if [ $f = crc32 ] || [ $f = sdbm ] || [ $f = djb2 ]
     then
         echo too weak $f hash, use a seperate hashfunc and a seed
@@ -43,8 +46,8 @@ for f in $funcs; do
     ../src/cmph -C -f $f _words >$f.c
     echo "** cc -O2 -Wall -Wextra -c $a.c"
     cc -O2 -Wall -Wextra -c $f.c
-    echo "** compile_run $f $words"
-    ./compile_run $f _words && rm $f.c $f.o
+    echo "** compile_run $f _words $N"
+    ./compile_run $f _words $N && rm $f.c $f.o
 
     # bdz uses the hash_vector API, 3x in one
     case $f in
@@ -53,11 +56,11 @@ for f in $funcs; do
             break
             ;;
     esac
-    echo "** cmph -C -f $f -a bdz $words >${f}_bdz.c"
-    ../src/cmph -C -f $f -a bdz $words >${f}_bdz.c
+    echo "** cmph -C -f $f -a bdz _words >${f}_bdz.c"
+    ../src/cmph -C -f $f -a bdz _words >${f}_bdz.c
     echo "** cc -O2 -Wall -Wextra -c ${f}_bdz.c"
-    cc -O2 -Wall -Wextra -c ${f}_bdz
-    echo "** compile_run ${f}_bdz $words"
-    ./compile_run ${f}_bdz $words  && rm ${f}_bdz.c ${f}_bdz.o
+    cc -O2 -Wall -Wextra -c ${f}_bdz.c
+    echo "** compile_run ${f}_bdz _words $N"
+    ./compile_run ${f}_bdz _words $N && rm ${f}_bdz.c ${f}_bdz.o
 done
 rm -f _words _words.mph _words100 _words100.mph
