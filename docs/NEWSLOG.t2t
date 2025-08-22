@@ -5,6 +5,18 @@ News Log
 
 ----------------------------------------
 
+==News for version 2.1.0==
+
+Added compilation to standalone C files.
+Optimize bmz,chm search with hash_vector.
+When selecting one hash function with -f, it selects this hash function
+for the next hash functions also, to override the default jenkins.
+Fixed minor bm_numbers issues.
+mphf_tests got -s, -a and -f support.
+Added -Wextra
+Removed unused args in the internal API.
+Fixed a lot of memory leaks.
+
 ==News for version 2.0.3==
 
 Fixed hash states, re-enabled the other hashes, added wyhash.
