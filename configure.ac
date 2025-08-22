@@ -1,5 +1,5 @@
 dnl Process this file with autoconf to produce a configure script.
-AC_INIT([cmph], [2.0.3], [https://sourceforge.net/projects/cmph/support],[cmph],
+AC_INIT([cmph], [2.1.0], [https://sourceforge.net/projects/cmph/support],[cmph],
         [https://cmph.sf.net/])
 AC_CONFIG_SRCDIR([Makefile.am])
 AM_INIT_AUTOMAKE

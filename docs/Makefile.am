@@ -167,14 +167,14 @@ doc_HTML = \
 	bdz.html brz.html chm.html fch.html bmz.html chd.html \
 	faq.html concepts.html gperf.html newslog.html comparison.html  \
 	examples.html index.html
-EXTRA_DIST = $(T2T) gendocs $(FIGS) $(PAPERS)
+EXTRA_DIST = $(T2T) gendocs $(FIGS) $(PAPERS) $(doc_HTML)
 
 all: $(doc_HTML)
 
 COMMON_T2T = $(srcdir)/FOOTER.t2t $(srcdir)/GOOGLEANALYTICS.t2t $(srcdir)/CONFIG.t2t
 
-cmph.1: CMPH.t2t
-	txt2tags -t man -i CMPH.t2t -o $@ && cp $@ $(srcdir)/cmph.1
+#cmph.1: CMPH.t2t
+#	txt2tags -t man -i CMPH.t2t -o $@ && cp $@ $(top_srcdir)/man/cmph.1
 index.html: $(srcdir)/README.t2t $(srcdir)/CMPH.t2t $(srcdir)/LOGO.t2t $(srcdir)/NEWSLOG.t2t $(COMMON_T2T)
 	cd $(srcdir) && txt2tags -t html -i README.t2t -o $(abs_builddir)/$@ && \
 	  cp $(abs_builddir)/$@ index.html

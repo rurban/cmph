@@ -26,9 +26,9 @@ for a in bmz chm brz fch bdz bdz_ph bmz8 chd chd_ph; do
     echo "** mphf_tests -a $a $words"
     ./mphf_tests -a $a $words
 done
+rm -f _words100 _words100.mph
 for f in jenkins wyhash crc32 fnv djb2 sdbm; do
-    # cmh uses hash_vector
-    rm -f _words.mph _words100.mph
+    rm -f _words.mph
     if [ $f = crc32 ] || [ $f = sdbm ] || [ $f = djb2 ]
     then
         echo too weak $f hash, use a seperate hashfunc and a seed
@@ -40,7 +40,6 @@ for f in jenkins wyhash crc32 fnv djb2 sdbm; do
     ../src/cmph -f $f _words
     echo "** mphf_tests -f $f _words"
     ./mphf_tests -f $f _words
-    rm -f _words.mph
     # bdz uses the hash_vector API, 3x in one
     case $f in
         sdbm|djb2*)
@@ -48,11 +47,12 @@ for f in jenkins wyhash crc32 fnv djb2 sdbm; do
             break
             ;;
     esac
-    echo "** cmph -g -f $f -a bdz $words"
-    ../src/cmph -g -f $f -a bdz $words
-    echo "** cmph -f $f -a bdz $words"
-    ../src/cmph -f $f -a bdz $words
-    echo "** mphf_tests -f $f -a bdz $words"
-    ./mphf_tests -f $f -a bdz $words
+    rm -f _words.mph
+    echo "** cmph -g -f $f -a bdz _words"
+    ../src/cmph -g -f $f -a bdz _words
+    echo "** cmph -f $f -a bdz _words"
+    ../src/cmph -f $f -a bdz _words
+    echo "** mphf_tests -f $f -a bdz _words"
+    ./mphf_tests -f $f -a bdz _words
 done
 rm -f _words _words.mph _words100 _words100.mph
