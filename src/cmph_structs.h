@@ -12,6 +12,9 @@ struct __config_t
         cmph_uint32 verbosity;
         double c;
         void *data; // algorithm dependent data
+        cmph_uint32 seed; // not the hash seed, but the cmdline seed
+	CMPH_HASH hashfuncs[3];
+	cmph_uint32 nhashfuncs; // default to 1 for a hash_vector
 };
 
 /** Hash querying algorithm data

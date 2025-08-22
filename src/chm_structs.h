@@ -14,8 +14,6 @@ struct __chm_data_t
 
 struct __chm_config_data_t
 {
-	CMPH_HASH hashfuncs[2];
-	cmph_uint32 nhashfuncs; // 2 if independent. else take just the hashes from the vector
 	cmph_uint32 m; //edges (words) count
 	cmph_uint32 n; //vertex count
 	graph_t *graph;

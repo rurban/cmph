@@ -1,6 +1,7 @@
 #include "cmph_structs.h"
 
 #include <string.h>
+#include <limits.h>
 
 //#define DEBUG
 #include "debug.h"
@@ -14,6 +15,11 @@ cmph_config_t *__config_new(cmph_io_adapter_t *key_source)
 	mph->verbosity = 0;
 	mph->data = NULL;
 	mph->c = 0;
+	mph->seed = UINT_MAX;
+	mph->hashfuncs[0] = CMPH_HASH_JENKINS;
+	mph->hashfuncs[1] = CMPH_HASH_JENKINS;
+	mph->hashfuncs[2] = CMPH_HASH_JENKINS;
+	mph->nhashfuncs = 1;
 	return mph;
 }
 

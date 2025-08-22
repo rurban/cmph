@@ -47,7 +47,6 @@ void chd_config_set_hashfuncs(cmph_config_t *mph, CMPH_HASH *hashfuncs)
 	cmph_config_set_hashfuncs(data->chd_ph, hashfuncs);
 }
 
-
 void chd_config_set_b(cmph_config_t *mph, cmph_uint32 keys_per_bucket)
 {
 	chd_config_data_t *data = (chd_config_data_t *) mph->data;
@@ -198,6 +197,7 @@ int chd_compile(cmph_t *mphf, cmph_config_t *mph)
 	chd_config_data_t *config = (chd_config_data_t *)mph->data;
 	chd_ph_config_data_t *chd_ph = (chd_ph_config_data_t *)config->chd_ph->data;
 	DEBUGP("Compiling chd\n");
+	printf("// NYI");
 	/*
 	cmph_uint32 bin_idx = chd_pf_search_packed(packed_chd_phf, key, keylen);
 	cmph_uint32 rank = compressed_rank_query_packed(packed_cr, bin_idx);
