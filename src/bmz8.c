@@ -485,7 +485,7 @@ static int bmz8_gen_edges(cmph_config_t *mph)
 	return !multiple_edges;
 }
 
-int bmz8_compile(cmph_t *mphf)
+int bmz8_compile(cmph_t *mphf, cmph_config_t *mph)
 {
 	bmz8_data_t *data = (bmz8_data_t *)mphf->data;
 	DEBUGP("Compiling bmz8\n");

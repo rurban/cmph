@@ -19,7 +19,7 @@ cmph_t *fch_new(cmph_config_t *mph, double c);
 
 void fch_load(FILE *f, cmph_t *mphf);
 int fch_dump(cmph_t *mphf, FILE *f);
-int fch_compile(cmph_t *mphf);
+int fch_compile(cmph_t *mphf, cmph_config_t *mph);
 void fch_destroy(cmph_t *mphf);
 cmph_uint32 fch_search(cmph_t *mphf, const char *key, cmph_uint32 keylen);
 

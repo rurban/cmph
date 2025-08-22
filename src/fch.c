@@ -332,10 +332,16 @@ cmph_t *fch_new(cmph_config_t *mph, double c)
 	return mphf;
 }
 
-int fch_compile(cmph_t *mphf)
+int fch_compile(cmph_t *mphf, cmph_config_t *mph)
 {
 	fch_data_t *data = (fch_data_t *)mphf->data;
+	hash_state_t *hl[2] = { data->h1, data->h2 };
 	DEBUGP("Compiling fch\n");
+	hash_state_compile(1, (hash_state_t**)hl);
+	printf("#include <assert.h>\n");
+	printf("#ifdef DEBUG\n");
+	printf("#include <stdio.h>\n");
+	printf("#endif\n");
 	printf("// NYI\n");
 	printf("uint32_t cmph_size(void) {\n");
 	printf("    return %u;\n}\n", data->m);

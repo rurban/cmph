@@ -72,17 +72,17 @@ chd_ph_bucket_t * chd_ph_bucket_new(cmph_uint32 nbuckets)
 
 void chd_ph_bucket_clean(chd_ph_bucket_t * buckets, cmph_uint32 nbuckets)
 {
-	register cmph_uint32 i = 0;
+	cmph_uint32 i = 0;
 	assert(buckets);
 	for(i = 0; i < nbuckets; i++)
 		buckets[i].size = 0;
 }
 static cmph_uint8 chd_ph_bucket_insert(chd_ph_bucket_t * buckets,chd_ph_map_item_t * map_items, chd_ph_item_t * items, cmph_uint32 item_idx)
 {
-	register cmph_uint32 i = 0;
-	register chd_ph_item_t * tmp_item;
-	register chd_ph_map_item_t * tmp_map_item = map_items + item_idx;
-	register chd_ph_bucket_t * bucket = buckets + tmp_map_item->bucket_num;
+	cmph_uint32 i = 0;
+	chd_ph_item_t * tmp_item;
+	chd_ph_map_item_t * tmp_map_item = map_items + item_idx;
+	chd_ph_bucket_t * bucket = buckets + tmp_map_item->bucket_num;
 
 	tmp_item = items + bucket->items_list;
 
@@ -123,9 +123,9 @@ static inline double chd_ph_space_lower_bound(cmph_uint32 _n, cmph_uint32 _r)
 /* computes the entropy of non empty buckets.*/
 static inline double chd_ph_get_entropy(cmph_uint32 * disp_table, cmph_uint32 n, cmph_uint32 max_probes)
 {
-	register cmph_uint32 * probe_counts = (cmph_uint32 *) calloc(max_probes, sizeof(cmph_uint32));
-	register cmph_uint32 i;
-	register double entropy = 0;
+	cmph_uint32 * probe_counts = (cmph_uint32 *) calloc(max_probes, sizeof(cmph_uint32));
+	cmph_uint32 i;
+	double entropy = 0;
 
 	for(i = 0; i < n; i++)
 	{
@@ -215,14 +215,14 @@ void chd_ph_config_set_keys_per_bin(cmph_config_t *mph, cmph_uint32 keys_per_bin
 
 cmph_uint8 chd_ph_mapping(cmph_config_t *mph, chd_ph_bucket_t * buckets, chd_ph_item_t * items, cmph_uint32 *max_bucket_size)
 {
-	register cmph_uint32 i = 0, g = 0;
+	cmph_uint32 i = 0, g = 0;
 	cmph_uint32 hl[3];
 	chd_ph_config_data_t *chd_ph = (chd_ph_config_data_t *)mph->data;
 	char * key = NULL;
 	cmph_uint32 keylen = 0;
 	chd_ph_map_item_t * map_item;
 	chd_ph_map_item_t * map_items = (chd_ph_map_item_t *)malloc(chd_ph->m*sizeof(chd_ph_map_item_t));
-	register cmph_uint32 mapping_iterations = 1000;
+	cmph_uint32 mapping_iterations = 1000;
 	*max_bucket_size = 0;
 	while(1)
 	{
@@ -297,7 +297,7 @@ chd_ph_sorted_list_t * chd_ph_ordering(chd_ph_bucket_t ** _buckets, chd_ph_item_
 	chd_ph_bucket_t * output_buckets;
 	chd_ph_item_t * input_items = (*_items);
 	chd_ph_item_t * output_items;
-	register cmph_uint32 i, j, bucket_size, position, position2;
+	cmph_uint32 i, j, bucket_size, position, position2;
 // 	cmph_uint32 non_empty_buckets;
 	DEBUGP("MAX BUCKET SIZE = %u\n", max_bucket_size);
 	// Determine size of each list of buckets
@@ -369,9 +369,9 @@ static inline cmph_uint8 place_bucket_probe(chd_ph_config_data_t *chd_ph, chd_ph
 					    chd_ph_item_t *items, cmph_uint32 probe0_num, cmph_uint32 probe1_num,
 					    cmph_uint32 bucket_num, cmph_uint32 size)
 {
-	register cmph_uint32 i;
-	register chd_ph_item_t * item;
-	register cmph_uint32 position;
+	cmph_uint32 i;
+	chd_ph_item_t * item;
+	cmph_uint32 position;
 
 	item = items + buckets[bucket_num].items_list;
 	// try place bucket with probe_num
@@ -441,7 +441,7 @@ static inline cmph_uint8 place_bucket(chd_ph_config_data_t *chd_ph, chd_ph_bucke
                                       cmph_uint32 * disp_table, cmph_uint32 bucket_num, cmph_uint32 size)
 
 {
-	register cmph_uint32 probe0_num, probe1_num, probe_num;
+	cmph_uint32 probe0_num, probe1_num, probe_num;
 	probe0_num = 0;
 	probe1_num = 0;
 	probe_num = 0;
@@ -472,8 +472,8 @@ static inline cmph_uint8 place_buckets1(chd_ph_config_data_t *chd_ph, chd_ph_buc
 					cmph_uint32 max_bucket_size, chd_ph_sorted_list_t *sorted_lists, cmph_uint32 max_probes,
 					cmph_uint32 * disp_table)
 {
-	register cmph_uint32 i = 0;
-	register cmph_uint32 curr_bucket = 0;
+	cmph_uint32 i = 0;
+	cmph_uint32 curr_bucket = 0;
 
 	for(i = max_bucket_size; i > 0; i--)
 	{
@@ -494,9 +494,9 @@ static inline cmph_uint8 place_buckets2(chd_ph_config_data_t *chd_ph, chd_ph_buc
 					cmph_uint32 max_bucket_size, chd_ph_sorted_list_t *sorted_lists, cmph_uint32 max_probes,
 					cmph_uint32 * disp_table)
 {
-	register cmph_uint32 i,j, non_placed_bucket;
-	register cmph_uint32 curr_bucket;
-	register cmph_uint32 probe_num, probe0_num, probe1_num;
+	cmph_uint32 i,j, non_placed_bucket;
+	cmph_uint32 curr_bucket;
+	cmph_uint32 probe_num, probe0_num, probe1_num;
 	cmph_uint32 sorted_list_size;
 #ifdef DEBUG
 	cmph_uint32 items_list;
@@ -574,10 +574,10 @@ cmph_uint8 chd_ph_searching(chd_ph_config_data_t *chd_ph, chd_ph_bucket_t *bucke
 static inline cmph_uint8 chd_ph_check_bin_hashing(chd_ph_config_data_t *chd_ph, chd_ph_bucket_t *buckets, chd_ph_item_t *items,
                                                   cmph_uint32 * disp_table, chd_ph_sorted_list_t * sorted_lists,cmph_uint32 max_bucket_size)
 {
-	register cmph_uint32 bucket_size, i, j;
-	register cmph_uint32 position, probe0_num, probe1_num;
-	register cmph_uint32 m = 0;
-	register chd_ph_item_t * item;
+	cmph_uint32 bucket_size, i, j;
+	cmph_uint32 position, probe0_num, probe1_num;
+	cmph_uint32 m = 0;
+	chd_ph_item_t * item;
 	if(chd_ph->keys_per_bin > 1)
 		memset(chd_ph->occup_table, 0, chd_ph->n);
 	else
@@ -625,18 +625,18 @@ cmph_t *chd_ph_new(cmph_config_t *mph, double c)
 	chd_ph_data_t *chd_phf = NULL;
 	chd_ph_config_data_t *chd_ph = (chd_ph_config_data_t *)mph->data;
 
-	register double load_factor = c;
-	register cmph_uint8 searching_success = 0;
-	register cmph_uint32 max_probes_default = 1 << 20; // default value for max_probes
-	register cmph_uint32 max_probes; 
-	register cmph_uint32 iterations = 100;
+	double load_factor = c;
+	cmph_uint8 searching_success = 0;
+	cmph_uint32 max_probes_default = 1 << 20; // default value for max_probes
+	cmph_uint32 max_probes; 
+	cmph_uint32 iterations = 100;
 	chd_ph_bucket_t * buckets = NULL;
 	chd_ph_item_t * items = NULL;
-	register cmph_uint8 failure = 0;
+	cmph_uint8 failure = 0;
 	cmph_uint32 max_bucket_size = 0;
 	chd_ph_sorted_list_t * sorted_lists = NULL;
 	cmph_uint32 * disp_table = NULL;
-	register double space_lower_bound = 0;
+	double space_lower_bound = 0;
 #ifdef CMPH_TIMING
 	double construction_time_begin = 0.0;
 	double construction_time = 0.0;
@@ -784,7 +784,7 @@ cmph_t *chd_ph_new(cmph_config_t *mph, double c)
 
 #ifdef CMPH_TIMING
 	ELAPSED_TIME_IN_SECONDS(&construction_time);
-	register double entropy = chd_ph_get_entropy(disp_table, chd_ph->nbuckets, max_probes);
+	double entropy = chd_ph_get_entropy(disp_table, chd_ph->nbuckets, max_probes);
 	DEBUGP("Entropy = %.4f\n", entropy/chd_ph->m);
 #endif
 
@@ -824,15 +824,13 @@ cleanup:
 	}
 
 #ifdef CMPH_TIMING
-	register cmph_uint32 space_usage = chd_ph_packed_size(mphf)*8;
+	cmph_uint32 space_usage = chd_ph_packed_size(mphf)*8;
 	construction_time = construction_time - construction_time_begin;
 	fprintf(stdout, "%u\t%.2f\t%u\t%.4f\t%.4f\t%.4f\t%.4f\n", chd_ph->m, load_factor, chd_ph->keys_per_bucket, construction_time, space_usage/(double)chd_ph->m, space_lower_bound, entropy/chd_ph->m);
 #endif
 
 	return mphf;
 }
-
-
 
 void chd_ph_load(FILE *fd, cmph_t *mphf)
 {
@@ -864,13 +862,41 @@ void chd_ph_load(FILE *fd, cmph_t *mphf)
 	CHK_FREAD(&(chd_ph->nbuckets), sizeof(cmph_uint32), (size_t)1, fd);
 }
 
-int chd_ph_compile(cmph_t *mphf)
+int chd_ph_compile(cmph_t *mphf, cmph_config_t *mph)
 {
-	chd_ph_data_t *data = (chd_ph_data_t *)mphf->data;
+        //chd_ph_data_t *data = (chd_ph_data_t *)mphf->data;
+	chd_ph_config_data_t *chd_ph = (chd_ph_config_data_t *)mph->data;
 	DEBUGP("Compiling chd_ph\n");
+	hash_state_compile(3, &chd_ph->hl);
 	printf("// NYI\n");
+	printf("\nuint32_t cmph_search(const char* key, uint32_t keylen) {\n");
+	printf("    /* n: %u */\n", chd_ph->n);
+	printf("    /* m: %u */\n", chd_ph->m);
+	cmph_uint32 occup_size = chd_ph->n;
+	if (chd_ph->keys_per_bin <= 1)
+		occup_size  = ((chd_ph->n + 31)/32) * 4;
+	printf("    const uint8_t occup_table[%u] = {\n        ", occup_size);
+	for (unsigned i=0; i < occup_size - 1; i++) {
+		printf("%u, ", chd_ph->occup_table[i]);
+		if (i % 16 == 15)
+			printf("\n        ");
+	}
+	printf("%u\n    };\n", chd_ph->occup_table[occup_size - 1]);
+	printf("    uint32_t disp, position, probe0_num, probe1_num, f, g, h;\n");
+	printf("    uint32_t hv[3];\n");
+	printf("    %s_hash_vector(%u, (const unsigned char*)key, keylen, hv);\n",
+	       cmph_hash_names[chd_ph->hashfunc], chd_ph->hl->seed);
+	printf("    g = hv[0] %% %u;\n", chd_ph->nbuckets);
+	printf("    f = hv[1] %% %u;\n", chd_ph->n);
+	printf("    h = hv[1] %% %u + 1;\n", chd_ph->n - 1);
+	printf("    disp = compressed_seq_query_packed(ptr, g);\n");
+	printf("    probe0_num = disp %% %u\n", chd_ph->n);
+	printf("    probe1_num = disp / %u\n", chd_ph->n);
+	printf("    return (uint32_t)((f + ((cmph_uint64_t)h)*probe0_num + probe1_num) %% %u);\n",
+	       chd_ph->n);
+	printf("};\n");
 	printf("uint32_t cmph_size(void) {\n");
-	printf("    return %u;\n}\n", data->m);
+	printf("    return %u;\n}\n", chd_ph->m);
 	exit(1);
 }
 int chd_ph_dump(cmph_t *mphf, FILE *fd)
@@ -912,11 +938,11 @@ void chd_ph_destroy(cmph_t *mphf)
 
 cmph_uint32 chd_ph_search(cmph_t *mphf, const char *key, cmph_uint32 keylen)
 {
-	register chd_ph_data_t * chd_ph = (chd_ph_data_t *)mphf->data;
+	chd_ph_data_t * chd_ph = (chd_ph_data_t *)mphf->data;
 	cmph_uint32 hl[3];
-	register cmph_uint32 disp,position;
-	register cmph_uint32 probe0_num,probe1_num;
-	register cmph_uint32 f,g,h;
+	cmph_uint32 disp,position;
+	cmph_uint32 probe0_num,probe1_num;
+	cmph_uint32 f,g,h;
 	hash_vector(chd_ph->hl, key, keylen, hl);
 	g = hl[0] % chd_ph->nbuckets;
 	f = hl[1] % chd_ph->n;
@@ -959,10 +985,10 @@ void chd_ph_pack(cmph_t *mphf, void *packed_mphf)
 
 cmph_uint32 chd_ph_packed_size(cmph_t *mphf)
 {
-	register chd_ph_data_t *data = (chd_ph_data_t *)mphf->data;
-	register CMPH_HASH hl_type = hash_get_type(data->hl);
-	register cmph_uint32 hash_state_pack_size =  hash_state_packed_size(hl_type);
-	register cmph_uint32 cs_pack_size = compressed_seq_packed_size(data->cs);
+	chd_ph_data_t *data = (chd_ph_data_t *)mphf->data;
+	CMPH_HASH hl_type = hash_get_type(data->hl);
+	cmph_uint32 hash_state_pack_size =  hash_state_packed_size(hl_type);
+	cmph_uint32 cs_pack_size = compressed_seq_packed_size(data->cs);
 
 	return (cmph_uint32)(sizeof(CMPH_ALGO) + hash_state_pack_size + cs_pack_size + 3*sizeof(cmph_uint32));
 
@@ -970,17 +996,17 @@ cmph_uint32 chd_ph_packed_size(cmph_t *mphf)
 
 cmph_uint32 chd_ph_search_packed(void *packed_mphf, const char *key, cmph_uint32 keylen)
 {
-	register CMPH_HASH hl_type  = (CMPH_HASH)*(cmph_uint32 *)packed_mphf;
-	register cmph_uint8 *hl_ptr = (cmph_uint8 *)(packed_mphf) + 4;
+	CMPH_HASH hl_type  = (CMPH_HASH)*(cmph_uint32 *)packed_mphf;
+	cmph_uint8 *hl_ptr = (cmph_uint8 *)(packed_mphf) + 4;
 
-	register cmph_uint32 * ptr = (cmph_uint32 *)(hl_ptr + hash_state_packed_size(hl_type));
-	register cmph_uint32 n = *ptr++;
-	register cmph_uint32 nbuckets = *ptr++;
+	cmph_uint32 * ptr = (cmph_uint32 *)(hl_ptr + hash_state_packed_size(hl_type));
+	cmph_uint32 n = *ptr++;
+	cmph_uint32 nbuckets = *ptr++;
 	cmph_uint32 hl[3];
 
-	register cmph_uint32 disp,position;
-	register cmph_uint32 probe0_num,probe1_num;
-	register cmph_uint32 f,g,h;
+	cmph_uint32 disp,position;
+	cmph_uint32 probe0_num,probe1_num;
+	cmph_uint32 f,g,h;
 
 	hash_vector_packed(hl_ptr, hl_type, key, keylen, hl);
 

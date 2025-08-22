@@ -13,7 +13,7 @@ cmph_t *bdz_ph_new(cmph_config_t *mph, double c);
 
 void bdz_ph_load(FILE *f, cmph_t *mphf);
 int bdz_ph_dump(cmph_t *mphf, FILE *f);
-int bdz_ph_compile(cmph_t *mphf);
+int bdz_ph_compile(cmph_t *mphf, cmph_config_t *mph);
 void bdz_ph_destroy(cmph_t *mphf);
 cmph_uint32 bdz_ph_search(cmph_t *mphf, const char *key, cmph_uint32 keylen);
 
