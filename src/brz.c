@@ -143,6 +143,7 @@ cmph_t *brz_new(cmph_config_t *mph, double c)
 	brz_data_t *brzf = NULL;
 	cmph_uint32 i;
 	cmph_uint32 iterations = 20;
+	cmph_uint32 *o = NULL;
 
 	DEBUGP("c: %f\n", c);
 	brz_config_data_t *brz = (brz_config_data_t *)mph->data;
@@ -151,9 +152,7 @@ cmph_t *brz_new(cmph_config_t *mph, double c)
         // the caller must set the file to store the resulting MPHF before calling
         // this function.
         if (brz->mphf_fd == NULL)
-        {
             return NULL;
-        }
 
 	switch(brz->algo) // validating restrictions over parameter c.
 	{
@@ -169,20 +168,20 @@ cmph_t *brz_new(cmph_config_t *mph, double c)
 	brz->c = c;
 	brz->m = mph->key_source->nkeys;
         if (brz->m < 5)
-        {
-        	brz->c = 5;
-        }
+		brz->c = 5;
 
 	DEBUGP("m: %u\n", brz->m);
         brz->k = (cmph_uint32)ceil(brz->m/((double)brz->b));
 	DEBUGP("k: %u\n", brz->k);
 	brz->size   = (cmph_uint8 *) calloc((size_t)brz->k, sizeof(cmph_uint8));
+	if (mph->do_ordering_table) {
+	    o = (cmph_uint32 *)calloc((size_t)brz->m, sizeof(cmph_uint32));
+	    assert(o);
+	}
 
 	// Clustering the keys by graph id.
 	if (mph->verbosity)
-	{
-		fprintf(stderr, "Partitioning the set of keys.\n");
-	}
+		fprintf(stderr, "Partitioning the set of keys\n");
 
 	while(1)
 	{
@@ -198,12 +197,12 @@ cmph_t *brz_new(cmph_config_t *mph, double c)
 			brz->h0 = NULL;
 			DEBUGP("%u iterations remaining to create the graphs in a external file\n", iterations);
 			if (mph->verbosity)
-			{
 				fprintf(stderr, "Failure: A graph with more than 255 keys was created - %u iterations remaining\n", iterations);
-			}
-			if (iterations == 0) break;
+			if (iterations == 0)
+				break;
 		}
-		else break;
+		else
+			break;
 	}
 	if (iterations == 0)
 	{
@@ -218,9 +217,44 @@ cmph_t *brz_new(cmph_config_t *mph, double c)
 	{
 		brz->offset[i] = brz->size[i-1] + brz->offset[i-1];
 	}
+	if (o) {
+           DEBUGP("Ordering table\n");
+	   // FIXME get h0,h1,h2
+	   switch(brz->algo)
+	   {
+		case CMPH_FCH:
+		for (i = 0; i < brz->m; ++i) // all edges
+		{
+			;
+		}
+		break;
+		case CMPH_BMZ8:
+		for (i = 0; i < brz->m; ++i) // all edges
+		{
+			cmph_uint32 hv[3];
+			bmz8_config_data_t *bmz8 = (bmz8_config_data_t *)mph->data;
+			//hash_vector(brz->h0, /*key, keylen,*/ hv);
+			cmph_uint32 h0 = hv[2] % brz->k;
+			cmph_uint32 m = brz->size[h0];
+			cmph_uint32 n = (cmph_uint32)ceil(brz->c * m);
+			cmph_uint32 h1 = graph_vertex_id(bmz8->graph, i, 0);
+			cmph_uint32 h2 = graph_vertex_id(bmz8->graph, i, 1);
+			if (h1 == h2 && ++h2 > n) h2 = 0;
+			cmph_uint8 b = brz->g[h0][h1] + brz->g[h0][h2];
+			assert(b + brz->offset[h0] < brz->m);
+			o[b + brz->offset[h0]] = i;
+		}
+		break;
+	   default:
+		   assert(0);
+		   break;
+	   }
+       }
+	
 	// Generating a mphf
 	mphf = (cmph_t *)malloc(sizeof(cmph_t));
 	mphf->algo = mph->algo;
+	mphf->o = o;
 	brzf = (brz_data_t *)malloc(sizeof(brz_data_t));
 	brzf->g = brz->g;
 	brz->g = NULL; //transfer memory ownership
@@ -281,9 +315,7 @@ static int brz_gen_mphf(cmph_config_t *mph)
 		if (memory_usage + keylen + sizeof(keylen) > brz->memory_availability) // flush buffers
 		{
 			if(mph->verbosity)
-			{
 				fprintf(stderr, "Flushing  %u\n", nkeys_in_buffer);
-			}
 			cmph_uint32 value = buckets_size[0];
 			cmph_uint32 sum = 0;
 			cmph_uint32 keylen1 = 0;
@@ -342,16 +374,15 @@ static int brz_gen_mphf(cmph_config_t *mph)
 	if (memory_usage != 0) // flush buffers
 	{
 		if(mph->verbosity)
-		{
 			fprintf(stderr, "Flushing  %u\n", nkeys_in_buffer);
-		}
 		cmph_uint32 value = buckets_size[0];
 		cmph_uint32 sum = 0;
 		cmph_uint32 keylen1 = 0;
 		buckets_size[0]   = 0;
 		for(i = 1; i < brz->k; i++)
 		{
-			if(buckets_size[i] == 0) continue;
+			if(buckets_size[i] == 0)
+				continue;
 			sum += value;
 			value = buckets_size[i];
 			buckets_size[i] = sum;
@@ -364,7 +395,7 @@ static int brz_gen_mphf(cmph_config_t *mph)
 			h0 = hash(brz->h0, (char *)(buffer + memory_usage + sizeof(keylen1)), keylen1) % brz->k;
 			keys_index[buckets_size[h0]] = memory_usage;
 			buckets_size[h0]++;
-			memory_usage +=  keylen1 + (cmph_uint32)sizeof(keylen1);
+			memory_usage += keylen1 + (cmph_uint32)sizeof(keylen1);
 		}
 		filename = (char *)calloc(strlen((char *)(brz->tmp_dir)) + 11, sizeof(char));
 		sprintf(filename, "%s%u.cmph", brz->tmp_dir, nflushes);
@@ -389,9 +420,7 @@ static int brz_gen_mphf(cmph_config_t *mph)
 	if(nflushes > 1024) return 0; // Too many files generated.
 	// mphf generation
 	if(mph->verbosity)
-	{
 		fprintf(stderr, "\nMPHF generation \n");
-	}
 	/* Starting to dump to disk the resulting MPHF: __cmph_dump function */
 	CHK_FWRITE(cmph_names[CMPH_BRZ], (size_t)(strlen(cmph_names[CMPH_BRZ]) + 1), (size_t)1, brz->mphf_fd);
 	CHK_FWRITE(&(brz->m), sizeof(brz->m), (size_t)1, brz->mphf_fd);
@@ -409,7 +438,7 @@ static int brz_gen_mphf(cmph_config_t *mph)
 	for(i = 0; i < nflushes; i++)
 	{
 		filename = (char *)calloc(strlen((char *)(brz->tmp_dir)) + 11, sizeof(char));
-		sprintf(filename, "%s%u.cmph",brz->tmp_dir, i);
+		sprintf(filename, "%s%u.cmph", brz->tmp_dir, i);
 		buffer_manager_open(buff_manager, i, filename);
 		free(filename);
 		filename = NULL;
@@ -476,8 +505,8 @@ static int brz_gen_mphf(cmph_config_t *mph)
 			if (mphf_tmp == NULL)
 			{
 				if(mph->verbosity)
-                                  fprintf(stderr, "ERROR: Can't generate MPHF for bucket %u out of %u\n",
-                                          cur_bucket + 1, brz->k);
+					fprintf(stderr, "ERROR: Can't generate MPHF for bucket %u out of %u\n",
+						cur_bucket + 1, brz->k);
 				error = 1;
 				cmph_config_destroy(config);
  				brz_destroy_keys_vd(keys_vd, nkeys_vd);
@@ -487,10 +516,8 @@ static int brz_gen_mphf(cmph_config_t *mph)
 			if(mph->verbosity)
 			{
 			  if (cur_bucket % 1000 == 0)
-  			  {
 			  	fprintf(stderr, "MPHF for bucket %u out of %u was generated.\n",
                                         cur_bucket + 1, brz->k);
-			  }
 			}
 			switch(brz->algo)
 			{
@@ -533,7 +560,8 @@ static cmph_uint32 brz_min_index(cmph_uint32 * vector, cmph_uint32 n)
 	cmph_uint32 i, min_index = 0;
 	for(i = 1; i < n; i++)
 	{
-		if(vector[i] < vector[min_index]) min_index = i;
+		if(vector[i] < vector[min_index])
+			min_index = i;
 	}
 	return min_index;
 }
@@ -621,6 +649,10 @@ int brz_dump(cmph_t *mphf, FILE *fd)
 	// Dumping m and the vector offset.
 	CHK_FWRITE(&(data->m), sizeof(cmph_uint32), (size_t)1, fd);
 	CHK_FWRITE(data->offset, sizeof(cmph_uint32)*(data->k), (size_t)1, fd);
+	if (mphf->o) {
+	    DEBUGP("Dumping ordering table with %u entries\n", data->m);
+	    CHK_FWRITE(mphf->o, sizeof(cmph_uint32) * (data->m), (size_t)1, fd);
+	}
 	return 1;
 }
 
@@ -685,21 +717,37 @@ void brz_load(FILE *f, cmph_t *mphf)
 	CHK_FREAD(&(brz->m), sizeof(cmph_uint32), (size_t)1, f);
 	brz->offset = (cmph_uint32 *)malloc(sizeof(cmph_uint32)*brz->k);
 	CHK_FREAD(brz->offset, sizeof(cmph_uint32)*(brz->k), (size_t)1, f);
+	//loading the optional ordering table.
+	mphf->o = (cmph_uint32 *)malloc(sizeof(cmph_uint32) * brz->m);
+	cmph_uint32 nread =
+	    fread(mphf->o, sizeof(cmph_uint32), (size_t)brz->m, f);
+	if (nread != brz->m) {
+	    free(mphf->o);
+	    mphf->o = NULL;
+	}
+#ifdef DEBUG
+	if (mphf->o) {
+	    fprintf(stderr, "O: ");
+	    for (cmph_uint32 i = 0; i < brz->m; ++i)
+		fprintf(stderr, "%u ", mphf->o[i]);
+	    fprintf(stderr, "\n");
+	}
+#endif
 	return;
 }
 
 static cmph_uint32 brz_bmz8_search(brz_data_t *brz, const char *key, cmph_uint32 keylen, cmph_uint32 * fingerprint)
 {
-	register cmph_uint32 h0;
+	cmph_uint32 h0;
 
 	hash_vector(brz->h0, key, keylen, fingerprint);
 	h0 = fingerprint[2] % brz->k;
 
-	register cmph_uint32 m = brz->size[h0];
-	register cmph_uint32 n = (cmph_uint32)ceil(brz->c * m);
-	register cmph_uint32 h1 = hash(brz->h1[h0], key, keylen) % n;
-	register cmph_uint32 h2 = hash(brz->h2[h0], key, keylen) % n;
-	register cmph_uint8 mphf_bucket;
+	cmph_uint32 m = brz->size[h0];
+	cmph_uint32 n = (cmph_uint32)ceil(brz->c * m);
+	cmph_uint32 h1 = hash(brz->h1[h0], key, keylen) % n;
+	cmph_uint32 h2 = hash(brz->h2[h0], key, keylen) % n;
+	cmph_uint8 mphf_bucket;
 
 	if (h1 == h2 && ++h2 >= n) h2 = 0;
 	mphf_bucket = (cmph_uint8)(brz->g[h0][h1] + brz->g[h0][h2]);
@@ -717,13 +765,13 @@ static cmph_uint32 brz_fch_search(brz_data_t *brz, const char *key, cmph_uint32 
 	hash_vector(brz->h0, key, keylen, fingerprint);
 	h0 = fingerprint[2] % brz->k;
 
-	register cmph_uint32 m = brz->size[h0];
-	register cmph_uint32 b = fch_calc_b(brz->c, m);
-	register double p1 = fch_calc_p1(m);
-	register double p2 = fch_calc_p2(b);
-	register cmph_uint32 h1 = hash(brz->h1[h0], key, keylen) % m;
-	register cmph_uint32 h2 = hash(brz->h2[h0], key, keylen) % m;
-	register cmph_uint8 mphf_bucket = 0;
+	cmph_uint32 m = brz->size[h0];
+	cmph_uint32 b = fch_calc_b(brz->c, m);
+	double p1 = fch_calc_p1(m);
+	double p2 = fch_calc_p2(b);
+	cmph_uint32 h1 = hash(brz->h1[h0], key, keylen) % m;
+	cmph_uint32 h2 = hash(brz->h2[h0], key, keylen) % m;
+	cmph_uint8 mphf_bucket = 0;
 	h1 = mixh10h11h12(b, p1, p2, h1);
 	mphf_bucket = (cmph_uint8)((h2 + brz->g[h0][h1]) % m);
 	return (mphf_bucket + brz->offset[h0]);

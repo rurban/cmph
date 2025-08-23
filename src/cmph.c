@@ -480,7 +480,11 @@ void cmph_config_set_seed(cmph_config_t *mph, cmph_uint32 seed)
 }
 void cmph_config_set_verbosity(cmph_config_t *mph, cmph_uint32 verbosity)
 {
-	mph->verbosity = verbosity;
+	mph->verbosity = verbosity & 0xFF;
+}
+void cmph_config_set_ordering_table(cmph_config_t *mph)
+{
+	mph->do_ordering_table = 1;
 }
 
 void cmph_config_set_hashfuncs(cmph_config_t *mph, CMPH_HASH *hashfuncs)
@@ -769,6 +773,10 @@ cmph_t *cmph_load(FILE *f)
 	return mphf;
 }
 
+cmph_uint32 *cmph_ordering_table(cmph_t *mphf)
+{
+	return mphf->o;
+}
 
 cmph_uint32 cmph_search(cmph_t *mphf, const char *key, cmph_uint32 keylen)
 {

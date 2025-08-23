@@ -17,7 +17,7 @@ static fch_buckets_t * mapping(cmph_config_t *mph);
 static cmph_uint32 * ordering(fch_buckets_t * buckets);
 static cmph_uint8 check_for_collisions_h2(fch_config_data_t *fch, fch_buckets_t * buckets, cmph_uint32 *sorted_indexes);
 static void permut(cmph_uint32 * vector, cmph_uint32 n);
-static cmph_uint8 searching(cmph_config_t *mph, fch_buckets_t *buckets, cmph_uint32 *sorted_indexes);
+static cmph_uint8 searching(cmph_config_t *mph, fch_buckets_t *buckets, cmph_uint32 *sorted_indexes, cmph_uint32 **ordering_table);
 
 fch_config_data_t *fch_config_new()
 {
@@ -172,7 +172,7 @@ static void permut(cmph_uint32 * vector, cmph_uint32 n)
   }
 }
 
-static cmph_uint8 searching(cmph_config_t *mph, fch_buckets_t *buckets, cmph_uint32 *sorted_indexes)
+static cmph_uint8 searching(cmph_config_t *mph, fch_buckets_t *buckets, cmph_uint32 *sorted_indexes, cmph_uint32 **ordering_table)
 {
 	fch_config_data_t *fch = (fch_config_data_t *)mph->data;
 	cmph_uint32 * random_table = (cmph_uint32 *) calloc((size_t)fch->m, sizeof(cmph_uint32));
@@ -257,7 +257,10 @@ static cmph_uint8 searching(cmph_config_t *mph, fch_buckets_t *buckets, cmph_uin
 			//getchar();
 		}
 	} while(restart  && (searching_iterations < 10) && (iteration_to_generate_h2 < 1000));
-	free(map_table);
+	if (mph->do_ordering_table)
+	    *ordering_table = map_table;
+	else
+	    free(map_table);
 	free(random_table);
 	return restart;
 }
@@ -270,8 +273,8 @@ cmph_t *fch_new(cmph_config_t *mph, double c)
 	fch_data_t *fchf = NULL;
 	cmph_uint32 iterations = 100;
 	cmph_uint8 restart_mapping = 0;
-	fch_buckets_t * buckets = NULL;
-	cmph_uint32 * sorted_indexes = NULL;
+	fch_buckets_t *buckets = NULL;
+	cmph_uint32 *sorted_indexes = NULL;
 	fch_config_data_t *fch = (fch_config_data_t *)mph->data;
 	fch->m = mph->key_source->nkeys;
 	DEBUGP("m: %u\n", fch->m);
@@ -281,11 +284,15 @@ cmph_t *fch_new(cmph_config_t *mph, double c)
 	fch->h1 = NULL;
 	fch->h2 = NULL;
 	fch->g = NULL;
+	mphf = (cmph_t *)malloc(sizeof(cmph_t));
+	mphf->o = NULL;
+	mphf->size = fch->m;
 	do
 	{
 		if (mph->verbosity)
 			fprintf(stderr, "Entering mapping step for mph creation of %u keys\n", fch->m);
 		if (buckets) fch_buckets_destroy(buckets, mph);
+		if (mphf->o) free(mphf->o);
 		buckets = mapping(mph);
 		if (mph->verbosity)
 			fprintf(stderr, "Starting ordering step\n");
@@ -293,14 +300,17 @@ cmph_t *fch_new(cmph_config_t *mph, double c)
 		sorted_indexes = ordering(buckets);
 		if (mph->verbosity)
 			fprintf(stderr, "Starting searching step.\n");
-		restart_mapping = searching(mph, buckets, sorted_indexes);
+		restart_mapping = searching(mph, buckets, sorted_indexes, &mphf->o);
 		iterations--;
 
         } while(restart_mapping && iterations > 0);
 	if (buckets) fch_buckets_destroy(buckets, mph);
 	if (sorted_indexes) free (sorted_indexes);
-	if (iterations == 0) return NULL;
-	mphf = (cmph_t *)malloc(sizeof(cmph_t));
+	if (iterations == 0) {
+	    free(mphf->o);
+	    free(mphf);
+	    return NULL;
+	}
 	mphf->algo = mph->algo;
 	fchf = (fch_data_t *)malloc(sizeof(fch_data_t));
 	fchf->g = fch->g;
@@ -326,6 +336,7 @@ int fch_compile(cmph_t *mphf, cmph_config_t *mph, FILE *out)
 {
 	fch_data_t *data = (fch_data_t *)mphf->data;
 	hash_state_t *hl[2] = { data->h1, data->h2 };
+	(void)mph;
 	DEBUGP("Compiling fch\n");
 	hash_state_compile(1, (hash_state_t**)hl, mph->nhashfuncs == 1, out);
 	fprintf(out, "#include <assert.h>\n");
@@ -413,6 +424,15 @@ int fch_dump(cmph_t *mphf, FILE *fd)
 	for (i = 0; i < data->b; ++i) fprintf(stderr, "%u ", data->g[i]);
 	fprintf(stderr, "\n");
 #endif
+	if (mphf->o) {
+		DEBUGP("Dumping ordering_table\n");
+		CHK_FWRITE(mphf->o, (size_t)data->m, sizeof(cmph_uint32), fd);
+#ifdef DEBUG
+		fprintf(stderr, "O: ");
+		for (cmph_uint32 i = 0; i < data->m; ++i) fprintf(stderr, "%u ", mphf->o[i]);
+		fprintf(stderr, "\n");
+#endif
+	}
 	return 1;
 }
 
@@ -443,7 +463,6 @@ void fch_load(FILE *f, cmph_t *mphf)
 	fch->h2 = hash_state_load(buf);
 	free(buf);
 
-
 	DEBUGP("Reading m and n\n");
 	CHK_FREAD(&(fch->m), sizeof(cmph_uint32), (size_t)1, f);
 	CHK_FREAD(&(fch->c), sizeof(double), (size_t)1, f);
@@ -453,11 +472,23 @@ void fch_load(FILE *f, cmph_t *mphf)
 
 	fch->g = (cmph_uint32 *)malloc(sizeof(cmph_uint32)*fch->b);
 	CHK_FREAD(fch->g, fch->b*sizeof(cmph_uint32), (size_t)1, f);
+	// if more room in f than current position, TODO use fstat and ftell instead
+	mphf->o = (cmph_uint32 *)malloc(sizeof(cmph_uint32)*fch->m);
+	cmph_uint32 nread = fread(mphf->o, sizeof(cmph_uint32), (size_t)fch->m, f);
+	if (nread != mphf->size) {
+		free(mphf->o);
+		mphf->o = NULL;
+	}
 #ifdef DEBUG
 	cmph_uint32 i;
 	fprintf(stderr, "G: ");
 	for (i = 0; i < fch->b; ++i) fprintf(stderr, "%u ", fch->g[i]);
 	fprintf(stderr, "\n");
+	if (mphf->o) {
+		fprintf(stderr, "O: ");
+		for (cmph_uint32 i = 0; i < fch->m; ++i) fprintf(stderr, "%u ", mphf->o[i]);
+		fprintf(stderr, "\n");
+	}
 #endif
 	return;
 }
@@ -478,6 +509,7 @@ void fch_destroy(cmph_t *mphf)
 	hash_state_destroy(data->h1);
 	hash_state_destroy(data->h2);
 	free(data);
+	if (mphf->o) free(mphf->o);
 	free(mphf);
 }
 

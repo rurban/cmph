@@ -105,10 +105,10 @@ void chd_ph_bucket_destroy(chd_ph_bucket_t * buckets)
     free(buckets);
 }
 
-static inline cmph_uint8 chd_ph_mapping(cmph_config_t *mph, chd_ph_bucket_t * buckets, chd_ph_item_t * items,
-					cmph_uint32 *max_bucket_size);
+static inline cmph_uint8 chd_ph_mapping(cmph_config_t *mph, chd_ph_bucket_t *buckets,
+					chd_ph_item_t *items, cmph_uint32 *max_bucket_size);
 
-static chd_ph_sorted_list_t * chd_ph_ordering(chd_ph_bucket_t ** _buckets,chd_ph_item_t ** items,
+static chd_ph_sorted_list_t * chd_ph_ordering(chd_ph_bucket_t **_buckets,chd_ph_item_t **items,
 				cmph_uint32 nbuckets,cmph_uint32 nitems, cmph_uint32 max_bucket_size);
 
 static cmph_uint8 chd_ph_searching(chd_ph_config_data_t *chd_ph, chd_ph_bucket_t *buckets, chd_ph_item_t *items ,
@@ -128,9 +128,7 @@ static inline double chd_ph_get_entropy(cmph_uint32 * disp_table, cmph_uint32 n,
 	double entropy = 0;
 
 	for(i = 0; i < n; i++)
-	{
 		probe_counts[disp_table[i]]++;
-	};
 
 	for(i = 0; i < max_probes; i++)
 	{
@@ -145,7 +143,8 @@ chd_ph_config_data_t *chd_ph_config_new(void)
 {
 	chd_ph_config_data_t *chd_ph;
 	chd_ph = (chd_ph_config_data_t *)malloc(sizeof(chd_ph_config_data_t));
-        if (!chd_ph) return NULL;
+        if (!chd_ph)
+	    return NULL;
 	memset(chd_ph, 0, sizeof(chd_ph_config_data_t));
 
 	chd_ph->hashfunc = CMPH_HASH_JENKINS;
@@ -212,21 +211,23 @@ void chd_ph_config_set_keys_per_bin(cmph_config_t *mph, cmph_uint32 keys_per_bin
 	chd_ph->keys_per_bin = keys_per_bin;
 }
 
-cmph_uint8 chd_ph_mapping(cmph_config_t *mph, chd_ph_bucket_t * buckets, chd_ph_item_t * items, cmph_uint32 *max_bucket_size)
+cmph_uint8 chd_ph_mapping(cmph_config_t *mph, chd_ph_bucket_t *buckets,
+			  chd_ph_item_t *items, cmph_uint32 *max_bucket_size)
 {
 	cmph_uint32 i = 0, g = 0;
 	cmph_uint32 hl[3];
 	chd_ph_config_data_t *chd_ph = (chd_ph_config_data_t *)mph->data;
 	char * key = NULL;
 	cmph_uint32 keylen = 0;
-	chd_ph_map_item_t * map_item;
-	chd_ph_map_item_t * map_items = (chd_ph_map_item_t *)malloc(chd_ph->m*sizeof(chd_ph_map_item_t));
+	chd_ph_map_item_t *map_item;
+	chd_ph_map_item_t *map_items = (chd_ph_map_item_t *)malloc(chd_ph->m * sizeof(chd_ph_map_item_t));
 	cmph_uint32 mapping_iterations = 1000;
 	*max_bucket_size = 0;
 	while(1)
 	{
 		mapping_iterations--;
-		if (chd_ph->hl) hash_state_destroy(chd_ph->hl);
+		if (chd_ph->hl)
+		    hash_state_destroy(chd_ph->hl);
 		chd_ph->hl = hash_state_new(chd_ph->hashfunc, chd_ph->m);
 
 		chd_ph_bucket_clean(buckets, chd_ph->nbuckets);
@@ -243,7 +244,7 @@ cmph_uint8 chd_ph_mapping(cmph_config_t *mph, chd_ph_bucket_t * buckets, chd_ph_
 			g = hl[0] % chd_ph->nbuckets;
 			map_item->f = hl[1] % chd_ph->n;
 			map_item->h = hl[2] % (chd_ph->n - 1) + 1;
-			map_item->bucket_num=g;
+			map_item->bucket_num = g;
 			mph->key_source->dispose(key);
 // 			if(buckets[g].size == (chd_ph->keys_per_bucket << 2))
 // 			{
@@ -252,9 +253,7 @@ cmph_uint8 chd_ph_mapping(cmph_config_t *mph, chd_ph_bucket_t * buckets, chd_ph_
 // 			}
 			buckets[g].size++;
 			if(buckets[g].size > *max_bucket_size)
-			{
 				  *max_bucket_size = buckets[g].size;
-			}
 		}
 		buckets[0].items_list = 0;
 		for(i = 1; i < chd_ph->nbuckets; i++)
@@ -271,14 +270,12 @@ cmph_uint8 chd_ph_mapping(cmph_config_t *mph, chd_ph_bucket_t * buckets, chd_ph_
 		}
 		if(i == chd_ph->m)
 		{
-			free(map_items);
-			return 1; // SUCCESS
+		    free(map_items);
+		    return 1; // SUCCESS
 		}
 
 		if(mapping_iterations == 0)
-		{
 		      goto error;
-		}
 	}
 error:
 	free(map_items);
@@ -337,7 +334,6 @@ chd_ph_sorted_list_t * chd_ph_ordering(chd_ph_bucket_t ** _buckets, chd_ph_item_
 	// Return the buckets sorted in new order and free the old buckets sorted in old order
 	free(input_buckets);
 	(*_buckets) = output_buckets;
-
 
 	// Store the items according to the new order of buckets.
 	output_items = (chd_ph_item_t*)calloc(nitems, sizeof(chd_ph_item_t));
@@ -407,9 +403,7 @@ static inline cmph_uint8 place_bucket_probe(chd_ph_config_data_t *chd_ph, chd_ph
 			while(1)
 			{
 				if(i == 0)
-				{
 					break;
-				}
 				position = (cmph_uint32)((item->f + ((cmph_uint64 )item->h) * probe0_num + probe1_num) % chd_ph->n);
 				(chd_ph->occup_table[position])--;
 				item++;
@@ -420,9 +414,7 @@ static inline cmph_uint8 place_bucket_probe(chd_ph_config_data_t *chd_ph, chd_ph
 			while(1)
 			{
 				if(i == 0)
-				{
 					break;
-				}
 				position = (cmph_uint32)((item->f + ((cmph_uint64 )item->h) * probe0_num + probe1_num) % chd_ph->n);
 				UNSETBIT32(((cmph_uint32*)chd_ph->occup_table), position);
 
@@ -436,8 +428,9 @@ static inline cmph_uint8 place_bucket_probe(chd_ph_config_data_t *chd_ph, chd_ph
 	return 1;
 };
 
-static inline cmph_uint8 place_bucket(chd_ph_config_data_t *chd_ph, chd_ph_bucket_t *buckets, chd_ph_item_t * items, cmph_uint32 max_probes,
-                                      cmph_uint32 * disp_table, cmph_uint32 bucket_num, cmph_uint32 size)
+static inline cmph_uint8 place_bucket(chd_ph_config_data_t *chd_ph, chd_ph_bucket_t *buckets,
+				      chd_ph_item_t *items, cmph_uint32 max_probes,
+                                      cmph_uint32 *disp_table, cmph_uint32 bucket_num, cmph_uint32 size)
 
 {
 	cmph_uint32 probe0_num, probe1_num, probe_num;
@@ -467,9 +460,10 @@ static inline cmph_uint8 place_bucket(chd_ph_config_data_t *chd_ph, chd_ph_bucke
 	return 0;
 };
 
-static inline cmph_uint8 place_buckets1(chd_ph_config_data_t *chd_ph, chd_ph_bucket_t * buckets, chd_ph_item_t *items,
-					cmph_uint32 max_bucket_size, chd_ph_sorted_list_t *sorted_lists, cmph_uint32 max_probes,
-					cmph_uint32 * disp_table)
+static inline cmph_uint8 place_buckets1(chd_ph_config_data_t *chd_ph, chd_ph_bucket_t * buckets,
+					chd_ph_item_t *items, cmph_uint32 max_bucket_size,
+					chd_ph_sorted_list_t *sorted_lists, cmph_uint32 max_probes,
+					cmph_uint32 *disp_table)
 {
 	cmph_uint32 i = 0;
 	cmph_uint32 curr_bucket = 0;
@@ -480,17 +474,16 @@ static inline cmph_uint8 place_buckets1(chd_ph_config_data_t *chd_ph, chd_ph_buc
 		while(curr_bucket < sorted_lists[i].size + sorted_lists[i].buckets_list)
 		{
 			if(!place_bucket(chd_ph, buckets, items, max_probes, disp_table, curr_bucket, i))
-			{
 				return 0;
-			}
 			curr_bucket++;
 		};
 	};
 	return 1;
 };
 
-static inline cmph_uint8 place_buckets2(chd_ph_config_data_t *chd_ph, chd_ph_bucket_t *buckets, chd_ph_item_t * items,
-					cmph_uint32 max_bucket_size, chd_ph_sorted_list_t *sorted_lists, cmph_uint32 max_probes,
+static inline cmph_uint8 place_buckets2(chd_ph_config_data_t *chd_ph, chd_ph_bucket_t *buckets,
+					chd_ph_item_t * items, cmph_uint32 max_bucket_size,
+					chd_ph_sorted_list_t *sorted_lists, cmph_uint32 max_probes,
 					cmph_uint32 * disp_table)
 {
 	cmph_uint32 i,j, non_placed_bucket;
@@ -501,7 +494,7 @@ static inline cmph_uint8 place_buckets2(chd_ph_config_data_t *chd_ph, chd_ph_buc
 	cmph_uint32 items_list;
 	cmph_uint32 bucket_id;
 #endif
-	DEBUGP("USING HEURISTIC TO PLACE BUCKETS\n");
+	DEBUGP("Using heuristics to place buckets\n");
 	for(i = max_bucket_size; i > 0; i--)
 	{
 		probe_num = 0;
@@ -556,22 +549,22 @@ static inline cmph_uint8 place_buckets2(chd_ph_config_data_t *chd_ph, chd_ph_buc
 };
 
 cmph_uint8 chd_ph_searching(chd_ph_config_data_t *chd_ph, chd_ph_bucket_t *buckets, chd_ph_item_t *items ,
-			    cmph_uint32 max_bucket_size, chd_ph_sorted_list_t *sorted_lists, cmph_uint32 max_probes,
-			    cmph_uint32 * disp_table)
+			    cmph_uint32 max_bucket_size, chd_ph_sorted_list_t *sorted_lists,
+			    cmph_uint32 max_probes, cmph_uint32 *disp_table)
 {
-	if(chd_ph->use_h)
-	{
-		return place_buckets2(chd_ph, buckets, items, max_bucket_size, sorted_lists, max_probes, disp_table);
-	}
+	if(chd_ph->use_h) // use heuristics
+	    return place_buckets2(chd_ph, buckets, items, max_bucket_size, sorted_lists, max_probes,
+				  disp_table);
 	else
-	{
-		return place_buckets1(chd_ph, buckets, items, max_bucket_size, sorted_lists, max_probes, disp_table);
-	}
-
+	    return place_buckets1(chd_ph, buckets, items, max_bucket_size, sorted_lists, max_probes,
+				  disp_table);
 }
 
-static inline cmph_uint8 chd_ph_check_bin_hashing(chd_ph_config_data_t *chd_ph, chd_ph_bucket_t *buckets, chd_ph_item_t *items,
-                                                  cmph_uint32 * disp_table, chd_ph_sorted_list_t * sorted_lists,cmph_uint32 max_bucket_size)
+static inline cmph_uint8 chd_ph_check_bin_hashing(
+			     chd_ph_config_data_t *chd_ph, chd_ph_bucket_t *buckets,
+			     chd_ph_item_t *items, cmph_uint32 *disp_table,
+			     chd_ph_sorted_list_t *sorted_lists, cmph_uint32 max_bucket_size,
+			     cmph_uint32 *ordering)
 {
 	cmph_uint32 bucket_size, i, j;
 	cmph_uint32 position, probe0_num, probe1_num;
@@ -597,20 +590,20 @@ static inline cmph_uint8 chd_ph_check_bin_hashing(chd_ph_config_data_t *chd_ph, 
 				if(chd_ph->keys_per_bin > 1)
 				{
 					if(chd_ph->occup_table[position] >= chd_ph->keys_per_bin)
-					{
 						return 0;
-					}
-					(chd_ph->occup_table[position])++;
+					chd_ph->occup_table[position]++;
 				}
 				else
 				{
 					if(GETBIT32(((cmph_uint32*)chd_ph->occup_table), position))
-					{
 						return 0;
-					}
 					SETBIT32(((cmph_uint32*)chd_ph->occup_table), position);
 				};
 				item++;
+				if (ordering) {
+				    assert(position < chd_ph->n);
+				    ordering[position] = i;
+				}
 			};
 		};
 	DEBUGP("We were able to place m = %u keys\n", m);
@@ -633,8 +626,9 @@ cmph_t *chd_ph_new(cmph_config_t *mph, double c)
 	chd_ph_item_t * items = NULL;
 	cmph_uint8 failure = 0;
 	cmph_uint32 max_bucket_size = 0;
-	chd_ph_sorted_list_t * sorted_lists = NULL;
-	cmph_uint32 * disp_table = NULL;
+	chd_ph_sorted_list_t *sorted_lists = NULL;
+	cmph_uint32 *disp_table = NULL;
+	cmph_uint32 *ordering = NULL;
 	double space_lower_bound = 0;
 #ifdef CMPH_TIMING
 	double construction_time_begin = 0.0;
@@ -642,23 +636,15 @@ cmph_t *chd_ph_new(cmph_config_t *mph, double c)
 	ELAPSED_TIME_IN_SECONDS(&construction_time_begin);
 #endif
 
-
 	chd_ph->m = mph->key_source->nkeys;
 	DEBUGP("m = %u\n", chd_ph->m);
-
 	chd_ph->nbuckets = (cmph_uint32)(chd_ph->m/chd_ph->keys_per_bucket) + 1;
 	DEBUGP("nbuckets = %u\n", chd_ph->nbuckets);
 
 	if(load_factor < 0.5 )
-	{
 		load_factor = 0.5;
-	}
-
 	if(load_factor >= 0.99)
-	{
 		load_factor = 0.99;
-	}
-
 	DEBUGP("load_factor = %.3f\n", load_factor);
 
 	chd_ph->n = (cmph_uint32)(chd_ph->m/(chd_ph->keys_per_bin * load_factor)) + 1;
@@ -670,31 +656,24 @@ cmph_t *chd_ph_new(cmph_config_t *mph, double c)
 		if(check_primality(chd_ph->n) == 1)
 			break;
 		chd_ph->n += 2; // just odd numbers can be primes for n > 2
-
 	};
 
 	DEBUGP("n = %u \n", chd_ph->n);
 	if(chd_ph->keys_per_bin == 1)
-	{
 		space_lower_bound = chd_ph_space_lower_bound(chd_ph->m, chd_ph->n);
-	}
 
 	if(mph->verbosity)
-	{
 		fprintf(stderr, "space lower bound is %.3f bits per key\n", space_lower_bound);
-	}
 
        	// We allocate the working tables
 	buckets = chd_ph_bucket_new(chd_ph->nbuckets);
 	items   = (chd_ph_item_t *) calloc(chd_ph->m, sizeof(chd_ph_item_t));
-
 	max_probes = (cmph_uint32)((log(chd_ph->m)/log(2))/20);
-
-    if (max_probes == 0) {
-        max_probes = max_probes_default;
-    } else {
-        max_probes = max_probes * max_probes_default;
-    }
+	if (max_probes == 0) {
+	    max_probes = max_probes_default;
+	} else {
+	    max_probes = max_probes * max_probes_default;
+	}
 
 	if(chd_ph->keys_per_bin == 1)
 		chd_ph->occup_table = (cmph_uint8 *) calloc(((chd_ph->n + 31)/32), sizeof(cmph_uint32));
@@ -709,38 +688,31 @@ cmph_t *chd_ph_new(cmph_config_t *mph, double c)
 	{
 		iterations --;
 		if (mph->verbosity)
-		{
-			fprintf(stderr, "Starting mapping step for mph creation of %u keys with %u bins\n", chd_ph->m, chd_ph->n);
-		}
+			fprintf(stderr, "Starting mapping step for mph creation of %u keys with %u bins\n",
+				chd_ph->m, chd_ph->n);
 
 		if(!chd_ph_mapping(mph, buckets, items, &max_bucket_size))
 		{
 			if (mph->verbosity)
-			{
 				fprintf(stderr, "Failure in mapping step\n");
-			}
 			failure = 1;
 			goto cleanup;
 		}
 
 		if (mph->verbosity)
-		{
 			fprintf(stderr, "Starting ordering step\n");
-		}
 		if(sorted_lists)
-		{
 			free(sorted_lists);
-		}
 
-        	sorted_lists = chd_ph_ordering(&buckets, &items, chd_ph->nbuckets, chd_ph->m, max_bucket_size);
-
+        	sorted_lists = chd_ph_ordering(&buckets, &items, chd_ph->nbuckets, chd_ph->m,
+					       max_bucket_size);
 		if (mph->verbosity)
-		{
 			fprintf(stderr, "Starting searching step\n");
-		}
 
-		searching_success = chd_ph_searching(chd_ph, buckets, items, max_bucket_size, sorted_lists, max_probes, disp_table);
-		if(searching_success) break;
+		searching_success = chd_ph_searching(chd_ph, buckets, items, max_bucket_size,
+						     sorted_lists, max_probes, disp_table);
+		if(searching_success)
+		    break;
 
 		// reset occup_table
 		if(chd_ph->keys_per_bin > 1)
@@ -751,32 +723,29 @@ cmph_t *chd_ph_new(cmph_config_t *mph, double c)
 		{
 			// Cleanup memory
 			if (mph->verbosity)
-			{
 				fprintf(stderr, "Failure because the max trials was exceeded\n");
-			}
 			failure = 1;
 			goto cleanup;
 		};
 	}
 
-#ifdef DEBUG
-        if(!chd_ph_check_bin_hashing(chd_ph, buckets, items, disp_table,sorted_lists,max_bucket_size))
-        {
+	if (mph->do_ordering_table) {
+	    fprintf(stderr, "Create ordering table\n");
+	    ordering = (cmph_uint32 *)calloc(chd_ph->n, sizeof(cmph_uint32));
+	    if(!chd_ph_check_bin_hashing(chd_ph, buckets, items, disp_table, sorted_lists,
+					 max_bucket_size, ordering))
+	    {
 		DEBUGP("Error for bin packing generation");
                 failure = 1;
                 goto cleanup;
-        }
-#endif
+	    }
+	}
 
 	if (mph->verbosity)
-	{
 		fprintf(stderr, "Starting compressing step\n");
-	}
 
 	if(chd_ph->cs)
-	{
 		free(chd_ph->cs);
-	}
 	chd_ph->cs = (compressed_seq_t *) calloc(1, sizeof(compressed_seq_t));
 	compressed_seq_init(chd_ph->cs);
 	compressed_seq_generate(chd_ph->cs, disp_table, chd_ph->nbuckets);
@@ -795,15 +764,15 @@ cleanup:
 	if(failure)
 	{
 		if(chd_ph->hl)
-		{
 			hash_state_destroy(chd_ph->hl);
-		}
 		chd_ph->hl = NULL;
+		free(ordering);
 		return NULL;
 	}
 
 	mphf = (cmph_t *)malloc(sizeof(cmph_t));
 	mphf->algo = mph->algo;
+	mphf->o = ordering;
 	chd_phf = (chd_ph_data_t *)malloc(sizeof(chd_ph_data_t));
 
 	chd_phf->cs = chd_ph->cs;
@@ -818,9 +787,7 @@ cleanup:
 
 	DEBUGP("Successfully generated minimal perfect hash\n");
 	if (mph->verbosity)
-	{
 		fprintf(stderr, "Successfully generated minimal perfect hash function\n");
-	}
 
 #ifdef CMPH_TIMING
 	cmph_uint32 space_usage = chd_ph_packed_size(mphf)*8;
@@ -856,15 +823,31 @@ void chd_ph_load(FILE *fd, cmph_t *mphf)
 	free(buf);
 
 	// loading n and nbuckets
-	DEBUGP("Reading n and nbuckets\n");
 	CHK_FREAD(&(chd_ph->n), sizeof(cmph_uint32), (size_t)1, fd);
 	CHK_FREAD(&(chd_ph->nbuckets), sizeof(cmph_uint32), (size_t)1, fd);
+	DEBUGP("Read n %u and nbuckets %u\n", chd_ph->n, chd_ph->nbuckets);
+
+	// if more room in f than current position, TODO use fstat and ftell instead
+	mphf->o = (cmph_uint32 *)malloc(sizeof(cmph_uint32) * mphf->size);
+	cmph_uint32 nread = fread(mphf->o, sizeof(cmph_uint32), (size_t)mphf->size, fd);
+	if (nread != mphf->size){
+		free(mphf->o);
+		mphf->o = NULL;
+	}
+#ifdef DEBUG
+	if (mphf->o) {
+		fprintf(stderr, "O: ");
+		for (cmph_uint32 i = 0; i < mphf->size; ++i) fprintf(stderr, "%u ", mphf->o[i]);
+		fprintf(stderr, "\n");
+	}
+#endif
 }
 
 int chd_ph_compile(cmph_t *mphf, cmph_config_t *mph, FILE *out)
 {
-        //chd_ph_data_t *data = (chd_ph_data_t *)mphf->data;
+	chd_ph_data_t *data = (chd_ph_data_t *)mphf->data;
 	chd_ph_config_data_t *chd_ph = (chd_ph_config_data_t *)mph->data;
+	(void)data;
 	DEBUGP("Compiling chd_ph\n");
 	hash_state_compile(3, &chd_ph->hl, true, out);
 	fprintf(out, "// NYI\n");
@@ -922,6 +905,15 @@ int chd_ph_dump(cmph_t *mphf, FILE *fd)
 	// dumping n and nbuckets
 	CHK_FWRITE(&(data->n), sizeof(cmph_uint32), (size_t)1, fd);
 	CHK_FWRITE(&(data->nbuckets), sizeof(cmph_uint32), (size_t)1, fd);
+	if (mphf->o) {
+		DEBUGP("Dumping ordering_table\n");
+		CHK_FWRITE(mphf->o, (size_t)mphf->size, sizeof(cmph_uint32), fd);
+#ifdef DEBUG
+		fprintf(stderr, "O: ");
+		for (cmph_uint32 i = 0; i < mphf->size; ++i) fprintf(stderr, "%u ", mphf->o[i]);
+		fprintf(stderr, "\n");
+#endif
+	}
 	return 1;
 }
 
@@ -932,8 +924,8 @@ void chd_ph_destroy(cmph_t *mphf)
 	free(data->cs);
 	hash_state_destroy(data->hl);
 	free(data);
+	free(mphf->o);
 	free(mphf);
-
 }
 
 cmph_uint32 chd_ph_search(cmph_t *mphf, const char *key, cmph_uint32 keylen)

@@ -148,6 +148,7 @@ cmph_t *chm_new(cmph_config_t *mph, double c)
 
 	mphf = (cmph_t *)malloc(sizeof(cmph_t));
 	mphf->algo = mph->algo;
+	mphf->o = NULL;
 	chmf = (chm_data_t *)malloc(sizeof(chm_data_t));
 	chmf->g = chm->g;
 	chm->g = NULL; //transfer memory ownership
@@ -316,7 +317,7 @@ void chm_load(FILE *f, cmph_t *mphf)
 	cmph_uint32 buflen;
 	cmph_uint32 i;
 	chm_data_t *chm = (chm_data_t *)calloc(1, sizeof(chm_data_t));
-	register size_t nread;
+	size_t nread;
 	DEBUGP("Loading chm mphf\n");
 	mphf->data = chm;
 	nread = fread(&nhashes, sizeof(cmph_uint32), (size_t)1, f);
