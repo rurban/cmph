@@ -124,6 +124,7 @@ void hash_state_compile(int count, hash_state_t **states)
 				wyhash_prep_compile();
 			wyhash_state_compile_seed(i, state->seed);
 			break;
+#ifdef DEBUG
 		case CMPH_HASH_DJB2:
 			DEBUGP("Compile %d hash djb2\n", i+1);
 			//djb2_state_dump(state, &algobuf, buflen);
@@ -140,8 +141,14 @@ void hash_state_compile(int count, hash_state_t **states)
 			DEBUGP("Compile hash crc32\n");
 			//crc32_state_dump(state, &algobuf, buflen);
 			break;
+#endif
 		default:
-			assert(0);
+			if (state->hashfunc < CMPH_HASH_COUNT)
+				fprintf(stderr, "-C not yet supported with hash function %s\n",
+					cmph_hash_names[state->hashfunc]);
+			else
+				fprintf(stderr, "Illegal hash function\n");
+			exit(1);
 		}
 	}
 	return;
