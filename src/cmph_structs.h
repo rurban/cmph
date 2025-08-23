@@ -9,12 +9,13 @@ struct __config_t
 {
         CMPH_ALGO algo;
         cmph_io_adapter_t *key_source;
-        cmph_uint32 verbosity;
         double c;
         void *data; // algorithm dependent data
         cmph_uint32 seed; // not the hash seed, but the cmdline seed
-	CMPH_HASH hashfuncs[3];
-	cmph_uint32 nhashfuncs; // default to 1 for a hash_vector
+        CMPH_HASH hashfuncs[3];
+        cmph_uint8 nhashfuncs; // defaults to 1 for a hash_vector
+        cmph_uint8 verbosity;
+        cmph_uint8 do_ordering_table;
 };
 
 /** Hash querying algorithm data
@@ -24,6 +25,7 @@ struct __cmph_t
         CMPH_ALGO algo;
         cmph_uint32 size;
         cmph_io_adapter_t *key_source;
+        cmph_uint32 *o; // optional ordering_table (empty for CHM)
         void *data; // algorithm dependent data
 };
 

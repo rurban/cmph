@@ -293,9 +293,8 @@ cmph_t *bdz_new(cmph_config_t *mph, double c)
 	bdz->r = (cmph_uint32)ceil((c * mph->key_source->nkeys)/3);
 	if ((bdz->r % 2) == 0) bdz->r+=1;
 
-        if (bdz->r == 1) { // workaround for small key sets
+        if (bdz->r == 1) // workaround for small key sets
                 bdz->r = 3;
-        }
 
 	bdz->n = 3*bdz->r;
 	bdz->k = (1U << bdz->b);
@@ -314,9 +313,7 @@ cmph_t *bdz_new(cmph_config_t *mph, double c)
 	// Mapping step
 	iterations = 1000;
 	if (mph->verbosity)
-	{
 		fprintf(stderr, "Entering mapping step for mph creation of %u keys with graph sized %u\n", bdz->m, bdz->n);
-	}
 	while(1)
 	{
 		int ok;
@@ -349,19 +346,15 @@ cmph_t *bdz_new(cmph_config_t *mph, double c)
 	bdz_partial_free_graph3(&graph3);
 	// Assigning step
 	if (mph->verbosity)
-	{
 		fprintf(stderr, "Entering assigning step for mph creation of %u keys with graph sized %u\n",
                         bdz->m, bdz->n);
-	}
 	assigning(bdz, &graph3, edges);
 
 	bdz_free_queue(&edges);
 	bdz_free_graph3(&graph3);
 	if (mph->verbosity)
-	{
 		fprintf(stderr, "Entering ranking step for mph creation of %u keys with graph sized %u\n",
                         bdz->m, bdz->n);
-	}
 	ranking(bdz);
 #ifdef CMPH_TIMING
 	ELAPSED_TIME_IN_SECONDS(&construction_time);
@@ -386,10 +379,7 @@ cmph_t *bdz_new(cmph_config_t *mph, double c)
 
 	DEBUGP("Successfully generated minimal perfect hash\n");
 	if (mph->verbosity)
-	{
 		fprintf(stderr, "Successfully generated minimal perfect hash function\n");
-	}
-
 
 #ifdef CMPH_TIMING
 	register cmph_uint32 space_usage = bdz_packed_size(mphf)*8;
@@ -610,24 +600,39 @@ int bdz_dump(cmph_t *mphf, FILE *fd)
 	CHK_FWRITE(buf, (size_t)buflen, (size_t)1, fd);
 	free(buf);
 
+	DEBUGP("N: %u, M: %u, R: %u\n", data->n, data->m, data->r);
 	CHK_FWRITE(&(data->n), sizeof(cmph_uint32), (size_t)1, fd);
 	CHK_FWRITE(&(data->m), sizeof(cmph_uint32), (size_t)1, fd);
 	CHK_FWRITE(&(data->r), sizeof(cmph_uint32), (size_t)1, fd);
 
 	cmph_uint32 sizeg = (cmph_uint32)ceil(data->n/4.0);
 	CHK_FWRITE(data->g, sizeof(cmph_uint8), sizeg, fd);
-
+#ifdef DEBUG
+	fprintf(stderr, "G: ");
+	for (cmph_uint32 i = 0; i < data->n; ++i)
+                fprintf(stderr, "%u ", GETVALUE(data->g, i));
+	fprintf(stderr, "\n");
+#endif
+	DEBUGP("K: %u, B: %u, ranksize: %u\n", data->k, data->b, data->ranktablesize);
 	CHK_FWRITE(&(data->k), sizeof(cmph_uint32), (size_t)1, fd);
 	CHK_FWRITE(&(data->b), sizeof(cmph_uint8), (size_t)1, fd);
 	CHK_FWRITE(&(data->ranktablesize), sizeof(cmph_uint32), (size_t)1, fd);
 	CHK_FWRITE(data->ranktable, sizeof(cmph_uint32), (size_t)data->ranktablesize, fd);
 #ifdef DEBUG
-	cmph_uint32 i;
-	fprintf(stderr, "G: ");
-	for (i = 0; i < data->n; ++i)
-                fprintf(stderr, "%u ", GETVALUE(data->g, i));
+	fprintf(stderr, "rank: ");
+	for (cmph_uint32 i = 0; i < data->ranktablesize; ++i)
+                fprintf(stderr, "%u ", data->ranktable[i]);
 	fprintf(stderr, "\n");
 #endif
+	if (mphf->o) {
+		DEBUGP("Dumping ordering_table\n");
+		CHK_FWRITE(mphf->o, sizeof(cmph_uint32), data->n, fd);
+#ifdef DEBUG
+		fprintf(stderr, "O: ");
+		for (cmph_uint32 i = 0; i < data->n; ++i) fprintf(stderr, "%u ", mphf->o[i]);
+		fprintf(stderr, "\n");
+#endif
+	}
 	return 1;
 }
 

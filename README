@@ -93,6 +93,7 @@ The CMPH Library encapsulates the newest and more efficient algorithms in an eas
 	======================
 
 Added compilation to standalone C files.
+Added -o and -O options to create an ordering table or a re-ordered keyfile.
 Optimize bmz,chm search with hash_vector.
 When selecting one hash function with -f, it selects this hash function
 for the next hash functions also, to override the default jenkins.
@@ -335,9 +336,10 @@ The additional options let you set most of the parameters you have
 available through the C API. Below you can see the full help message for the 
 utility.
 
-usage: cmph [-v][-h][-V][-C] -k (nkeys) -f (hash_function) -g [-c (algorithm_dependent_value)-s (seed) ]
-            -a (algorithm) -M (memory_in_MB) -b (algorithm_dependent_value) -t (keys_per_bin) -d (tmp_dir)
-            -m (file.mph) keysfile
+usage: cmph [-vhVCOo] -k (nkeys) -f (hash_function) -a (algorithm)
+            -g [-c (algorithm_dependent_value) -s (seed) ]
+            -M (memory_in_MB) -b (algorithm_dependent_value) -t (keys_per_bin)
+            -d (tmp_dir) -m (file.mph) keysfile
 Minimum perfect hashing tool
 
   -h	 print this help message
@@ -367,6 +369,8 @@ Minimum perfect hashing tool
   -k	 number of keys
   -g	 generate a .mph file
   -C	 generate a C file
+  -o     create an ordering table for the key indices
+  -O     create an ordered keyfile
   -s	 random seed
   -m	 minimum perfect hash function .mph file
   -M	 main memory availability (in MB) used in BRZ algorithm

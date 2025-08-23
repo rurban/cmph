@@ -92,9 +92,7 @@ cmph_t *chm_new(cmph_config_t *mph, double c)
 	for(i = 0; i < 3; ++i) chm->hashes[i] = NULL;
 	//Mapping step
 	if (mph->verbosity)
-	{
 		fprintf(stderr, "Entering mapping step for mph creation of %u keys with graph sized %u\n", chm->m, chm->n);
-	}
 	while(1)
 	{
 		int ok;
@@ -129,9 +127,7 @@ cmph_t *chm_new(cmph_config_t *mph, double c)
 
 	//Assignment step
 	if (mph->verbosity)
-	{
 		fprintf(stderr, "Starting assignment step\n");
-	}
 	DEBUGP("Assignment step\n");
  	visited = (cmph_uint8 *)malloc((size_t)(chm->n/8 + 1));
 	memset(visited, 0, (size_t)(chm->n/8 + 1));
@@ -152,6 +148,7 @@ cmph_t *chm_new(cmph_config_t *mph, double c)
 
 	mphf = (cmph_t *)malloc(sizeof(cmph_t));
 	mphf->algo = mph->algo;
+	mphf->o = NULL;
 	chmf = (chm_data_t *)malloc(sizeof(chm_data_t));
 	chmf->g = chm->g;
 	chm->g = NULL; //transfer memory ownership
@@ -164,9 +161,7 @@ cmph_t *chm_new(cmph_config_t *mph, double c)
 	mphf->size = chm->m;
 	DEBUGP("Successfully generated minimal perfect hash\n");
 	if (mph->verbosity)
-	{
 		fprintf(stderr, "Successfully generated minimal perfect hash function\n");
-	}
 	return mphf;
 }
 
@@ -320,7 +315,7 @@ void chm_load(FILE *f, cmph_t *mphf)
 	cmph_uint32 buflen;
 	cmph_uint32 i;
 	chm_data_t *chm = (chm_data_t *)calloc(1, sizeof(chm_data_t));
-	register size_t nread;
+	size_t nread;
 	DEBUGP("Loading chm mphf\n");
 	mphf->data = chm;
 	nread = fread(&nhashes, sizeof(cmph_uint32), (size_t)1, f);

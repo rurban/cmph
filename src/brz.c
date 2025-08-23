@@ -177,12 +177,11 @@ cmph_t *brz_new(cmph_config_t *mph, double c)
         brz->k = (cmph_uint32)ceil(brz->m/((double)brz->b));
 	DEBUGP("k: %u\n", brz->k);
 	brz->size   = (cmph_uint8 *) calloc((size_t)brz->k, sizeof(cmph_uint8));
+	mphf->o = NULL;
 
 	// Clustering the keys by graph id.
 	if (mph->verbosity)
-	{
 		fprintf(stderr, "Partitioning the set of keys.\n");
-	}
 
 	while(1)
 	{
@@ -685,6 +684,22 @@ void brz_load(FILE *f, cmph_t *mphf)
 	CHK_FREAD(&(brz->m), sizeof(cmph_uint32), (size_t)1, f);
 	brz->offset = (cmph_uint32 *)malloc(sizeof(cmph_uint32)*brz->k);
 	CHK_FREAD(brz->offset, sizeof(cmph_uint32)*(brz->k), (size_t)1, f);
+	//loading the optional ordering table.
+	mphf->o = (cmph_uint32 *)malloc(sizeof(cmph_uint32) * brz->m);
+	cmph_uint32 nread =
+	    fread(mphf->o, sizeof(cmph_uint32), (size_t)brz->m, f);
+	if (nread != brz->m) {
+	    free(mphf->o);
+	    mphf->o = NULL;
+	}
+#ifdef DEBUG
+	if (mphf->o) {
+	    fprintf(stderr, "O: ");
+	    for (cmph_uint32 i = 0; i < brz->m; ++i)
+		fprintf(stderr, "%u ", mphf->o[i]);
+	    fprintf(stderr, "\n");
+	}
+#endif
 	return;
 }
 

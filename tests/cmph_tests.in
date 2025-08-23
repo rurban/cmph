@@ -25,6 +25,11 @@ for a in bmz chm brz fch bdz bdz_ph bmz8 chd chd_ph; do
     ../src/cmph -a $a $words
     echo "** mphf_tests -a $a $words"
     ./mphf_tests -a $a $words
+    echo "Test ordering table for $a"
+    echo "** cmph -go -a $a $words"
+    ../src/cmph -go -a $a $words
+    echo "** mphf_tests -a $a $words"
+    ./mphf_tests -a $a $words
 done
 rm -f _words100 _words100.mph
 for f in jenkins wyhash crc32 fnv djb2 sdbm; do

@@ -865,8 +865,9 @@ void chd_ph_load(FILE *fd, cmph_t *mphf)
 
 int chd_ph_compile(cmph_t *mphf, cmph_config_t *mph)
 {
-        //chd_ph_data_t *data = (chd_ph_data_t *)mphf->data;
+	chd_ph_data_t *data = (chd_ph_data_t *)mphf->data;
 	chd_ph_config_data_t *chd_ph = (chd_ph_config_data_t *)mph->data;
+	(void)data;
 	DEBUGP("Compiling chd_ph\n");
 	hash_state_compile(3, &chd_ph->hl);
 	printf("// NYI\n");
