@@ -668,7 +668,7 @@ int cmph_compile(cmph_t *mphf, cmph_config_t *config, const char *keys_file)
 		    return bmz_compile(mphf, config);
 		case CMPH_BDZ:
 		    return bdz_compile(mphf, config);
-		/*
+#ifdef DEBUG
 		case CMPH_BMZ8:
 		    return bmz8_compile(mphf, config);
 		case CMPH_FCH:
@@ -679,11 +679,15 @@ int cmph_compile(cmph_t *mphf, cmph_config_t *config, const char *keys_file)
 		    return brz_compile(mphf, config);
 		case CMPH_CHD_PH:
 		    return chd_ph_compile(mphf, config);
-		*/
 		case CMPH_CHD:
 		    return chd_compile(mphf, config);
+#endif
 		default:
-		    assert(0);
+		    if (mphf->algo < CMPH_COUNT)
+			fprintf(stderr, "-C not yet supported with algorithm %s\n", cmph_names[mphf->algo]);
+		    else
+			fprintf(stderr, "Illegal algorithm\n");
+		    exit(1);
 	}
 	assert(0);
 	return 0;
