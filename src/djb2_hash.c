@@ -22,7 +22,7 @@ void djb2_state_destroy(hash_state_t *state)
 
 cmph_uint32 djb2_hash(hash_state_t *state, const char *k, cmph_uint32 keylen)
 {
-	register cmph_uint32 hash = state->seed;
+	cmph_uint32 hash = state->seed;
 	const unsigned char *ptr = (unsigned char *)k;
 	cmph_uint32 i = 0;
 	while (i < keylen)
@@ -125,4 +125,38 @@ void djb2_hash_vector_packed(void *packed, const char *k, cmph_uint32 keylen, cm
 {
         hash_state_t state = { .seed = *(cmph_uint32*)packed };
 	djb2_hash_vector(&state, k, keylen, hashes);
+}
+
+void djb2_prep_compile(void) {
+	printf(
+"/* djb2_hash */\n"
+"static uint32_t djb2_hash(uint32_t seed, const unsigned char *k, const uint32_t keylen) {\n"
+"    uint32_t hash = seed;\n"
+"    uint32_t i = 0;\n"
+"    while (i < keylen) {\n"
+"        hash = hash*33 ^ *k;\n"
+"	 ++k, ++i;\n"
+"    }\n"
+"    return hash;\n"
+"}\n"
+"\n"
+"/* 3x 32bit hashes. */\n"
+"static inline void djb2_hash_vector(uint32_t seed, const unsigned char *key, uint32_t keylen, uint32_t *hashes)\n"
+"{\n"
+"    hashes[0] = djb2_hash(seed++, key, keylen);\n"
+"    hashes[1] = djb2_hash(seed++, key, keylen);\n"
+"    hashes[2] = djb2_hash(seed, key, keylen);\n"
+"}\n"
+"\n");
+}
+
+// TODO optimize to only one djb2_hash call needed
+void djb2_state_compile_seed(int i, cmph_uint32 seed) {
+	printf("static uint32_t djb2_hash%d(const char *k, uint32_t keylen)\n"
+	       "{\n"
+	       "	uint32_t hashes[3];\n"
+	       "	djb2_hash_vector(%u, (const unsigned char*)k, keylen, hashes);\n"
+	       "	return hashes[2];\n"
+	       "}\n", i, seed);
+	return;
 }
