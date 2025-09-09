@@ -668,11 +668,11 @@ int cmph_compile(cmph_t *mphf, cmph_config_t *config, const char *keys_file)
 		    return bmz_compile(mphf, config);
 		case CMPH_BDZ:
 		    return bdz_compile(mphf, config);
+		case CMPH_FCH:
+		    return fch_compile(mphf, config);
 #ifdef DEBUG
 		case CMPH_BMZ8:
 		    return bmz8_compile(mphf, config);
-		case CMPH_FCH:
-		    return fch_compile(mphf, config);
 		case CMPH_BDZ_PH:
 		    return bdz_ph_compile(mphf, config);
 		case CMPH_BRZ:
