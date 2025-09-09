@@ -124,6 +124,13 @@ void hash_state_compile(int count, hash_state_t **states)
 				wyhash_prep_compile();
 			wyhash_state_compile_seed(i, state->seed);
 			break;
+		case CMPH_HASH_CRC32:
+			DEBUGP("Compile hash[%d] crc32 with seed %u\n", i, state->seed);
+			if (i == 0 || states[0]->hashfunc != CMPH_HASH_CRC32)
+				crc32_prep_compile();
+			else
+				crc32_state_compile_seed(i, state->seed);
+			break;
 #ifdef DEBUG
 		case CMPH_HASH_DJB2:
 			DEBUGP("Compile %d hash djb2\n", i+1);
@@ -136,10 +143,6 @@ void hash_state_compile(int count, hash_state_t **states)
 		case CMPH_HASH_SDBM:
 			DEBUGP("Compile hash sdbm\n");
 			//sdbm_state_dump(state, &algobuf, buflen);
-			break;
-		case CMPH_HASH_CRC32:
-			DEBUGP("Compile hash crc32\n");
-			//crc32_state_dump(state, &algobuf, buflen);
 			break;
 #endif
 		default:

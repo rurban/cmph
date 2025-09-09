@@ -33,11 +33,11 @@ done
 rm -f _cwords100.mph
 
 all_funcs="jenkins wyhash crc32 fnv djb2 sdbm"
-funcs="jenkins wyhash"
+funcs="jenkins wyhash crc32"
 for f in $funcs; do
     # cmh uses hash_vector
     rm -f _cwords.mph
-    if [ $f = crc32 ] || [ $f = sdbm ] || [ $f = djb2 ]
+    if [ $f = sdbm ] || [ $f = djb2 ]
     then
         echo too weak $f hash, use a seperate hashfunc and a seed
         f="$f -f jenkins -s 11"
