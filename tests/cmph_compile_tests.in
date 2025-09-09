@@ -12,7 +12,7 @@ test -e _cwords || head -n $N <${WORDS} >_cwords
 test -e _cwords100 || head -n 100 <${WORDS} >_cwords100
 
 all="bmz chm brz fch bdz bdz_ph bmz8 chd chd_ph"
-algos="chm bmz bdz" # brz chd fch
+algos="chm bmz bdz fch" # brz chd
 for a in $algos; do
     rm -f _cwords.mph
     if [ $a = bmz8 ] || [ $a = fch ]; then
