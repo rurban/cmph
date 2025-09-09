@@ -131,14 +131,17 @@ void hash_state_compile(int count, hash_state_t **states)
 			else
 				crc32_state_compile_seed(i, state->seed);
 			break;
+		case CMPH_HASH_FNV:
+			DEBUGP("Compile hash[%d] fnv with seed %u\n", i, state->seed);
+			if (i == 0 || states[0]->hashfunc != CMPH_HASH_FNV)
+				fnv_prep_compile();
+			else
+				fnv_state_compile_seed(i, state->seed);
+			break;
 #ifdef DEBUG
 		case CMPH_HASH_DJB2:
 			DEBUGP("Compile %d hash djb2\n", i+1);
 			//djb2_state_dump(state, &algobuf, buflen);
-			break;
-		case CMPH_HASH_FNV:
-			DEBUGP("Compile hash fnv\n");
-			//fnv_state_dump(state, &algobuf, buflen);
 			break;
 		case CMPH_HASH_SDBM:
 			DEBUGP("Compile hash sdbm\n");
