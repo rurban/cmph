@@ -138,11 +138,14 @@ void hash_state_compile(int count, hash_state_t **states)
 			else
 				fnv_state_compile_seed(i, state->seed);
 			break;
-#ifdef DEBUG
 		case CMPH_HASH_DJB2:
-			DEBUGP("Compile %d hash djb2\n", i+1);
-			//djb2_state_dump(state, &algobuf, buflen);
+			DEBUGP("Compile hash[%d] djb2 with seed %u\n", i, state->seed);
+			if (i == 0 || states[0]->hashfunc != CMPH_HASH_DJB2)
+				djb2_prep_compile();
+			else
+				djb2_state_compile_seed(i, state->seed);
 			break;
+#ifdef DEBUG
 		case CMPH_HASH_SDBM:
 			DEBUGP("Compile hash sdbm\n");
 			//sdbm_state_dump(state, &algobuf, buflen);
