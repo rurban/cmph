@@ -25,8 +25,8 @@ void wyhash_state_dump(hash_state_t *state, char **buf, cmph_uint32 *buflen);
 hash_state_t *wyhash_state_copy(hash_state_t *src_state);
 hash_state_t *wyhash_state_load(const char *buf);
 void wyhash_state_destroy(hash_state_t *state);
-void wyhash_prep_compile(void);
-void wyhash_state_compile_seed(int i, cmph_uint32 seed);
+void wyhash_prep_compile(bool do_vector);
+void wyhash_state_compile_seed(int i, cmph_uint32 seed, bool do_vector);
 
 /** \fn void wyhash_state_pack(hash_state_t *state, void *wyhash_packed);
  *  \brief Support the ability to pack a wyhash function into a preallocated contiguous memory space pointed by wyhash_packed.

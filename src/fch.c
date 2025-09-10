@@ -327,7 +327,7 @@ int fch_compile(cmph_t *mphf, cmph_config_t *mph)
 	fch_data_t *data = (fch_data_t *)mphf->data;
 	hash_state_t *hl[2] = { data->h1, data->h2 };
 	DEBUGP("Compiling fch\n");
-	hash_state_compile(1, (hash_state_t**)hl);
+	hash_state_compile(1, (hash_state_t**)hl, mph->nhashfuncs == 1);
 	printf("#include <assert.h>\n");
 	printf("#ifdef DEBUG\n");
 	printf("#include <stdio.h>\n");

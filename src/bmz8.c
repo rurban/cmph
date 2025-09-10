@@ -75,9 +75,7 @@ cmph_t *bmz8_new(cmph_config_t *mph, double c)
 	bmz8->n = (cmph_uint8) ceil(c * mph->key_source->nkeys);
 
 	if (bmz8->n < 5) // workaround for small key sets
-	{
 		bmz8->n = 5;
-	}
 
 	DEBUGP("m (edges): %u n (vertices): %u c: %f\n", bmz8->m, bmz8->n, c);
 	bmz8->graph = graph_new(bmz8->n, bmz8->m);

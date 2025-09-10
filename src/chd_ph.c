@@ -866,7 +866,7 @@ int chd_ph_compile(cmph_t *mphf, cmph_config_t *mph)
         //chd_ph_data_t *data = (chd_ph_data_t *)mphf->data;
 	chd_ph_config_data_t *chd_ph = (chd_ph_config_data_t *)mph->data;
 	DEBUGP("Compiling chd_ph\n");
-	hash_state_compile(3, &chd_ph->hl);
+	hash_state_compile(3, &chd_ph->hl, true);
 	printf("// NYI\n");
 	printf("\nuint32_t cmph_search(const char* key, uint32_t keylen) {\n");
 	printf("    /* n: %u */\n", chd_ph->n);

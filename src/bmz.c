@@ -489,7 +489,7 @@ int bmz_compile(cmph_t *mphf, cmph_config_t *mph)
 {
 	bmz_data_t *data = (bmz_data_t *)mphf->data;
 	DEBUGP("Compiling bmz\n");
-	hash_state_compile(data->nhashes, data->hashes);
+	hash_state_compile(data->nhashes, data->hashes, true);
 	printf("\nuint32_t cmph_search(const char* key, uint32_t keylen) {\n");
 	printf("    /* n: %u */\n", data->n);
 	printf("    const uint32_t g[%u] = {\n        ", data->n);

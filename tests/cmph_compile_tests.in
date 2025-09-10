@@ -36,14 +36,15 @@ funcs="jenkins wyhash crc32 fnv djb2 sdbm"
 for f in $funcs; do
     # cmh uses hash_vector
     rm -f _cwords.mph
+    args="$f"
     if [ $f = crc32 ] || [ $f = sdbm ] || [ $f = djb2 ]
     then
         echo too weak $f hash, use a seperate hashfunc and a seed
-        f="$f -f jenkins -s 11"
+        args="$f -f jenkins -s 11"
     fi
-    echo "** cmph -C -f $f _cwords"
-    ../src/cmph -C -f $f _cwords >$f.c
-    echo "** cc -O2 -Wall -Wextra -c -I@top_srcdir@/src $a.c"
+    echo "** cmph -C -f $args _cwords"
+    ../src/cmph -C -f $args _cwords >$f.c
+    echo "** cc -O2 -Wall -Wextra -c -I@top_srcdir@/src $f.c"
     cc -O2 -Wall -Wextra -c -I@top_srcdir@/src $f.c
     echo "** compile_run $f _cwords $N"
     ./compile_run $f _cwords $N && rm $f.c $f.o

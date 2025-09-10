@@ -503,7 +503,7 @@ int bdz_compile(cmph_t *mphf, cmph_config_t *mph)
 	bdz_data_t *bdz = (bdz_data_t *)mphf->data;
 	bdz_config_data_t *config = (bdz_config_data_t *)mph->data;
 	DEBUGP("Compiling bdz\n");
-	hash_state_compile(1, &bdz->hl);
+	hash_state_compile(1, &bdz->hl, true);
 	printf("#include <assert.h>\n");
 	printf("#ifdef DEBUG\n");
 	printf("#include <stdio.h>\n");
