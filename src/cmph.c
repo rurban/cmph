@@ -642,6 +642,7 @@ int cmph_dump(cmph_t *mphf, FILE *f)
 }
 int cmph_compile(cmph_t *mphf, cmph_config_t *config, const char *keys_file)
 {
+	bool do_vector = false;
 	DEBUGP("Compiling mphf with algorithm %s\n", cmph_names[mphf->algo]);
 	printf("/* ex: set ro ft=c: -*- mode: c; buffer-read-only: t -*- */\n");
 	printf("/* Created via cmph -C ");
@@ -656,6 +657,15 @@ int cmph_compile(cmph_t *mphf, cmph_config_t *config, const char *keys_file)
 	    if (i>0 || config->hashfuncs[i] != CMPH_HASH_JENKINS)
 		printf("-f %s ", cmph_hash_names[config->hashfuncs[i]]);
 	}
+	// see if we need a hash_vector API or seperate hash() calls are
+	// enough. a vector is only good with all 2-3 the same
+	if (config->nhashfuncs == 2
+	    && config->hashfuncs[0] == config->hashfuncs[1])
+		do_vector = true;
+	if (config->nhashfuncs == 3
+	    && config->hashfuncs[0] == config->hashfuncs[1]
+	    && config->hashfuncs[0] == config->hashfuncs[2])
+		do_vector = true;
 	printf("\"%s\" */\n", keys_file);
 	printf("/* Do not modify */\n\n");
 	printf("/* n: %u */\n", config->key_source->nkeys);

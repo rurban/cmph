@@ -226,7 +226,7 @@ void crc32_hash_vector_packed(void *packed, const char *k, cmph_uint32 keylen, c
 	crc32_hash_vector(&state, k, keylen, hashes);
 }
 
-void crc32_prep_compile(void) {
+void crc32_prep_compile(bool do_vector) {
 	printf(
 "/* crc32_hash */\n"
 "#ifndef HAVE_CRC32_HW\n"
@@ -237,8 +237,9 @@ void crc32_prep_compile(void) {
 "	defined _M_IX86)\n"
 "#define HAVE_CRC32_HW\n"
 "#elif defined (_M_ARM64) || defined(__ARM_FEATURE_CRC32)\n"
+"#define HAVE_CRC32_HW\n"
 "#endif\n"
-"#endif\n"
+"#endif\n\n"
 "#ifndef HAVE_CRC32_HW\n"
 "#include <stddef.h>\n"
 "\n"
@@ -266,14 +267,16 @@ void crc32_prep_compile(void) {
 "};\n"
 "\n"
 "static inline uint32_t\n"
-"crc32c(uint32_t crc, uint8_t *data, size_t length)\n"
+"crc32c(uint32_t crc, const uint8_t *data, size_t length)\n"
 "{\n"
 "	while (length--) {\n"
 "		crc = crc32c_table[(crc ^ *data++) & 0xFF] ^ (crc >> 8);\n"
 "	}\n"
 "	return crc ^ 0xffffffff;\n"
 "}\n"
-"\n"
+"\n");
+	if (do_vector)
+	    printf(
 "/* 3x 32bit hashes. */\n"
 "static inline void\n"
 "crc3(uint8_t *key, size_t len, uint32_t seed0, uint32_t seed1, uint32_t *hashes)\n"
@@ -281,7 +284,8 @@ void crc32_prep_compile(void) {
 "	hashes[0] = crc32c(seed0, key, len);\n"
 "	hashes[1] = crc32c(seed1, key, len);\n"
 "	hashes[2] = crc32c(seed0 ^ seed1, key, len);\n"
-"}\n"
+"}\n");
+	printf(
 "\n"
 "#else // HAVE_CRC32_HW\n"
 "\n"
@@ -300,7 +304,9 @@ void crc32_prep_compile(void) {
 "			(h2) = op((h2), *(type *)(buf));           \\\n"
 "			(h3) = op((h3), *(type *)(buf));           \\\n"
 "		}                                                  \\\n"
-"\n"
+"\n");
+	if (do_vector)
+	    printf(
 "static inline void\n"
 "crc3(uint8_t *key, size_t len, uint32_t seed0, uint32_t seed1, uint32_t *hashes)\n"
 "{\n"
@@ -326,9 +332,18 @@ void crc32_prep_compile(void) {
 "	hashes[1] = h2;\n"
 "	hashes[2] = h3;\n"
 "}\n"
+"#endif // HAVE_CRC32_HW\n");
+	if (do_vector)
+	    printf(
+"/* 3x 32bit hashes. */\n"
+"static inline void crc32_hash_vector(const uint32_t seed, const unsigned char *key, uint32_t keylen, uint32_t *hashes) {\n"
+"        crc3((uint8_t *)key, keylen, seed, seed + 1, hashes);\n"
+"}\n\n");
+	if (!do_vector)
+	    printf(
 "\n"
 "static inline uint32_t\n"
-"crc32c(uint32_t crc, uint8_t *key, size_t len)\n"
+"crc32c(uint32_t crc, const uint8_t *key, size_t len)\n"
 "{\n"
 "	uint32_t h1 = crc;\n"
 "	// Align the input to the word boundary\n"
@@ -350,28 +365,14 @@ void crc32_prep_compile(void) {
 "	return h1;\n"
 "}\n"
 "\n"
-"#endif\n"
-"\n"
-"uint32_t crc32_hash(uint32_t seed, const uint8_t *key, const uint32_t keylen)\n"
-"{\n"
-"	return crc32c(seed, (uint8_t *)key, keylen);\n"
-"}\n"
-"\n"
-"/* 3x 32bit hashes. */\n"
-"static inline void crc32_hash_vector(const uint32_t seed, const unsigned char *key, uint32_t keylen, uint32_t *hashes)\n"
-"{\n"
-"        crc3((uint8_t *)key, keylen, seed, seed + 1, hashes);\n"
-"}\n"
-"\n");
+"#endif\n");
 }
 
-void crc32_state_compile_seed(int i, cmph_uint32 seed) {
-	printf("static uint32_t crc32_hash%d(const char *k, uint32_t keylen)\n"
-	       "{\n"
-	       "	uint32_t hashes[3];\n"
-	       "	crc32_hash_vector(%u, (const unsigned char*)k, keylen, hashes);\n"
-	       "	return hashes[2];\n"
+void crc32_state_compile_seed(int i, cmph_uint32 seed, bool do_vector) {
+    if (!do_vector)
+	printf("static uint32_t crc32_hash_%d(const unsigned char *key, uint32_t keylen) {\n"
+	       "	return crc32c(%uU, key, keylen);\n"
 	       "}\n", i, seed);
-	return;
+    return;
 }
 

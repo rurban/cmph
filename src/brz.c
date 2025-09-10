@@ -599,7 +599,7 @@ int brz_compile(cmph_t *mphf, cmph_config_t *mph)
 	hashes[0] = data->h1 ? data->h1[0] : data->h0;
 	hashes[1] = data->h2 ? data->h2[0] : data->h0;
 	hashes[2] = data->h0;
-	hash_state_compile(3, hashes);
+	hash_state_compile(3, hashes, true);
 	printf("// NYI\n");
 	printf("uint32_t cmph_size(void) {\n");
 	printf("    return %u;\n}\n", data->m);

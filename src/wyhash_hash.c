@@ -38,7 +38,6 @@ void wyhash_state_destroy(hash_state_t *state)
 	free(state);
 }
 
-
 static inline void __wyhash_hash_vector(cmph_uint32 seed, const unsigned char *k, cmph_uint32 len, cmph_uint32 * hashes)
 {
         uint64_t *hashes64 = (uint64_t*) hashes;
@@ -175,7 +174,7 @@ void wyhash_hash_vector_packed(void *wyhash_packed, const char *k, cmph_uint32 k
 	__wyhash_hash_vector(*((cmph_uint32 *)wyhash_packed), (const unsigned char*)k, keylen, hashes);
 }
 
-void wyhash_prep_compile(void) {
+void wyhash_prep_compile(bool do_vector) {
 	printf(
 "#include \"wyhash.h\"\n"
 "/* wyhash_hash */\n"
@@ -218,11 +217,12 @@ void wyhash_prep_compile(void) {
 "}\n"
 "\n");
 }
-void wyhash_state_compile_seed(int i, cmph_uint32 seed) {
-	printf("uint32_t wyhash_hash%d(const char *k, uint32_t keylen) {\n"
+void wyhash_state_compile_seed(int i, cmph_uint32 seed, bool do_vector) {
+    if (!do_vector)
+	printf("uint32_t wyhash_hash_%d(const unsigned char *key, uint32_t keylen) {\n"
 	       "    uint32_t hashes[3];\n"
-	       "    wyhash_hash_vector(%u, (const unsigned char*)k, keylen, hashes);\n"
+	       "    wyhash_hash_vector(%uU, key, keylen, hashes);\n"
 	       "    return hashes[2];\n"
 	       "}\n", i, seed);
-	return;
+    return;
 }

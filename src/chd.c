@@ -203,7 +203,7 @@ int chd_compile(cmph_t *mphf, cmph_config_t *mph)
 	cmph_uint32 rank = compressed_rank_query_packed(packed_cr, bin_idx);
 	return bin_idx - rank;
 	 */
-	//hash_state_compile(3, &chd_ph->hl);
+	//hash_state_compile(3, &chd_ph->hl, true);
 	printf("\nuint32_t cmph_search(const char* key, uint32_t keylen) {\n");
 	printf("    /* n: %u */\n", chd_ph->n);
 	printf("    /* m: %u */\n", chd_ph->m);
