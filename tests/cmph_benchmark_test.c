@@ -3,17 +3,19 @@
 
 #include "cmph_benchmark.h"
 
-void bm_sleep(int iters) {
+int bm_sleep(int iters) {
   (void)iters;
   sleep(1);
+  return 0;
 }
 
-void bm_increment(int iters) {
+int bm_increment(int iters) {
   int i, v = 0;
   (void)iters;
   for (i = 0; i < INT_MAX; ++i) {
     v += i;
   }
+  return 0;
 }
 
 int main(void) {
