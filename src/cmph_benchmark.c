@@ -10,7 +10,7 @@
 
 typedef struct {
   const char* name;
-  void (*func)(int);
+  int (*func)(int);
   int iters;
   struct rusage begin;
   struct rusage end;
@@ -63,7 +63,7 @@ int global_benchmarks_length() {
   return length;
 }
 
-void bm_register(const char* name, void (*func)(int), int iters) {
+void bm_register(const char* name, int (*func)(int), int iters) {
   benchmark_t benchmark = {0};
   int length = global_benchmarks_length();
   benchmark.name = name;
@@ -82,7 +82,7 @@ void bm_register(const char* name, void (*func)(int), int iters) {
   global_benchmarks[length + 1] = benchmark;
 }
 
-void bm_start(const char* name) {
+int bm_start(const char* name) {
   benchmark_t* benchmark;
   struct rusage rs;
 
@@ -94,7 +94,7 @@ void bm_start(const char* name) {
     exit(-1);
   }
   benchmark->begin = rs;
-  (*benchmark->func)(benchmark->iters);
+  return (*benchmark->func)(benchmark->iters);
 }
 
 void bm_end(const char* name) { 
@@ -126,8 +126,8 @@ void bm_end(const char* name) {
 void run_benchmarks(void) {
   benchmark_t* benchmark = global_benchmarks;
   while (benchmark && benchmark->name != NULL) {
-    bm_start(benchmark->name);
-    bm_end(benchmark->name);
+    if (!bm_start(benchmark->name))
+      bm_end(benchmark->name);
     ++benchmark;
   }
 }

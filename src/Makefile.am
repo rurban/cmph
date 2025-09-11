@@ -1,5 +1,5 @@
 bin_PROGRAMS = cmph
-noinst_PROGRAMS = bm_numbers
+noinst_PROGRAMS = bm_numbers # bm_compiled_numbers
 lib_LTLIBRARIES = libcmph.la
 include_HEADERS = cmph.h cmph_types.h cmph_time.h chd_ph.h
 libcmph_la_SOURCES =  hash.h hash.c hash_state.h \
@@ -38,3 +38,6 @@ cmph_LDADD = libcmph.la
 
 bm_numbers_SOURCES = bm_numbers.c
 bm_numbers_LDADD = libcmph.la
+
+bm_compiled_numbers_SOURCES = bm_compiled_numbers.c
+bm_compiled_numbers_LDADD = libcmph.la

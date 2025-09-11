@@ -10,15 +10,18 @@
 hash_state_t *crc32_state_new(cmph_uint32 size)
 {
 	hash_state_t *state = (hash_state_t *)malloc(sizeof(hash_state_t));
+#ifdef DEBUG
+#ifdef HAVE_CRC32_HW
+	const char hw[] = "HW";
+#else
+	const char hw[] = "SW";
+#endif
+#endif
         if (!state) return NULL;
 	state->hashfunc = CMPH_HASH_CRC32;
 	if (size > 0) state->seed = ((cmph_uint32)rand() % size);
 	else state->seed = 0;
-#ifdef HAVE_CRC32_HW
-	DEBUGP("Initializing HW crc32 hash with seed %u\n", state->seed);
-#else
-	DEBUGP("Initializing SW crc32 hash with seed %u\n", state->seed);
-#endif
+	DEBUGP("Initializing %s crc32 hash with seed %u\n", hw, state->seed);
 	return state;
 }
 
