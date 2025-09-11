@@ -34,7 +34,13 @@ chm_config_data_t *chm_config_new(void)
 void chm_config_destroy(cmph_config_t *mph)
 {
 	chm_config_data_t *data = (chm_config_data_t *)mph->data;
+	if (!data)
+		return;
 	DEBUGP("Destroying algorithm dependent data\n");
+	if (data->graph)
+		graph_destroy(data->graph);
+	free(data->g);
+	free(data->hashes);
 	free(data);
 }
 
@@ -92,9 +98,7 @@ cmph_t *chm_new(cmph_config_t *mph, double c)
 	for(i = 0; i < 3; ++i) chm->hashes[i] = NULL;
 	//Mapping step
 	if (mph->verbosity)
-	{
 		fprintf(stderr, "Entering mapping step for mph creation of %u keys with graph sized %u\n", chm->m, chm->n);
-	}
 	while(1)
 	{
 		int ok;
@@ -113,25 +117,17 @@ cmph_t *chm_new(cmph_config_t *mph, double c)
 			}
 			DEBUGP("%u iterations remaining\n", iterations);
 			if (mph->verbosity)
-			{
 				fprintf(stderr, "Acyclic graph creation failure - %u iterations remaining\n", iterations);
-			}
 			if (iterations == 0) break;
 		}
 		else break;
 	}
 	if (iterations == 0)
-	{
-		graph_destroy(chm->graph);
-		free(chm->hashes);
 		return NULL;
-	}
 
 	//Assignment step
 	if (mph->verbosity)
-	{
 		fprintf(stderr, "Starting assignment step\n");
-	}
 	DEBUGP("Assignment step\n");
  	visited = (cmph_uint8 *)malloc((size_t)(chm->n/8 + 1));
 	memset(visited, 0, (size_t)(chm->n/8 + 1));
@@ -164,9 +160,7 @@ cmph_t *chm_new(cmph_config_t *mph, double c)
 	mphf->size = chm->m;
 	DEBUGP("Successfully generated minimal perfect hash\n");
 	if (mph->verbosity)
-	{
 		fprintf(stderr, "Successfully generated minimal perfect hash function\n");
-	}
 	return mphf;
 }
 
