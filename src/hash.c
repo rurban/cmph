@@ -145,12 +145,13 @@ void hash_state_compile(int count, hash_state_t **states)
 			else
 				djb2_state_compile_seed(i, state->seed);
 			break;
-#ifdef DEBUG
 		case CMPH_HASH_SDBM:
-			DEBUGP("Compile hash sdbm\n");
-			//sdbm_state_dump(state, &algobuf, buflen);
+			DEBUGP("Compile hash[%d] sdbm with seed %u\n", i, state->seed);
+			if (i == 0 || states[0]->hashfunc != CMPH_HASH_SDBM)
+				sdbm_prep_compile();
+			else
+				sdbm_state_compile_seed(i, state->seed);
 			break;
-#endif
 		default:
 			if (state->hashfunc < CMPH_HASH_COUNT)
 				fprintf(stderr, "-C not yet supported with hash function %s\n",
