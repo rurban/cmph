@@ -1,11 +1,26 @@
 #ifndef __CMPH_TYPES_H__
 #define __CMPH_TYPES_H__
 
+#include "config.h"
+#ifdef HAVE_STDBOOL_H
+#include <stdbool.h>
+#else
+typedef char bool;
+#define true 1
+#define false 0
+#endif
+
 typedef char cmph_int8;
 typedef unsigned char cmph_uint8;
 
+#ifdef HAVE_STDINT_H
+#include <stdint.h>
+typedef int16_t cmph_int16;
+typedef uint16_t cmph_uint16;
+#else
 typedef short cmph_int16;
 typedef unsigned short cmph_uint16;
+#endif
 
 typedef int cmph_int32;
 typedef unsigned int cmph_uint32;

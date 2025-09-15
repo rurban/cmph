@@ -60,7 +60,8 @@ fi
 AM_CONDITIONAL([CRC32_HW], [test -n "$HAVE_CRC32_HW"])
 
 dnl Checks for headers
-AC_CHECK_HEADERS([getopt.h math.h])
+AC_CHECK_HEADERS([stdint.h stdbool.h stdio.h stdlib.h string.h inttypes.h
+                  unistd.h dlfcn.h strings.h getopt.h math.h sys/stat.h sys/types.h])
 
 dnl Checks for libraries.
 LT_LIB_M
