@@ -640,22 +640,24 @@ int cmph_dump(cmph_t *mphf, FILE *f)
 	assert(0);
 	return 0;
 }
-int cmph_compile(cmph_t *mphf, cmph_config_t *config, const char *keys_file)
+int cmph_compile(cmph_t *mphf, cmph_config_t *config, const char *c_file,
+		 const char *keys_file)
 {
 	bool do_vector = false;
+	FILE *out = c_file ? fopen(c_file, "w") : stdout;
 	DEBUGP("Compiling mphf with algorithm %s\n", cmph_names[mphf->algo]);
-	printf("/* ex: set ro ft=c: -*- mode: c; buffer-read-only: t -*- */\n");
-	printf("/* Created via cmph -C ");
+	fprintf(out, "/* ex: set ro ft=c: -*- mode: c; buffer-read-only: t -*- */\n");
+	fprintf(out, "/* Created via cmph -C ");
 	if (mphf->algo != CMPH_CHM)
-	    printf("-a %s ", cmph_names[mphf->algo]);
+	    fprintf(out, "-a %s ", cmph_names[mphf->algo]);
 	if (config->seed != UINT_MAX)
-	    printf("-s %u ", config->seed);
+	    fprintf(out, "-s %u ", config->seed);
 	for (unsigned i=0; i<config->nhashfuncs; ++i)
 	{
 	    if (config->hashfuncs[i] == CMPH_HASH_COUNT)
 		break;
 	    if (i>0 || config->hashfuncs[i] != CMPH_HASH_JENKINS)
-		printf("-f %s ", cmph_hash_names[config->hashfuncs[i]]);
+		fprintf(out, "-f %s ", cmph_hash_names[config->hashfuncs[i]]);
 	}
 	// see if we need a hash_vector API or seperate hash() calls are
 	// enough. a vector is only good with all 2-3 the same
@@ -666,31 +668,31 @@ int cmph_compile(cmph_t *mphf, cmph_config_t *config, const char *keys_file)
 	    && config->hashfuncs[0] == config->hashfuncs[1]
 	    && config->hashfuncs[0] == config->hashfuncs[2])
 		do_vector = true;
-	printf("\"%s\" */\n", keys_file);
-	printf("/* Do not modify */\n\n");
-	printf("/* n: %u */\n", config->key_source->nkeys);
-	printf("/* c: %f */\n", config->c);
+	fprintf(out, "\"%s\" */\n", keys_file);
+	fprintf(out, "/* Do not modify */\n\n");
+	fprintf(out, "/* n: %u */\n", config->key_source->nkeys);
+	fprintf(out, "/* c: %f */\n", config->c);
 	switch (mphf->algo)
 	{
 		case CMPH_CHM:
-		    return chm_compile(mphf, config);
+		    return chm_compile(mphf, config, out);
 		case CMPH_BMZ:
-		    return bmz_compile(mphf, config);
+		    return bmz_compile(mphf, config, out);
 		case CMPH_BDZ:
-		    return bdz_compile(mphf, config);
+		    return bdz_compile(mphf, config, out);
 		case CMPH_FCH:
-		    return fch_compile(mphf, config);
+		    return fch_compile(mphf, config, out);
 #ifdef DEBUG
 		case CMPH_BMZ8:
-		    return bmz8_compile(mphf, config);
+		    return bmz8_compile(mphf, config, out);
 		case CMPH_BDZ_PH:
-		    return bdz_ph_compile(mphf, config);
+		    return bdz_ph_compile(mphf, config, out);
 		case CMPH_BRZ:
-		    return brz_compile(mphf, config);
+		    return brz_compile(mphf, config, out);
 		case CMPH_CHD_PH:
-		    return chd_ph_compile(mphf, config);
+		    return chd_ph_compile(mphf, config, out);
 		case CMPH_CHD:
-		    return chd_compile(mphf, config);
+		    return chd_compile(mphf, config, out);
 #endif
 		default:
 		    if (mphf->algo < CMPH_COUNT)
@@ -699,6 +701,8 @@ int cmph_compile(cmph_t *mphf, cmph_config_t *config, const char *keys_file)
 			fprintf(stderr, "Illegal algorithm\n");
 		    exit(1);
 	}
+	if (c_file)
+	    fclose(out);
 	assert(0);
 	return 0;
 }

@@ -14,7 +14,7 @@ cmph_t *bdz_new(cmph_config_t *mph, double c);
 
 void bdz_load(FILE *f, cmph_t *mphf);
 int bdz_dump(cmph_t *mphf, FILE *f);
-int bdz_compile(cmph_t *mphf, cmph_config_t *mph);
+int bdz_compile(cmph_t *mphf, cmph_config_t *mph, FILE *out);
 void bdz_destroy(cmph_t *mphf);
 cmph_uint32 bdz_search(cmph_t *mphf, const char *key, cmph_uint32 keylen);
 

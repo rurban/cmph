@@ -485,40 +485,41 @@ static int bmz_gen_edges(cmph_config_t *mph)
 	return !multiple_edges;
 }
 
-int bmz_compile(cmph_t *mphf, cmph_config_t *mph)
+int bmz_compile(cmph_t *mphf, cmph_config_t *mph, FILE *out)
 {
 	bmz_data_t *data = (bmz_data_t *)mphf->data;
 	DEBUGP("Compiling bmz\n");
-	hash_state_compile(data->nhashes, data->hashes, true);
-	printf("\nuint32_t cmph_search(const char* key, uint32_t keylen) {\n");
-	printf("    /* n: %u */\n", data->n);
-	printf("    const uint32_t g[%u] = {\n        ", data->n);
+	hash_state_compile(data->nhashes, data->hashes, true, out);
+	fprintf(out, "\nuint32_t cmph_search(const char* key, uint32_t keylen) {\n");
+	fprintf(out, "    /* n: %u */\n", data->n);
+	fprintf(out, "    const uint32_t g[%u] = {\n        ", data->n);
 	for (unsigned i=0; i < data->n - 1; i++) {
-		printf("%u, ", data->g[i]);
+		fprintf(out, "%u, ", data->g[i]);
 		if (i % 16 == 15)
-			printf("\n        ");
+			fprintf(out, "\n        ");
 	}
-	printf("%u\n    };\n", data->g[data->n - 1]);
-	printf("    uint32_t h1, h2;\n");
+	fprintf(out, "%u\n    };\n", data->g[data->n - 1]);
+	fprintf(out, "    uint32_t h1, h2;\n");
 	if (data->nhashes > 1) {
-		printf("   h1 = %s0(%u, (const unsigned char*)key, keylen) %% %u;\n",
+		fprintf(out, "   h1 = %s0(%u, (const unsigned char*)key, keylen) %% %u;\n",
 		       cmph_hash_names[mph->hashfuncs[0]], data->hashes[0]->seed, data->n);
-		printf("   h2 = %s1(%u, (const unsigned char*)key, keylen) %% %u;\n",
+		fprintf(out, "   h2 = %s1(%u, (const unsigned char*)key, keylen) %% %u;\n",
 		       cmph_hash_names[mph->hashfuncs[1]], data->hashes[1]->seed,
 		       data->n);
 	}
 	else {
-		printf("    uint32_t hv[3];\n");
-		printf("    %s_hash_vector(%u, (const unsigned char*)key, keylen, hv);\n",
+		fprintf(out, "    uint32_t hv[3];\n");
+		fprintf(out, "    %s_hash_vector(%u, (const unsigned char*)key, keylen, hv);\n",
 		       cmph_hash_names[mph->hashfuncs[0]], data->hashes[0]->seed);
-		printf("    h1 = hv[0] %% %u;\n", data->n);
-		printf("    h2 = hv[1] %% %u;\n", data->n);
+		fprintf(out, "    h1 = hv[0] %% %u;\n", data->n);
+		fprintf(out, "    h2 = hv[1] %% %u;\n", data->n);
 	}
-	printf("    if (h1 == h2 && ++h2 >= %u) h2 = 0;\n", data->n);
-	printf("    return (g[h1] + g[h2]) %% %u;\n", data->m);
-	printf("};\n");
-	printf("uint32_t cmph_size(void) {\n");
-	printf("    return %u;\n}\n", data->m);
+	fprintf(out, "    if (h1 == h2 && ++h2 >= %u) h2 = 0;\n", data->n);
+	fprintf(out, "    return (g[h1] + g[h2]) %% %u;\n", data->m);
+	fprintf(out, "};\n");
+	fprintf(out, "uint32_t cmph_size(void) {\n");
+	fprintf(out, "    return %u;\n}\n", data->m);
+	fclose(out);
 	return 1;
 }
 

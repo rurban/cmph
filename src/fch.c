@@ -322,62 +322,63 @@ cmph_t *fch_new(cmph_config_t *mph, double c)
 	return mphf;
 }
 
-int fch_compile(cmph_t *mphf, cmph_config_t *mph)
+int fch_compile(cmph_t *mphf, cmph_config_t *mph, FILE *out)
 {
 	fch_data_t *data = (fch_data_t *)mphf->data;
 	hash_state_t *hl[2] = { data->h1, data->h2 };
 	DEBUGP("Compiling fch\n");
-	hash_state_compile(1, (hash_state_t**)hl, mph->nhashfuncs == 1);
-	printf("#include <assert.h>\n");
-	printf("#ifdef DEBUG\n");
-	printf("#include <stdio.h>\n");
-	printf("#endif\n");
+	hash_state_compile(1, (hash_state_t**)hl, mph->nhashfuncs == 1, out);
+	fprintf(out, "#include <assert.h>\n");
+	fprintf(out, "#ifdef DEBUG\n");
+	fprintf(out, "#include <stdio.h>\n");
+	fprintf(out, "#endif\n");
 
-	printf("static inline uint32_t mixh10h11h12(uint32_t initial_index) {\n");
-	printf("    if (initial_index < %f)\n", data->p1);
-	printf("        initial_index %%= %u;  /* h11 o h10 */\n", (cmph_uint32)data->p2);
-	printf("    else { /* h12 o h10 */\n");
-	printf("        initial_index %%= %u;\n", data->b);
-	printf("        if(initial_index < %f) initial_index += %u;\n",
+	fprintf(out, "static inline uint32_t mixh10h11h12(uint32_t initial_index) {\n");
+	fprintf(out, "    if (initial_index < %f)\n", data->p1);
+	fprintf(out, "        initial_index %%= %u;  /* h11 o h10 */\n", (cmph_uint32)data->p2);
+	fprintf(out, "    else { /* h12 o h10 */\n");
+	fprintf(out, "        initial_index %%= %u;\n", data->b);
+	fprintf(out, "        if(initial_index < %f) initial_index += %u;\n",
 	       data->p2, (cmph_uint32)data->p2);
-	printf("    }\n");
-	printf("    return initial_index;\n");
-	printf("}\n");
-	printf("\nuint32_t cmph_search(const char* key, uint32_t keylen) {\n");
-	printf("    /* m: %u */\n", data->m);
-	printf("    /* c: %f */\n", data->c);
-	printf("    /* b: %u */\n", data->b);
-	printf("    /* p1: %f */\n", data->p1);
-	printf("    /* p2: %f */\n", data->p2);
-	printf("    const uint32_t g[%u] = {\n        ", data->b);
+	fprintf(out, "    }\n");
+	fprintf(out, "    return initial_index;\n");
+	fprintf(out, "}\n");
+	fprintf(out, "\nuint32_t cmph_search(const char* key, uint32_t keylen) {\n");
+	fprintf(out, "    /* m: %u */\n", data->m);
+	fprintf(out, "    /* c: %f */\n", data->c);
+	fprintf(out, "    /* b: %u */\n", data->b);
+	fprintf(out, "    /* p1: %f */\n", data->p1);
+	fprintf(out, "    /* p2: %f */\n", data->p2);
+	fprintf(out, "    const uint32_t g[%u] = {\n        ", data->b);
 	for (unsigned i=0; i < data->b - 1; i++) {
-		printf("%u, ", data->g[i]);
+		fprintf(out, "%u, ", data->g[i]);
 		if (i % 16 == 15)
-			printf("\n        ");
+			fprintf(out, "\n        ");
 	}
-	printf("%u\n    };\n", data->g[data->b - 1]);
-	printf("    uint32_t h1, h2;\n");
+	fprintf(out, "%u\n    };\n", data->g[data->b - 1]);
+	fprintf(out, "    uint32_t h1, h2;\n");
 	if (mph->nhashfuncs > 1) {
-		printf("   h1 = %s0(%u, (const unsigned char*)key, keylen) %% %u;\n",
+		fprintf(out, "   h1 = %s0(%u, (const unsigned char*)key, keylen) %% %u;\n",
 		       cmph_hash_names[hl[0]->hashfunc], hl[0]->seed, data->m);
-		printf("   h2 = %s1(%u, (const unsigned char*)key, keylen) %% %u;\n",
+		fprintf(out, "   h2 = %s1(%u, (const unsigned char*)key, keylen) %% %u;\n",
 		       cmph_hash_names[hl[1]->hashfunc], hl[1]->seed, data->m);
 	}
 	else {
-		printf("    uint32_t hv[3];\n");
-		printf("    %s_hash_vector(%u, (const unsigned char*)key, keylen, hv);\n",
+		fprintf(out, "    uint32_t hv[3];\n");
+		fprintf(out, "    %s_hash_vector(%u, (const unsigned char*)key, keylen, hv);\n",
 		       cmph_hash_names[hl[0]->hashfunc], hl[0]->seed);
-		printf("    h1 = hv[0] %% %u;\n", data->m);
-		printf("    h2 = hv[1] %% %u;\n", data->m);
+		fprintf(out, "    h1 = hv[0] %% %u;\n", data->m);
+		fprintf(out, "    h2 = hv[1] %% %u;\n", data->m);
 	}
-	printf("    h1 = mixh10h11h12 (h1);\n");
-	printf("    assert(h1 < %u);\n", data->b);
-	//printf("    DEBUGP(\"key: %%s h1: %%u h2: %%u  g[h1]: %%u\\n\", key, h1, h2, g[h1]);\n");
-	printf("    return (h2 + g[h1]) %% %u;\n", data->m);
-	printf("}\n");
+	fprintf(out, "    h1 = mixh10h11h12 (h1);\n");
+	fprintf(out, "    assert(h1 < %u);\n", data->b);
+	//fprintf(out, "    DEBUGP(\"key: %%s h1: %%u h2: %%u  g[h1]: %%u\\n\", key, h1, h2, g[h1]);\n");
+	fprintf(out, "    return (h2 + g[h1]) %% %u;\n", data->m);
+	fprintf(out, "}\n");
 
-	printf("uint32_t cmph_size(void) {\n");
-	printf("    return %u;\n}\n", data->m);
+	fprintf(out, "uint32_t cmph_size(void) {\n");
+	fprintf(out, "    return %u;\n}\n", data->m);
+	fclose(out);
 	return 1;
 }
 int fch_dump(cmph_t *mphf, FILE *fd)
