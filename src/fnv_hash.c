@@ -135,8 +135,8 @@ void fnv_hash_vector_packed(void *fnv_packed, const char *k, cmph_uint32 keylen,
 	fnv_hash_vector(&state, k, keylen, hashes);
 }
 
-void fnv_prep_compile(bool do_vector) {
-	printf(
+void fnv_prep_compile(bool do_vector, FILE* out) {
+	fprintf(out,
 "\n/* fnv_hash */\n"
 "static uint32_t fnv_hash(uint32_t seed, const uint8_t *k, const uint32_t keylen) {\n"
 "    const unsigned char *bp = (const unsigned char *)k;\n"
@@ -155,7 +155,7 @@ void fnv_prep_compile(bool do_vector) {
 "}\n"
 "\n");
     if (do_vector)
-	    printf(
+	    fprintf(out,
 "/* 3x 32bit hashes. */\n"
 "static inline void fnv_hash_vector(uint32_t seed, const unsigned char *key, uint32_t keylen, uint32_t *hashes) {\n"
 "    hashes[0] = fnv_hash(seed++, key, keylen);\n"
@@ -166,10 +166,11 @@ void fnv_prep_compile(bool do_vector) {
 }
 
 // TODO optimize to only one fnv_hash call needed
-void fnv_state_compile_seed(int i, cmph_uint32 seed, bool do_vector) {
-    if (!do_vector)
-	printf("static inline uint32_t fnv_hash_%d(const unsigned char *key, uint32_t keylen) {\n"
+void fnv_state_compile_seed(int i, cmph_uint32 seed, bool do_vector, FILE* out) {
+    if (!do_vector) {
+	fprintf(out,"static inline uint32_t fnv_hash_%d(const unsigned char *key, uint32_t keylen) {\n"
 	       "    return fnv_hash(%uU, key, keylen);\n"
 	       "}\n", i, seed);
+    }
     return;
 }

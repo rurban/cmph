@@ -8,7 +8,7 @@
 extern "C"
 {
 #endif
-  
+
 #define BM_REGISTER(func, iters) bm_register(#func, func, iters)
 void bm_register(const char* name, int (*func)(int), int iters);
 void run_benchmarks(/*int argc, char** argv*/);

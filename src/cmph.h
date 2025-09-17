@@ -14,7 +14,7 @@ extern "C"
 typedef struct __config_t cmph_config_t;
 typedef struct __cmph_t cmph_t;
 
-typedef struct 
+typedef struct
 {
         void *data;
         cmph_uint32 nkeys;
@@ -78,7 +78,7 @@ void cmph_destroy(cmph_t *mphf);
 /** Hash serialization/deserialization */
 int cmph_dump(cmph_t *mphf, FILE *f);
 cmph_t *cmph_load(FILE *f);
-int cmph_compile(cmph_t *mphf, cmph_config_t *config, const char *keys_file);
+int cmph_compile(cmph_t *mphf, cmph_config_t *config, const char *c_file, const char *keys_file);
 
 /** \fn int cmph_is_order_preserving(cmph_t *mphf);
  *  \brief Returns 1 if the algo preserves the order of keys. (only CHM)

@@ -452,14 +452,15 @@ static void bdz_ph_optimization(bdz_ph_config_data_t *bdz_ph)
 }
 
 
-int bdz_ph_compile(cmph_t *mphf, cmph_config_t *mph)
+int bdz_ph_compile(cmph_t *mphf, cmph_config_t *mph, FILE *out)
 {
 	bdz_ph_data_t *data = (bdz_ph_data_t *)mphf->data;
 	DEBUGP("Compiling bdz_ph\n");
-	printf("// NYI\n");
-	printf("uint32_t cmph_size(void) {\n");
-	printf("    return %u;\n}\n", data->m);
-	exit(1);
+	fprintf(out, "// NYI\n");
+	fprintf(out, "uint32_t cmph_size(void) {\n");
+	fprintf(out, "    return %u;\n}\n", data->m);
+	fclose(out);
+	return 0;
 }
 int bdz_ph_dump(cmph_t *mphf, FILE *fd)
 {

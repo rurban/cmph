@@ -1,6 +1,7 @@
 #ifndef __CMPH_HASH_H__
 #define __CMPH_HASH_H__
 
+#include <stdio.h>
 #include "cmph_types.h"
 #include "hash_state.h"
 
@@ -25,7 +26,7 @@ void hash_vector(hash_state_t *state, const char *key, cmph_uint32 keylen, cmph_
 void hash_state_dump(hash_state_t *state, char **buf, cmph_uint32 *buflen);
 //hash_state_t * hash_state_copy(hash_state_t *src_state);
 hash_state_t *hash_state_load(const char *buf);
-void hash_state_compile(int count, hash_state_t **states, bool do_vector);
+void hash_state_compile(int count, hash_state_t **states, bool do_vector, FILE* out);
 
 void hash_state_destroy(hash_state_t *state);
 
@@ -33,7 +34,7 @@ void hash_state_destroy(hash_state_t *state);
  *  \brief Support the ability to pack a hash function into a preallocated contiguous memory space pointed by hash_packed.
  *  \param state points to the hash function
  *  \param hash_packed pointer to the contiguous memory area used to store the hash function. The size of hash_packed must be at least hash_state_packed_size()
- *  
+ *
  * Support the ability to pack a hash function into a preallocated contiguous memory space pointed by hash_packed.
  * However, the hash function type must be packed outside.
  */

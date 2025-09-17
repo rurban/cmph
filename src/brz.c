@@ -589,7 +589,7 @@ static char * brz_copy_partial_bmz8_mphf(brz_config_data_t *brz, bmz8_data_t * b
 	return buf;
 }
 
-int brz_compile(cmph_t *mphf, cmph_config_t *mph)
+int brz_compile(cmph_t *mphf, cmph_config_t *mph, FILE *out)
 {
 	brz_data_t *data = (brz_data_t *)mphf->data;
 	//brz_config_data_t *config = (brz_config_data_t *)mph->data;
@@ -599,11 +599,11 @@ int brz_compile(cmph_t *mphf, cmph_config_t *mph)
 	hashes[0] = data->h1 ? data->h1[0] : data->h0;
 	hashes[1] = data->h2 ? data->h2[0] : data->h0;
 	hashes[2] = data->h0;
-	hash_state_compile(3, hashes, true);
-	printf("// NYI\n");
-	printf("uint32_t cmph_size(void) {\n");
-	printf("    return %u;\n}\n", data->m);
-	exit(1);
+	hash_state_compile(3, hashes, true, out);
+	fprintf(out, "// NYI\n");
+	fprintf(out, "uint32_t cmph_size(void) {\n");
+	fprintf(out, "    return %u;\n}\n", data->m);
+	return 0;
 }
 int brz_dump(cmph_t *mphf, FILE *fd)
 {

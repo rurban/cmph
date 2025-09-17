@@ -479,14 +479,14 @@ static int bmz8_gen_edges(cmph_config_t *mph)
 	return !multiple_edges;
 }
 
-int bmz8_compile(cmph_t *mphf, cmph_config_t *mph)
+int bmz8_compile(cmph_t *mphf, cmph_config_t *mph, FILE *out)
 {
 	bmz8_data_t *data = (bmz8_data_t *)mphf->data;
 	DEBUGP("Compiling bmz8\n");
-	printf("// NYI\n");
-	printf("uint32_t cmph_size(void) {\n");
-	printf("    return %u;\n}\n", data->m);
-	exit(1);
+	fprintf(out, "// NYI\n");
+	fprintf(out, "uint32_t cmph_size(void) {\n");
+	fprintf(out, "    return %u;\n}\n", data->m);
+	return 0;
 }
 int bmz8_dump(cmph_t *mphf, FILE *fd)
 {

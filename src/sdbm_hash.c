@@ -102,8 +102,8 @@ void sdbm_hash_vector_packed(void *packed, const char *k, cmph_uint32 keylen, cm
 	sdbm_hash_vector(&state, k, keylen, hashes);
 }
 
-void sdbm_prep_compile(void) {
-	printf(
+void sdbm_prep_compile(FILE* out) {
+	fprintf(out,
 "/* sdbm_hash */\n"
 "static uint32_t sdbm_hash(uint32_t seed, const unsigned char *k, const uint32_t keylen) {\n"
 "    uint32_t hash = seed;\n"
@@ -127,8 +127,8 @@ void sdbm_prep_compile(void) {
 }
 
 // TODO optimize to only one sdbm_hash call needed
-void sdbm_state_compile_seed(int i, cmph_uint32 seed) {
-	printf("static uint32_t sdbm_hash%d(const char *k, uint32_t keylen)\n"
+void sdbm_state_compile_seed(int i, cmph_uint32 seed, FILE* out) {
+	fprintf(out, "static uint32_t sdbm_hash%d(const char *k, uint32_t keylen)\n"
 	       "{\n"
 	       "	uint32_t hashes[3];\n"
 	       "	sdbm_hash_vector(%u, (const unsigned char*)k, keylen, hashes);\n"

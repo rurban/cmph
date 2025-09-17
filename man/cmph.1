@@ -3,7 +3,7 @@
 cmph \- minimum perfect hashing tool
 .SH SYNOPSIS
 .B cmph
-[\-v] [\-h] [\-V] [\-k nkeys] [\-f hash_function] [\-g [\-c value][\-s seed] ] [\-a algorithm] [\-M memory_in_MB] [\-b BRZ_parameter] [\-d tmp_dir] [\-m file.mph] keysfile
+[\-v] [\-h] [\-V] [\-C] [\-k nkeys] [\-f hash_function] [\-g [\-c value][\-s seed] ] [\-a algorithm] [\-M memory_in_MB] [\-b BRZ_parameter] [\-d tmp_dir] [\-m file.mph] [-o c_file] keysfile
 .SH DESCRIPTION
 .PP
 Command line tool to generate and query minimal perfect hash functions.
@@ -22,7 +22,7 @@ Algorithm. Valid values are: chm (default), bmz, bmz8, brz, fch, bdz, bdz_ph, ch
 \fB\-f\fR
 hash function (may be used multiple times). Valid values are: jenkins (default), wyhash, djb2, fnv, sdbm, (crc32 in work)
 .TP
-\fB\-V\fR	
+\fB\-V\fR
 Print version number and exit
 .TP
 \fB\-v\fR
@@ -32,19 +32,25 @@ Increase verbosity (may be used multiple times)
 Number of keys
 .TP
 \fB\-g\fR
-Generation mode
+Generate a .mph file
+.TP
+\fB\-C\fR
+Generate a C file
 .TP
 \fB\-s\fR
 Random seed
 .TP
 \fB\-m\fR
-Minimum perfect hash function file 
+Minimum perfect hash function file
+.TP
+\fB\-o\fR
+Name of C file. default: stdout
 .TP
 \fB\-M\fR
 Main memory availability (in MB)
 .TP
 \fB\-d\fR
-Temporary directory used in brz algorithm 
+Temporary directory used in brz algorithm
 .TP
 \fB\-b\fR
 Parameter of BRZ algorithm to make the maximal number of keys in a bucket lower than 256
@@ -52,7 +58,7 @@ Parameter of BRZ algorithm to make the maximal number of keys in a bucket lower 
 \fBkeysfile\fR
 Line separated file with keys
 .SH EXAMPLE
-$ # Using the default algorithm (chm) for constructing a mphf 
+$ # Using the default algorithm (chm) for constructing a mphf
 .br
 $ # for keys in file keys_file. Lines in keys_file _must_ be unique.
 .br

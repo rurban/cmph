@@ -104,9 +104,9 @@ void hash_vector(hash_state_t *state, const char *key, cmph_uint32 keylen, cmph_
 }
 
 
-void hash_state_compile(int count, hash_state_t **states, bool do_vector)
+void hash_state_compile(int count, hash_state_t **states, bool do_vector, FILE* out)
 {
-	printf("#include <stdint.h>\n");
+	fprintf(out, "#include <stdint.h>\n");
 	// see if we need a hash_vector API or seperate hash() calls are
 	// enough. a vector is only good with all 2-3 the same
 	for (int i=0; i < count; i++) {
@@ -116,39 +116,39 @@ void hash_state_compile(int count, hash_state_t **states, bool do_vector)
 		case CMPH_HASH_JENKINS:
 			DEBUGP("Compile hash[%d] jenkins with seed %u\n", i, state->seed);
 			if (i == 0 || states[0]->hashfunc != CMPH_HASH_JENKINS)
-				jenkins_prep_compile(do_vector);
-			jenkins_state_compile_seed(i, state->seed, do_vector);
+				jenkins_prep_compile(do_vector, out);
+			jenkins_state_compile_seed(i, state->seed, do_vector, out);
 			break;
 		case CMPH_HASH_WYHASH:
 			DEBUGP("Compile hash[%d] wyhash with seed %u\n", i, state->seed);
 			if (i == 0 || states[0]->hashfunc != CMPH_HASH_WYHASH)
-				wyhash_prep_compile(do_vector);
-			wyhash_state_compile_seed(i, state->seed, do_vector);
+				wyhash_prep_compile(do_vector, out);
+			wyhash_state_compile_seed(i, state->seed, do_vector, out);
 			break;
 		case CMPH_HASH_CRC32:
 			DEBUGP("Compile hash[%d] crc32 with seed %u\n", i, state->seed);
 			if (i == 0 || states[0]->hashfunc != CMPH_HASH_CRC32)
-				crc32_prep_compile(do_vector);
-			crc32_state_compile_seed(i, state->seed, do_vector);
+				crc32_prep_compile(do_vector, out);
+			crc32_state_compile_seed(i, state->seed, do_vector, out);
 			break;
 		case CMPH_HASH_FNV:
 			DEBUGP("Compile hash[%d] fnv with seed %u\n", i, state->seed);
 			if (i == 0 || states[0]->hashfunc != CMPH_HASH_FNV)
-				fnv_prep_compile(do_vector);
-			fnv_state_compile_seed(i, state->seed, do_vector);
+				fnv_prep_compile(do_vector, out);
+			fnv_state_compile_seed(i, state->seed, do_vector, out);
 			break;
 		case CMPH_HASH_DJB2:
 			DEBUGP("Compile hash%s[%d] djb2 with seed %u\n", do_vector ? "_vector" : "", i, state->seed);
 			if (i == 0 || states[0]->hashfunc != CMPH_HASH_DJB2)
-				djb2_prep_compile(do_vector);
-			djb2_state_compile_seed(i, state->seed, do_vector);
+				djb2_prep_compile(do_vector, out);
+			djb2_state_compile_seed(i, state->seed, do_vector, out);
 			break;
 		case CMPH_HASH_SDBM:
 			DEBUGP("Compile hash[%d] sdbm with seed %u\n", i, state->seed);
 			if (i == 0 || states[0]->hashfunc != CMPH_HASH_SDBM)
-				sdbm_prep_compile();
+				sdbm_prep_compile(out);
 			else
-				sdbm_state_compile_seed(i, state->seed);
+				sdbm_state_compile_seed(i, state->seed, out);
 			break;
 		default:
 			if (state->hashfunc < CMPH_HASH_COUNT)

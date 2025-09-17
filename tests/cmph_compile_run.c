@@ -3,8 +3,8 @@
 #include <string.h>
 #include <stdint.h>
 
-uint32_t cmph_search(const char* key, uint32_t keylen);
-uint32_t cmph_size(void);
+uint32_t cmph_c_search(const char* key, uint32_t keylen);
+uint32_t cmph_c_size(void);
 
 int main(int argc, char **argv) {
     if (argc != 4) {
@@ -23,15 +23,15 @@ int main(int argc, char **argv) {
     unsigned l = 0;
     unsigned failed = 0;
     uint32_t h;
-    // some funcs over-allocate. we need an exported cmph_size()
-    nkeys = cmph_size();
+    // some funcs over-allocate. we need an exported cmph_c_size()
+    nkeys = cmph_c_size();
     uint32_t *hasharray = (uint32_t*)calloc(nkeys, 4);
     while (fgets(key, sizeof(key), f)) {
         // delete the ending \n
         int len = (int)strlen(key);
         key[len-1] = '\0';
 
-        h = cmph_search(key, len-1);
+        h = cmph_c_search(key, len-1);
 
         if (h >= nkeys) {
             fprintf(stderr, "Unknown key %*s, h %u too large\n", len-1, key, h);

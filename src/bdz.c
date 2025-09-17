@@ -498,102 +498,103 @@ static void ranking(bdz_config_data_t *bdz)
 	}
 }
 
-int bdz_compile(cmph_t *mphf, cmph_config_t *mph)
+int bdz_compile(cmph_t *mphf, cmph_config_t *mph, FILE *out)
 {
 	bdz_data_t *bdz = (bdz_data_t *)mphf->data;
 	bdz_config_data_t *config = (bdz_config_data_t *)mph->data;
 	DEBUGP("Compiling bdz\n");
-	hash_state_compile(1, &bdz->hl, true);
-	printf("#include <assert.h>\n");
-	printf("#ifdef DEBUG\n");
-	printf("#include <stdio.h>\n");
-	printf("#endif\n");
-	printf("#define UNASSIGNED 3U\n");
-	//printf("#define NULL_EDGE 0xffffffff\n");
-	printf("#define GETVALUE(array, i) ((uint8_t)((array[i >> 2] >> ((i & UNASSIGNED) << 1U)) & UNASSIGNED))\n\n");
-	printf("const uint8_t bdz_lookup_table[256] = {\n");
-	printf("    4, 4, 4, 3, 4, 4, 4, 3, 4, 4, 4, 3, 3, 3, 3, 2,\n");
-	printf("    4, 4, 4, 3, 4, 4, 4, 3, 4, 4, 4, 3, 3, 3, 3, 2,\n");
-	printf("    4, 4, 4, 3, 4, 4, 4, 3, 4, 4, 4, 3, 3, 3, 3, 2,\n");
-	printf("    3, 3, 3, 2, 3, 3, 3, 2, 3, 3, 3, 2, 2, 2, 2, 1,\n");
-	printf("    4, 4, 4, 3, 4, 4, 4, 3, 4, 4, 4, 3, 3, 3, 3, 2,\n");
-	printf("    4, 4, 4, 3, 4, 4, 4, 3, 4, 4, 4, 3, 3, 3, 3, 2,\n");
-	printf("    4, 4, 4, 3, 4, 4, 4, 3, 4, 4, 4, 3, 3, 3, 3, 2,\n");
-	printf("    3, 3, 3, 2, 3, 3, 3, 2, 3, 3, 3, 2, 2, 2, 2, 1,\n");
-	printf("    4, 4, 4, 3, 4, 4, 4, 3, 4, 4, 4, 3, 3, 3, 3, 2,\n");
-	printf("    4, 4, 4, 3, 4, 4, 4, 3, 4, 4, 4, 3, 3, 3, 3, 2,\n");
-	printf("    4, 4, 4, 3, 4, 4, 4, 3, 4, 4, 4, 3, 3, 3, 3, 2,\n");
-	printf("    3, 3, 3, 2, 3, 3, 3, 2, 3, 3, 3, 2, 2, 2, 2, 1,\n");
-	printf("    3, 3, 3, 2, 3, 3, 3, 2, 3, 3, 3, 2, 2, 2, 2, 1,\n");
-	printf("    3, 3, 3, 2, 3, 3, 3, 2, 3, 3, 3, 2, 2, 2, 2, 1,\n");
-	printf("    3, 3, 3, 2, 3, 3, 3, 2, 3, 3, 3, 2, 2, 2, 2, 1,\n");
-	printf("    2, 2, 2, 1, 2, 2, 2, 1, 2, 2, 2, 1, 1, 1, 1, 0\n");
-	printf("};\n");
-	printf("const uint32_t ranktable[%u] = {\n    ", bdz->ranktablesize);
+	hash_state_compile(1, &bdz->hl, true, out);
+	fprintf(out, "#include <assert.h>\n");
+	fprintf(out, "#ifdef DEBUG\n");
+	fprintf(out, "#include <stdio.h>\n");
+	fprintf(out, "#endif\n");
+	fprintf(out, "#define UNASSIGNED 3U\n");
+	//fprintf(out, "#define NULL_EDGE 0xffffffff\n");
+	fprintf(out, "#define GETVALUE(array, i) ((uint8_t)((array[i >> 2] >> ((i & UNASSIGNED) << 1U)) & UNASSIGNED))\n\n");
+	fprintf(out, "const uint8_t bdz_lookup_table[256] = {\n");
+	fprintf(out, "    4, 4, 4, 3, 4, 4, 4, 3, 4, 4, 4, 3, 3, 3, 3, 2,\n");
+	fprintf(out, "    4, 4, 4, 3, 4, 4, 4, 3, 4, 4, 4, 3, 3, 3, 3, 2,\n");
+	fprintf(out, "    4, 4, 4, 3, 4, 4, 4, 3, 4, 4, 4, 3, 3, 3, 3, 2,\n");
+	fprintf(out, "    3, 3, 3, 2, 3, 3, 3, 2, 3, 3, 3, 2, 2, 2, 2, 1,\n");
+	fprintf(out, "    4, 4, 4, 3, 4, 4, 4, 3, 4, 4, 4, 3, 3, 3, 3, 2,\n");
+	fprintf(out, "    4, 4, 4, 3, 4, 4, 4, 3, 4, 4, 4, 3, 3, 3, 3, 2,\n");
+	fprintf(out, "    4, 4, 4, 3, 4, 4, 4, 3, 4, 4, 4, 3, 3, 3, 3, 2,\n");
+	fprintf(out, "    3, 3, 3, 2, 3, 3, 3, 2, 3, 3, 3, 2, 2, 2, 2, 1,\n");
+	fprintf(out, "    4, 4, 4, 3, 4, 4, 4, 3, 4, 4, 4, 3, 3, 3, 3, 2,\n");
+	fprintf(out, "    4, 4, 4, 3, 4, 4, 4, 3, 4, 4, 4, 3, 3, 3, 3, 2,\n");
+	fprintf(out, "    4, 4, 4, 3, 4, 4, 4, 3, 4, 4, 4, 3, 3, 3, 3, 2,\n");
+	fprintf(out, "    3, 3, 3, 2, 3, 3, 3, 2, 3, 3, 3, 2, 2, 2, 2, 1,\n");
+	fprintf(out, "    3, 3, 3, 2, 3, 3, 3, 2, 3, 3, 3, 2, 2, 2, 2, 1,\n");
+	fprintf(out, "    3, 3, 3, 2, 3, 3, 3, 2, 3, 3, 3, 2, 2, 2, 2, 1,\n");
+	fprintf(out, "    3, 3, 3, 2, 3, 3, 3, 2, 3, 3, 3, 2, 2, 2, 2, 1,\n");
+	fprintf(out, "    2, 2, 2, 1, 2, 2, 2, 1, 2, 2, 2, 1, 1, 1, 1, 0\n");
+	fprintf(out, "};\n");
+	fprintf(out, "const uint32_t ranktable[%u] = {\n    ", bdz->ranktablesize);
 	for (cmph_uint32 i=0; i < bdz->ranktablesize - 1; i++) {
-		printf("%u, ", bdz->ranktable[i]);
+		fprintf(out, "%u, ", bdz->ranktable[i]);
 		if (i % 16 == 15)
-			printf("\n    ");
+			fprintf(out, "\n    ");
 	}
-	printf("    %u\n};\n", bdz->ranktable[bdz->ranktablesize - 1]);
-	printf("\nstatic inline uint32_t rank(const uint32_t *ranktable, const uint8_t *g, uint32_t vertex) {\n");
-	printf("    uint32_t index = vertex >> %u;\n", bdz->b);
-	printf("    assert(index < %u);\n", bdz->ranktablesize);
-	printf("    uint32_t base_rank = ranktable[index];\n");
-	printf("    uint32_t beg_idx_v = index << %u;\n", bdz->b);
-	printf("    uint32_t beg_idx_b = beg_idx_v >> 2;\n");
-	printf("    uint32_t end_idx_b = vertex >> 2;\n");
-	printf("    while (beg_idx_b < end_idx_b) {\n");
-	printf("    	base_rank += bdz_lookup_table[*(g + beg_idx_b++)];\n");
-	printf("    }\n");
-	printf("    beg_idx_v = beg_idx_b << 2;\n");
+	fprintf(out, "    %u\n};\n", bdz->ranktable[bdz->ranktablesize - 1]);
+	fprintf(out, "\nstatic inline uint32_t rank(const uint32_t *ranktable, const uint8_t *g, uint32_t vertex) {\n");
+	fprintf(out, "    uint32_t index = vertex >> %u;\n", bdz->b);
+	fprintf(out, "    assert(index < %u);\n", bdz->ranktablesize);
+	fprintf(out, "    uint32_t base_rank = ranktable[index];\n");
+	fprintf(out, "    uint32_t beg_idx_v = index << %u;\n", bdz->b);
+	fprintf(out, "    uint32_t beg_idx_b = beg_idx_v >> 2;\n");
+	fprintf(out, "    uint32_t end_idx_b = vertex >> 2;\n");
+	fprintf(out, "    while (beg_idx_b < end_idx_b) {\n");
+	fprintf(out, "    	base_rank += bdz_lookup_table[*(g + beg_idx_b++)];\n");
+	fprintf(out, "    }\n");
+	fprintf(out, "    beg_idx_v = beg_idx_b << 2;\n");
 #ifdef DEBUG
-	printf("#ifdef DEBUG\n");
-	printf("    fprintf(stderr, \"base rank %%u\\n\", base_rank);\n");
-	printf("    fprintf(stderr, \"beg_idx_v %%u\\n\", beg_idx_v);\n");
-	printf("#endif\n");
+	fprintf(out, "#ifdef DEBUG\n");
+	fprintf(out, "    fprintf(stderr, \"base rank %%u\\n\", base_rank);\n");
+	fprintf(out, "    fprintf(stderr, \"beg_idx_v %%u\\n\", beg_idx_v);\n");
+	fprintf(out, "#endif\n");
 #endif
-	printf("    while (beg_idx_v < vertex) {\n");
-	printf("    	if (GETVALUE(g, beg_idx_v) != UNASSIGNED) base_rank++;\n");
-	printf("    	beg_idx_v++;\n");
-	printf("    }\n");
+	fprintf(out, "    while (beg_idx_v < vertex) {\n");
+	fprintf(out, "    	if (GETVALUE(g, beg_idx_v) != UNASSIGNED) base_rank++;\n");
+	fprintf(out, "    	beg_idx_v++;\n");
+	fprintf(out, "    }\n");
 #ifdef DEBUG
-	printf("#ifdef DEBUG\n");
-	printf("    fprintf(stderr, \"rank %%u\\n\", base_rank);\n");
-	printf("#endif\n");
+	fprintf(out, "#ifdef DEBUG\n");
+	fprintf(out, "    fprintf(stderr, \"rank %%u\\n\", base_rank);\n");
+	fprintf(out, "#endif\n");
 #endif
-	printf("    return base_rank;\n");
-	printf("}\n");
-	printf("\nuint32_t cmph_search(const char* key, uint32_t keylen) {\n");
-	printf("    /* n: %u */\n", bdz->n);
-	printf("    /* m: %u */\n", bdz->m);
+	fprintf(out, "    return base_rank;\n");
+	fprintf(out, "}\n");
+	fprintf(out, "\nuint32_t cmph_search(const char* key, uint32_t keylen) {\n");
+	fprintf(out, "    /* n: %u */\n", bdz->n);
+	fprintf(out, "    /* m: %u */\n", bdz->m);
 	cmph_uint32 sizeg = (cmph_uint32)ceil(bdz->n/4.0);
-	printf("    const uint8_t g[%u] = {\n        ", sizeg);
+	fprintf(out, "    const uint8_t g[%u] = {\n        ", sizeg);
 	for (unsigned i=0; i < sizeg - 1; i++) {
-		printf("%u, ", bdz->g[i]);
+		fprintf(out, "%u, ", bdz->g[i]);
 		if (i % 16 == 15)
-			printf("\n        ");
+			fprintf(out, "\n        ");
 	}
-	printf("%u\n    };\n", bdz->g[sizeg - 1]);
-	printf("    uint32_t vertex;\n");
-	printf("    uint32_t hl[3];\n");
-	printf("    %s_hash_vector(%u, (const unsigned char*)key, keylen, hl);\n",
+	fprintf(out, "%u\n    };\n", bdz->g[sizeg - 1]);
+	fprintf(out, "    uint32_t vertex;\n");
+	fprintf(out, "    uint32_t hl[3];\n");
+	fprintf(out, "    %s_hash_vector(%u, (const unsigned char*)key, keylen, hl);\n",
 	       cmph_hash_names[config->hashfunc], bdz->hl->seed);
-	printf("    hl[0] = hl[0] %% %u;\n", bdz->r);
-	printf("    hl[1] = hl[1] %% %u + %u;\n", bdz->r, bdz->r);
-	printf("    hl[2] = hl[2] %% %u + (%u << 1);\n", bdz->r, bdz->r);
-	printf("    vertex = hl[(GETVALUE(g, hl[0]) + GETVALUE(g, hl[1]) + GETVALUE(g, hl[2])) %% 3];\n");
+	fprintf(out, "    hl[0] = hl[0] %% %u;\n", bdz->r);
+	fprintf(out, "    hl[1] = hl[1] %% %u + %u;\n", bdz->r, bdz->r);
+	fprintf(out, "    hl[2] = hl[2] %% %u + (%u << 1);\n", bdz->r, bdz->r);
+	fprintf(out, "    vertex = hl[(GETVALUE(g, hl[0]) + GETVALUE(g, hl[1]) + GETVALUE(g, hl[2])) %% 3];\n");
 #ifdef DEBUG
-	printf("#ifdef DEBUG\n");
-	printf("    fprintf(stderr, \"search key: \\\"%%s\\\"\\n\", key);\n");
-	printf("    fprintf(stderr, \"hl: {%%u, %%u, %%u}, \", hl[0], hl[1], hl[2]);\n");
-	printf("    fprintf(stderr, \"vertex: %%u, \", vertex);\n");
-	printf("#endif\n");
+	fprintf(out, "#ifdef DEBUG\n");
+	fprintf(out, "    fprintf(stderr, \"search key: \\\"%%s\\\"\\n\", key);\n");
+	fprintf(out, "    fprintf(stderr, \"hl: {%%u, %%u, %%u}, \", hl[0], hl[1], hl[2]);\n");
+	fprintf(out, "    fprintf(stderr, \"vertex: %%u, \", vertex);\n");
+	fprintf(out, "#endif\n");
 #endif
-	printf("    return rank(ranktable, g, vertex);\n");
-	printf("};\n");
-	printf("\nuint32_t cmph_size(void) {\n");
-	printf("    return %u;\n}\n", bdz->m);
+	fprintf(out, "    return rank(ranktable, g, vertex);\n");
+	fprintf(out, "};\n");
+	fprintf(out, "\nuint32_t cmph_size(void) {\n");
+	fprintf(out, "    return %u;\n}\n", bdz->m);
+	fclose(out);
 	return 1;
 }
 

@@ -229,8 +229,8 @@ void crc32_hash_vector_packed(void *packed, const char *k, cmph_uint32 keylen, c
 	crc32_hash_vector(&state, k, keylen, hashes);
 }
 
-void crc32_prep_compile(bool do_vector) {
-	printf(
+void crc32_prep_compile(bool do_vector, FILE* out) {
+    fprintf(out,
 "/* crc32_hash */\n"
 "#ifndef HAVE_CRC32_HW\n"
 "#if defined(__aarch64__)\n" // ??
@@ -279,7 +279,7 @@ void crc32_prep_compile(bool do_vector) {
 "}\n"
 "\n");
 	if (do_vector)
-	    printf(
+	    fprintf(out,
 "/* 3x 32bit hashes. */\n"
 "static inline void\n"
 "crc3(uint8_t *key, size_t len, uint32_t seed0, uint32_t seed1, uint32_t *hashes)\n"
@@ -288,7 +288,7 @@ void crc32_prep_compile(bool do_vector) {
 "	hashes[1] = crc32c(seed1, key, len);\n"
 "	hashes[2] = crc32c(seed0 ^ seed1, key, len);\n"
 "}\n");
-	printf(
+	fprintf(out,
 "\n"
 "#else // HAVE_CRC32_HW\n"
 "\n"
@@ -309,7 +309,7 @@ void crc32_prep_compile(bool do_vector) {
 "		}                                                  \\\n"
 "\n");
 	if (do_vector)
-	    printf(
+	    fprintf(out,
 "static inline void\n"
 "crc3(uint8_t *key, size_t len, uint32_t seed0, uint32_t seed1, uint32_t *hashes)\n"
 "{\n"
@@ -337,13 +337,13 @@ void crc32_prep_compile(bool do_vector) {
 "}\n"
 "#endif // HAVE_CRC32_HW\n");
 	if (do_vector)
-	    printf(
+	    fprintf(out,
 "/* 3x 32bit hashes. */\n"
 "static inline void crc32_hash_vector(const uint32_t seed, const unsigned char *key, uint32_t keylen, uint32_t *hashes) {\n"
 "        crc3((uint8_t *)key, keylen, seed, seed + 1, hashes);\n"
 "}\n\n");
 	if (!do_vector)
-	    printf(
+	    fprintf(out,
 "\n"
 "static inline uint32_t\n"
 "crc32c(uint32_t crc, const uint8_t *key, size_t len)\n"
@@ -371,11 +371,12 @@ void crc32_prep_compile(bool do_vector) {
 "#endif\n");
 }
 
-void crc32_state_compile_seed(int i, cmph_uint32 seed, bool do_vector) {
-    if (!do_vector)
-	printf("static uint32_t crc32_hash_%d(const unsigned char *key, uint32_t keylen) {\n"
+void crc32_state_compile_seed(int i, cmph_uint32 seed, bool do_vector, FILE* out) {
+    if (!do_vector) {
+	fprintf(out, "static uint32_t crc32_hash_%d(const unsigned char *key, uint32_t keylen) {\n"
 	       "	return crc32c(%uU, key, keylen);\n"
 	       "}\n", i, seed);
+    }
     return;
 }
 
