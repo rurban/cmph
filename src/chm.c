@@ -217,7 +217,7 @@ static int chm_gen_edges(cmph_config_t *mph)
 			mph->key_source->dispose(key);
 			return 0;
 		}
-		DEBUGP("Adding edge: %u -> %u for key %s\n", h1, h2, key);
+		DEBUGP("Adding edge: %u -> %u for key %.*s\n", h1, h2, (int)keylen, key);
 		mph->key_source->dispose(key);
 		graph_add_edge(chm->graph, h1, h2);
 	}
@@ -374,9 +374,9 @@ cmph_uint32 chm_search(cmph_t *mphf, const char *key, cmph_uint32 keylen)
 		h1 = hv[0] % chm->n;
 		h2 = hv[1] % chm->n;
 	}
-	DEBUGP("key: %s h1: %u h2: %u\n", key, h1, h2);
+	DEBUGP("key: %.*s h1: %u h2: %u\n", (int)keylen, key, h1, h2);
 	if (h1 == h2 && ++h2 >= chm->n) h2 = 0;
-	DEBUGP("key: %s g[h1]: %u g[h2]: %u edges: %u\n", key, chm->g[h1], chm->g[h2], chm->m);
+	DEBUGP("key: %.*s g[h1]: %u g[h2]: %u edges: %u\n", (int)keylen, key, chm->g[h1], chm->g[h2], chm->m);
 	return (chm->g[h1] + chm->g[h2]) % chm->m;
 }
 void chm_destroy(cmph_t *mphf)
@@ -470,8 +470,8 @@ cmph_uint32 chm_search_packed(void *packed_mphf, const char *key, cmph_uint32 ke
 
 	register cmph_uint32 h1 = hash_packed(h1_ptr, h1_type, key, keylen) % n;
 	register cmph_uint32 h2 = hash_packed(h2_ptr, h2_type, key, keylen) % n;
-	DEBUGP("key: %s h1: %u h2: %u\n", key, h1, h2);
+	DEBUGP("key: %.*s h1: %u h2: %u\n", (int)keylen, key, h1, h2);
 	if (h1 == h2 && ++h2 >= n) h2 = 0;
-	DEBUGP("key: %s g[h1]: %u g[h2]: %u edges: %u\n", key, g_ptr[h1], g_ptr[h2], m);
+	DEBUGP("key: %.*s g[h1]: %u g[h2]: %u edges: %u\n", (int)keylen, key, g_ptr[h1], g_ptr[h2], m);
 	return (g_ptr[h1] + g_ptr[h2]) % m;
 }
