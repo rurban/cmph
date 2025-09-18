@@ -3,7 +3,7 @@
 cmph \- minimum perfect hashing tool
 .SH SYNOPSIS
 .B cmph
-[\-v] [\-h] [\-V] [\-C] [\-k nkeys] [\-f hash_function] [\-g [\-c value][\-s seed] ] [\-a algorithm] [\-M memory_in_MB] [\-b BRZ_parameter] [\-d tmp_dir] [\-m file.mph] [-o c_file] keysfile
+[\-v] [\-h] [\-V] [\-C] [\-k nkeys] [\-f hash_function] [\-g [\-c value][\-s seed] ] [\-a algorithm] [\-M memory_in_MB] [\-b BRZ_parameter] [\-d tmp_dir] [\-m file.mph] [-o c_file] [-p c_func_prefix] keysfile
 .SH DESCRIPTION
 .PP
 Command line tool to generate and query minimal perfect hash functions.
@@ -44,7 +44,10 @@ Random seed
 Minimum perfect hash function file
 .TP
 \fB\-o\fR
-Name of C file. default: stdout
+Name of C file. default: stdout (Only for -C)
+.TP
+\fB\-p\fR
+Name of C functions prefix. default: cmph_c_ (Only for -C)
 .TP
 \fB\-M\fR
 Main memory availability (in MB)

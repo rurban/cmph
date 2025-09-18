@@ -54,6 +54,7 @@ void cmph_config_set_verbosity(cmph_config_t *mph, cmph_uint32 verbosity);
 void cmph_config_set_graphsize(cmph_config_t *mph, double c);
 void cmph_config_set_algo(cmph_config_t *mph, CMPH_ALGO algo);
 void cmph_config_set_tmp_dir(cmph_config_t *mph, cmph_uint8 *tmp_dir);
+void cmph_config_set_c_prefix(cmph_config_t *mph, char *c_prefix);
 void cmph_config_set_mphf_fd(cmph_config_t *mph, FILE *mphf_fd);
 void cmph_config_set_b(cmph_config_t *mph, cmph_uint32 b);
 void cmph_config_set_keys_per_bin(cmph_config_t *mph, cmph_uint32 keys_per_bin);
@@ -86,7 +87,7 @@ int cmph_compile(cmph_t *mphf, cmph_config_t *config, const char *c_file, const 
  *  \return 0 or 1
  */
 int cmph_is_order_preserving(cmph_t *mphf);
- 
+
 /** \fn void cmph_pack(cmph_t *mphf, void *packed_mphf);
  *  \brief Support the ability to pack a perfect hash function into a preallocated contiguous memory space pointed by packed_mphf.
  *  \param mphf pointer to the resulting mphf
@@ -103,7 +104,7 @@ void cmph_pack(cmph_t *mphf, void *packed_mphf);
 cmph_uint32 cmph_packed_size(cmph_t *mphf);
 
 /** cmph_uint32 cmph_search(void *packed_mphf, const char *key, cmph_uint32 keylen);
- *  \brief Use the packed mphf to do a search. 
+ *  \brief Use the packed mphf to do a search.
  *  \param  packed_mphf pointer to the packed mphf
  *  \param key key to be hashed
  *  \param keylen key legth in bytes
@@ -127,7 +128,7 @@ cmph_uint32 cmph_search_packed(void *packed_mphf, const char *key, cmph_uint32 k
 
 #define CHK_FREAD(ptr,size,n,f) { size_t nread = fread(ptr, (size), (n), f); CHECK_FREAD(nread, n) }
 #define CHK_FWRITE(ptr,size,n,f) { size_t nwrite = fwrite(ptr, (size), (n), f); CHECK_FWRITE(nwrite, n) }
-  
+
 #ifdef __cplusplus
 }
 #endif

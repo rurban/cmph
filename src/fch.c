@@ -343,7 +343,7 @@ int fch_compile(cmph_t *mphf, cmph_config_t *mph, FILE *out)
 	fprintf(out, "    }\n");
 	fprintf(out, "    return initial_index;\n");
 	fprintf(out, "}\n");
-	fprintf(out, "\nuint32_t cmph_c_search(const char* key, uint32_t keylen) {\n");
+	fprintf(out, "\nuint32_t %s_search(const char* key, uint32_t keylen) {\n", mph->c_prefix);
 	fprintf(out, "    /* m: %u */\n", data->m);
 	fprintf(out, "    /* c: %f */\n", data->c);
 	fprintf(out, "    /* b: %u */\n", data->b);
@@ -376,7 +376,7 @@ int fch_compile(cmph_t *mphf, cmph_config_t *mph, FILE *out)
 	fprintf(out, "    return (h2 + g[h1]) %% %u;\n", data->m);
 	fprintf(out, "}\n");
 
-	fprintf(out, "uint32_t cmph_c_size(void) {\n");
+	fprintf(out, "uint32_t %s_size(void) {\n", mph->c_prefix);
 	fprintf(out, "    return %u;\n}\n", data->m);
 	fclose(out);
 	return 1;

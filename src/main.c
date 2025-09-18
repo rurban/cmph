@@ -22,12 +22,12 @@
 
 void usage(const char *prg)
 {
-	fprintf(stderr, "usage: %s [-v] [-h] [-V] [-k nkeys] [-f hash_function] [-g [-c algorithm_dependent_value][-s seed] ] [-a algorithm] [-M memory_in_MB] [-b algorithm_dependent_value] [-t keys_per_bin] [-d tmp_dir] [-m file.mph]  keysfile\n", prg);
+	fprintf(stderr, "usage: %s [-v] [-h] [-V] [-k nkeys] [-f hash_function] [-g [-c algorithm_dependent_value][-s seed] ] [-a algorithm] [-M memory_in_MB] [-b algorithm_dependent_value] [-t keys_per_bin] [-d tmp_dir] [-m file.mph] [-o c_file] [-p c_func_prefix] keysfile\n", prg);
 }
 void usage_long(const char *prg)
 {
 	cmph_uint32 i;
-	fprintf(stderr, "usage: %s [-v][-h][-V][-C] [-k nkeys] [-f hash_function] [-g [-c algorithm_dependent_value][-s seed] ] [-a algorithm] [-M memory_in_MB] [-b algorithm_dependent_value] [-t keys_per_bin] [-d tmp_dir] [-m file.mph] [-o c_file] keysfile\n", prg);
+	fprintf(stderr, "usage: %s [-v][-h][-V][-C] [-k nkeys] [-f hash_function] [-g [-c algorithm_dependent_value][-s seed] ] [-a algorithm] [-M memory_in_MB] [-b algorithm_dependent_value] [-t keys_per_bin] [-d tmp_dir] [-m file.mph] [-o c_file] [-p c_func_prefix] keysfile\n", prg);
 	fprintf(stderr, "Minimum perfect hashing tool\n\n");
 	fprintf(stderr, "  -h\t print this help message\n");
 	fprintf(stderr, "  -c\t c value determines:\n");
@@ -44,6 +44,7 @@ void usage_long(const char *prg)
 	fprintf(stderr, "  -g\t generate a .mph file\n");
 	fprintf(stderr, "  -C\t generate a C file\n");
 	fprintf(stderr, "  -o\t name of C file (default: stdout)\n");
+	fprintf(stderr, "  -p\t name of C functions prefix (default: cmph_c_)\n");
 	fprintf(stderr, "  -s\t random seed\n");
 	fprintf(stderr, "  -m\t minimum perfect hash function file \n");
 	fprintf(stderr, "  -M\t main memory availability (in MB) used in BRZ algorithm \n");
@@ -86,13 +87,14 @@ int main(int argc, char **argv)
 	cmph_t *mphf = NULL;
 	char *tmp_dir = NULL;
 	char *c_file = NULL;
+	char *c_prefix = NULL;
 	cmph_io_adapter_t *source;
 	cmph_uint32 memory_availability = 0;
 	cmph_uint32 b = 0;
 	cmph_uint32 keys_per_bin = 1;
 	while (1)
 	{
-		char ch = (char)getopt(argc, argv, "hVvgCc:k:a:M:b:t:f:m:d:s:o:");
+		char ch = (char)getopt(argc, argv, "hVvgCc:k:a:M:b:t:f:m:d:s:o:p:");
 		if (ch == -1) break;
 		switch (ch)
 		{
@@ -140,6 +142,9 @@ int main(int argc, char **argv)
 				break;
 			case 'o':
 				c_file = strdup(optarg);
+				break;
+			case 'p':
+				c_prefix = strdup(optarg);
 				break;
 			case 'M':
 				{
@@ -284,6 +289,7 @@ int main(int argc, char **argv)
 		cmph_config_set_seed(config, seed);
 		cmph_config_set_algo(config, mph_algo);
 		if (nhashes) cmph_config_set_hashfuncs(config, hashes);
+		if (c_prefix) cmph_config_set_c_prefix(config, c_prefix);
 		cmph_config_set_verbosity(config, verbosity);
 		cmph_config_set_tmp_dir(config, (cmph_uint8 *) tmp_dir);
 		cmph_config_set_mphf_fd(config, mphf_fd);
@@ -317,8 +323,11 @@ int main(int argc, char **argv)
 			free(source);
 			return -1;
 		}
-		if (compile)
+		if (compile) {
 			cmph_compile(mphf, config, c_file, keys_file);
+			if (c_file)
+				free(c_file);
+		}
 		if (generate)
 			cmph_dump(mphf, mphf_fd);
 		cmph_config_destroy(config);
