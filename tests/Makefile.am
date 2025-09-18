@@ -1,4 +1,4 @@
-TESTS = $(check_PROGRAMS) cmph_tests cmph_compile_tests
+TESTS = $(check_PROGRAMS) cmph_tests cmph_compile_tests cmph_benchmark_tests
 check_PROGRAMS = graph_tests select_tests compressed_seq_tests compressed_rank_tests cmph_benchmark_test
 noinst_PROGRAMS = packed_mphf_tests mphf_tests
 EXTRA_DIST = cmph_tests.in cmph_compile_tests.in cmph_compile_run.c compile_run.in
