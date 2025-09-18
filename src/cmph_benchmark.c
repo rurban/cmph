@@ -22,7 +22,7 @@ static benchmark_t* global_benchmarks = NULL;
    storing the result in RESULT.
    Return 1 if the difference is negative, otherwise 0.  */
 
-int timeval_subtract ( 
+int timeval_subtract (
     struct timeval *result, struct timeval *x, struct timeval* y) {
   /* Perform the carry for the later subtraction by updating y. */
   if (x->tv_usec < y->tv_usec) {
@@ -88,22 +88,22 @@ int bm_start(const char* name) {
 
   benchmark = find_benchmark(name);
   assert(benchmark);
-  int ret = getrusage(RUSAGE_SELF, &rs);  
+  int ret = getrusage(RUSAGE_SELF, &rs);
   if (ret != 0) {
-    perror("rusage failed");    
+    perror("rusage failed");
     exit(-1);
   }
   benchmark->begin = rs;
   return (*benchmark->func)(benchmark->iters);
 }
 
-void bm_end(const char* name) { 
+void bm_end(const char* name) {
   benchmark_t* benchmark;
   struct rusage rs;
 
-  int ret = getrusage(RUSAGE_SELF, &rs);  
+  int ret = getrusage(RUSAGE_SELF, &rs);
   if (ret != 0) {
-    perror("rusage failed");    
+    perror("rusage failed");
     exit(-1);
   }
 
@@ -114,7 +114,7 @@ void bm_end(const char* name) {
   timeval_subtract(&utime, &benchmark->end.ru_utime, &benchmark->begin.ru_utime);
   struct timeval stime;
   timeval_subtract(&stime, &benchmark->end.ru_stime, &benchmark->begin.ru_stime);
-  
+
   printf("Benchmark: %s\n", benchmark->name);
   printf("User time used  : %ld.%06ld\n",
          utime.tv_sec, (long int)utime.tv_usec);
@@ -122,7 +122,7 @@ void bm_end(const char* name) {
          stime.tv_sec, (long int)stime.tv_usec);
   printf("\n");
 }
- 
+
 void run_benchmarks(void) {
   benchmark_t* benchmark = global_benchmarks;
   while (benchmark && benchmark->name != NULL) {
