@@ -1,5 +1,5 @@
 #!/bin/sh
 set -e
 echo "** cc @CFLAGS@ -I@abs_top_srcdir@/src @srcdir@/cmph_compile_run.c $1.c -o cmph_compile_run"
-@CC@ @CFLAGS@ -I@abs_top_srcdir@/src @abs_srcdir@/cmph_compile_run.c "$1".c -o cmph_compile_run
-./cmph_compile_run $@
+@CC@ @CFLAGS@ -I"@abs_top_srcdir@/src" "@abs_srcdir@"/cmph_compile_run.c "$1.c" -o cmph_compile_run
+./cmph_compile_run "$@"

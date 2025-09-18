@@ -8,27 +8,27 @@ set -e
 N=10000
 WORDS=/usr/share/dict/words
 
-test -e _cwords || head -n $N <${WORDS} >_cwords
-test -e _cwords100 || head -n 100 <${WORDS} >_cwords100
+test -e _cwords || head -n "$N" <"${WORDS}" >_cwords
+test -e _cwords100 || head -n 100 <"${WORDS}" >_cwords100
 
-all="bmz chm brz fch bdz bdz_ph bmz8 chd chd_ph"
+#all="bmz chm brz fch bdz bdz_ph bmz8 chd chd_ph"
 algos="chm bmz bdz bdz_ph fch" # chd chd_ph brz
 for a in $algos; do
     rm -f _cwords.mph
-    if [ $a = bmz8 ] || [ $a = fch ]; then
+    if [ "$a" = "bmz8" ] || [ "$a" = "fch" ]; then
         rm -f _cwords100.mph
         words=_cwords100
         nwords=100
     else
         words=_cwords
-        nwords=$N
+        nwords="$N"
     fi
     echo "** cmph -C -a $a $words >$a.c"
-    ../src/cmph -C -a $a $words >$a.c
+    ../src/cmph -C -a "$a" $words >"$a.c"
     echo "** cc -O2 -Wall -Wextra -c $a.c"
-    cc -O2 -Wall -Wextra -c $a.c
+    cc -O2 -Wall -Wextra -c "$a.c"
     echo "** compile_run $a $words $nwords"
-    ./compile_run $a $words $nwords && rm $a.c $a.o
+    ./compile_run "$a" "$words" "$nwords" && rm "$a.c" "$a.o"
 done
 rm -f _cwords100.mph
 
@@ -37,30 +37,31 @@ for f in $funcs; do
     # cmh uses hash_vector
     rm -f _cwords.mph
     args="$f"
-    if [ $f = crc32 ] || [ $f = sdbm ] || [ $f = djb2 ]
+    if [ "$f" = crc32 ] || [ "$f" = sdbm ] || [ "$f" = djb2 ]
     then
-        echo too weak $f hash, use a seperate hashfunc and a seed
+        echo too weak "$f" hash, use a seperate hashfunc and a seed
         args="$f -f jenkins -s 11"
     fi
     echo "** cmph -C -f $args _cwords"
-    ../src/cmph -C -f $args _cwords >$f.c
+    # shellcheck disable=SC2086
+    ../src/cmph -C -f $args _cwords >"$f.c"
     echo "** cc -O2 -Wall -Wextra -c -I@top_srcdir@/src $f.c"
-    cc -O2 -Wall -Wextra -c -I@top_srcdir@/src $f.c
+    cc -O2 -Wall -Wextra -c -I"@top_srcdir@/src" "$f.c"
     echo "** compile_run $f _cwords $N"
-    ./compile_run $f _cwords $N && rm $f.c $f.o
+    ./compile_run "$f" _cwords "$N" && rm "$f.c" "$f.o"
 
     # bdz uses the hash_vector API, 3x in one
-    case $f in
+    case "$f" in
         sdbm|djb2*)
-            echo too weak $f hash with BDZ
+            echo "too weak $f hash with BDZ"
             break
             ;;
     esac
     echo "** cmph -C -f $f -a bdz _cwords >${f}_bdz.c"
-    ../src/cmph -C -f $f -a bdz _cwords >${f}_bdz.c
+    ../src/cmph -C -f "$f" -a bdz _cwords >"${f}_bdz.c"
     echo "** cc -O2 -Wall -Wextra -c -I@top_srcdir@/src ${f}_bdz.c"
-    cc -O2 -Wall -Wextra -c -I@top_srcdir@/src ${f}_bdz.c
+    cc -O2 -Wall -Wextra -c -I"@top_srcdir@/src" "${f}_bdz.c"
     echo "** compile_run ${f}_bdz _cwords $N"
-    ./compile_run ${f}_bdz _cwords $N && rm ${f}_bdz.c ${f}_bdz.o
+    ./compile_run "${f}_bdz" _cwords "$N" && rm "${f}_bdz.c" "${f}_bdz.o"
 done
 rm -f _cwords _cwords.mph _cwords100 _cwords100.mph
