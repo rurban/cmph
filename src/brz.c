@@ -307,7 +307,7 @@ static int brz_gen_mphf(cmph_config_t *mph)
 				memory_usage +=  keylen1 + (cmph_uint32)sizeof(keylen1);
 			}
 			filename = (char *)calloc(strlen((char *)(brz->tmp_dir)) + 11, sizeof(char));
-			sprintf(filename, "%s%u.cmph",brz->tmp_dir, nflushes);
+			sprintf(filename, "%s%u.cmph", brz->tmp_dir, nflushes);
 			tmp_fd = fopen(filename, "wb");
 			free(filename);
 			filename = NULL;
@@ -367,7 +367,7 @@ static int brz_gen_mphf(cmph_config_t *mph)
 			memory_usage +=  keylen1 + (cmph_uint32)sizeof(keylen1);
 		}
 		filename = (char *)calloc(strlen((char *)(brz->tmp_dir)) + 11, sizeof(char));
-		sprintf(filename, "%s%u.cmph",brz->tmp_dir, nflushes);
+		sprintf(filename, "%s%u.cmph", brz->tmp_dir, nflushes);
 		tmp_fd = fopen(filename, "wb");
 		free(filename);
 		filename = NULL;
@@ -703,8 +703,8 @@ static cmph_uint32 brz_bmz8_search(brz_data_t *brz, const char *key, cmph_uint32
 
 	if (h1 == h2 && ++h2 >= n) h2 = 0;
 	mphf_bucket = (cmph_uint8)(brz->g[h0][h1] + brz->g[h0][h2]);
-	DEBUGP("key: %s h1: %u h2: %u h0: %u\n", key, h1, h2, h0);
-	DEBUGP("key: %s g[h1]: %u g[h2]: %u offset[h0]: %u edges: %u\n", key,
+	DEBUGP("key: %.*s h1: %u h2: %u h0: %u\n", (int)keylen, key, h1, h2, h0);
+	DEBUGP("key: %.*s g[h1]: %u g[h2]: %u offset[h0]: %u edges: %u\n", (int)keylen, key,
                brz->g[h0][h1], brz->g[h0][h2], brz->offset[h0], brz->m);
 	DEBUGP("Address: %u\n", mphf_bucket + brz->offset[h0]);
 	return (mphf_bucket + brz->offset[h0]);
@@ -968,7 +968,7 @@ static cmph_uint32 brz_bmz8_search_packed(cmph_uint32 *packed_mphf, const char *
 
 	if (h1 == h2 && ++h2 >= n) h2 = 0;
 	mphf_bucket = (cmph_uint8)(g[h1] + g[h2]);
-	DEBUGP("key: %s h1: %u h2: %u h0: %u\n", key, h1, h2, h0);
+	DEBUGP("key: %.*s h1: %u h2: %u h0: %u\n", (int)keylen, key, h1, h2, h0);
 	DEBUGP("Address: %u\n", mphf_bucket + offset[h0]);
 	return (mphf_bucket + offset[h0]);
 }

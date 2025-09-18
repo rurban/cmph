@@ -233,8 +233,8 @@ static cmph_uint8 searching(cmph_config_t *mph, fch_buckets_t *buckets, cmph_uin
 					keylen = fch_buckets_get_keylength(buckets, sorted_indexes[i], j);
 					h2 = hash(fch->h2, key, keylen) % fch->m;
 					index = (h2 + fch->g[sorted_indexes[i]]) % fch->m;
-					DEBUGP("key:%s  keylen:%u  index: %u  h2:%u  bucketsize:%u\n",
-                                               key, keylen, index, h2, bucketsize);
+					DEBUGP("key:%.*s  keylen:%u  index: %u  h2:%u  bucketsize:%u\n",
+                                               (int)keylen, key, keylen, index, h2, bucketsize);
 					if (map_table[index] >= filled_count) {
 						cmph_uint32 y  = map_table[index];
 						cmph_uint32 ry = random_table[y];
