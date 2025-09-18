@@ -232,6 +232,7 @@ int chd_compile(cmph_t *mphf, cmph_config_t *mph, FILE *out)
 	fprintf(out, "};\n");
 	fprintf(out, "uint32_t cmph_size(void) {\n");
 	fprintf(out, "    return %u;\n}\n", chd_ph->m);
+	fclose(out);
 	return 1;
 }
 int chd_dump(cmph_t *mphf, FILE *fd)

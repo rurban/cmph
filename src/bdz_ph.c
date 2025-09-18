@@ -156,7 +156,7 @@ static int bdz_ph_generate_queue(cmph_uint32 nedges, bdz_ph_queue_t queue, bdz_p
 		v0=graph3->edges[i].vertices[0];
 		v1=graph3->edges[i].vertices[1];
 		v2=graph3->edges[i].vertices[2];
-		if(graph3->vert_degree[v0]==1 || 
+		if(graph3->vert_degree[v0]==1 ||
 				graph3->vert_degree[v1]==1 ||
 				graph3->vert_degree[v2]==1){
 			if(!GETBIT(marked_edge,i)) {
@@ -454,13 +454,59 @@ static void bdz_ph_optimization(bdz_ph_config_data_t *bdz_ph)
 
 int bdz_ph_compile(cmph_t *mphf, cmph_config_t *mph, FILE *out)
 {
-	bdz_ph_data_t *data = (bdz_ph_data_t *)mphf->data;
+	bdz_ph_data_t *bdz = (bdz_ph_data_t *)mphf->data;
+	bdz_ph_config_data_t *config = (bdz_ph_config_data_t *)mph->data;
 	DEBUGP("Compiling bdz_ph\n");
-	fprintf(out, "// NYI\n");
-	fprintf(out, "uint32_t cmph_size(void) {\n");
-	fprintf(out, "    return %u;\n}\n", data->m);
+	hash_state_compile(1, &bdz->hl, true, out);
+	fprintf(out, "#include <assert.h>\n");
+	fprintf(out, "#ifdef DEBUG\n");
+	fprintf(out, "#include <stdio.h>\n");
+	fprintf(out, "#endif\n");
+	fprintf(out, "\nuint32_t cmph_c_search(const char* key, uint32_t keylen) {\n");
+	fprintf(out, "    /* n: %u */\n", bdz->n);
+	fprintf(out, "    /* m: %u */\n", bdz->m);
+	fprintf(out, "const uint8_t lookup_table[5][256] = {\n");
+	fprintf(out, "     {0, 1, 2, 0, 1, 2, 0, 1, 2, 0, 1, 2, 0, 1, 2, 0, 1, 2, 0, 1, 2, 0, 1, 2, 0, 1, 2, 0, 1, 2, 0, 1, 2, 0, 1, 2, 0, 1, 2, 0, 1, 2, 0, 1, 2, 0, 1, 2, 0, 1, 2, 0, 1, 2, 0, 1, 2, 0, 1, 2, 0, 1, 2, 0, 1, 2, 0, 1, 2, 0, 1, 2, 0, 1, 2, 0, 1, 2, 0, 1, 2, 0, 1, 2, 0, 1, 2, 0, 1, 2, 0, 1, 2, 0, 1, 2, 0, 1, 2, 0, 1, 2, 0, 1, 2, 0, 1, 2, 0, 1, 2, 0, 1, 2, 0, 1, 2, 0, 1, 2, 0, 1, 2, 0, 1, 2, 0, 1, 2, 0, 1, 2, 0, 1, 2, 0, 1, 2, 0, 1, 2, 0, 1, 2, 0, 1, 2, 0, 1, 2, 0, 1, 2, 0, 1, 2, 0, 1, 2, 0, 1, 2, 0, 1, 2, 0, 1, 2, 0, 1, 2, 0, 1, 2, 0, 1, 2, 0, 1, 2, 0, 1, 2, 0, 1, 2, 0, 1, 2, 0, 1, 2, 0, 1, 2, 0, 1, 2, 0, 1, 2, 0, 1, 2, 0, 1, 2, 0, 1, 2, 0, 1, 2, 0, 1, 2, 0, 1, 2, 0, 1, 2, 0, 1, 2, 0, 1, 2, 0, 1, 2, 0, 1, 2, 0, 1, 2, 0, 1, 2, 0, 1, 2, 0, 1, 2, 0, 1, 2, 0, 1, 2, 0, 1, 2, 0},\n"
+		"     {0, 0, 0, 1, 1, 1, 2, 2, 2, 0, 0, 0, 1, 1, 1, 2, 2, 2, 0, 0, 0, 1, 1, 1, 2, 2, 2, 0, 0, 0, 1, 1, 1, 2, 2, 2, 0, 0, 0, 1, 1, 1, 2, 2, 2, 0, 0, 0, 1, 1, 1, 2, 2, 2, 0, 0, 0, 1, 1, 1, 2, 2, 2, 0, 0, 0, 1, 1, 1, 2, 2, 2, 0, 0, 0, 1, 1, 1, 2, 2, 2, 0, 0, 0, 1, 1, 1, 2, 2, 2, 0, 0, 0, 1, 1, 1, 2, 2, 2, 0, 0, 0, 1, 1, 1, 2, 2, 2, 0, 0, 0, 1, 1, 1, 2, 2, 2, 0, 0, 0, 1, 1, 1, 2, 2, 2, 0, 0, 0, 1, 1, 1, 2, 2, 2, 0, 0, 0, 1, 1, 1, 2, 2, 2, 0, 0, 0, 1, 1, 1, 2, 2, 2, 0, 0, 0, 1, 1, 1, 2, 2, 2, 0, 0, 0, 1, 1, 1, 2, 2, 2, 0, 0, 0, 1, 1, 1, 2, 2, 2, 0, 0, 0, 1, 1, 1, 2, 2, 2, 0, 0, 0, 1, 1, 1, 2, 2, 2, 0, 0, 0, 1, 1, 1, 2, 2, 2, 0, 0, 0, 1, 1, 1, 2, 2, 2, 0, 0, 0, 1, 1, 1, 2, 2, 2, 0, 0, 0, 1, 1, 1, 2, 2, 2, 0, 0, 0, 1, 1, 1, 2, 2, 2, 0, 0, 0, 1, 1, 1, 2, 2, 2, 0, 0, 0, 1},\n"
+		"     {0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1},\n"
+		"     {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},\n"
+		"     {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}    \n};\n");
+	cmph_uint32 sizeg = (cmph_uint32)ceil(bdz->n/5.0);
+	fprintf(out, "    const uint8_t g[%u] = {\n        ", sizeg);
+	for (unsigned i=0; i < sizeg - 1; i++) {
+		fprintf(out, "%u, ", bdz->g[i]);
+		if (i % 16 == 15)
+			fprintf(out, "\n        ");
+	}
+	fprintf(out, "%u\n    };\n", bdz->g[sizeg - 1]);
+	fprintf(out, "    uint32_t vertex;\n");
+	fprintf(out, "    uint32_t hl[3];\n");
+	fprintf(out, "    uint8_t byte0, byte1, byte2;\n");
+	fprintf(out, "    %s_hash_vector(%u, (const unsigned char*)key, keylen, hl);\n",
+	       cmph_hash_names[config->hashfunc], bdz->hl->seed);
+	fprintf(out, "    hl[0] = hl[0] %% %u;\n", bdz->r);
+	fprintf(out, "    hl[1] = hl[1] %% %u + %u;\n", bdz->r, bdz->r);
+	fprintf(out, "    hl[2] = hl[2] %% %u + (%u << 1);\n", bdz->r, bdz->r);
+	fprintf(out, "    byte0 = g[hl[0] / 5];\n");
+	fprintf(out, "    byte1 = g[hl[1] / 5];\n");
+	fprintf(out, "    byte2 = g[hl[2] / 5];\n");
+	fprintf(out, "    byte0 = lookup_table[hl[0] %% 5U][byte0];\n");
+	fprintf(out, "    byte1 = lookup_table[hl[1] %% 5U][byte1];\n");
+	fprintf(out, "    byte2 = lookup_table[hl[2] %% 5U][byte2];\n");
+	fprintf(out, "    vertex = hl[(byte0 + byte1 + byte2) %% 3];\n");
+#ifdef DEBUG
+	fprintf(out, "#ifdef DEBUG\n");
+	fprintf(out, "    fprintf(stderr, \"search key: \\\"%%s\\\"\\n\", key);\n");
+	fprintf(out, "    fprintf(stderr, \"hl: {%%u, %%u, %%u}, \", hl[0], hl[1], hl[2]);\n");
+	fprintf(out, "    fprintf(stderr, \"vertex: %%u, \", vertex);\n");
+	fprintf(out, "#endif\n");
+#endif
+	fprintf(out, "    return vertex;\n");
+	fprintf(out, "};\n");
+	fprintf(out, "\nuint32_t cmph_c_size(void) {\n");
+	fprintf(out, "    return %u;\n}\n", bdz->m);
 	fclose(out);
-	return 0;
+	return 1;
 }
 int bdz_ph_dump(cmph_t *mphf, FILE *fd)
 {
@@ -529,7 +575,7 @@ cmph_uint32 bdz_ph_search(cmph_t *mphf, const char *key, cmph_uint32 keylen)
 	register cmph_uint8 byte0, byte1, byte2;
 	register cmph_uint32 vertex;
 
-	hash_vector(bdz_ph->hl, key, keylen,hl);
+	hash_vector(bdz_ph->hl, key, keylen, hl);
 	hl[0] = hl[0] % bdz_ph->r;
 	hl[1] = hl[1] % bdz_ph->r + bdz_ph->r;
 	hl[2] = hl[2] % bdz_ph->r + (bdz_ph->r << 1);

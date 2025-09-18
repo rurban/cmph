@@ -896,7 +896,8 @@ int chd_ph_compile(cmph_t *mphf, cmph_config_t *mph, FILE *out)
 	fprintf(out, "};\n");
 	fprintf(out, "uint32_t cmph_size(void) {\n");
 	fprintf(out, "    return %u;\n}\n", chd_ph->m);
-	exit(1);
+	fclose(out);
+	return 0; // not yet
 }
 int chd_ph_dump(cmph_t *mphf, FILE *fd)
 {
