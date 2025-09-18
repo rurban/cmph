@@ -601,7 +601,7 @@ int brz_compile(cmph_t *mphf, cmph_config_t *mph, FILE *out)
 	hashes[2] = data->h0;
 	hash_state_compile(3, hashes, true, out);
 	fprintf(out, "// NYI\n");
-	fprintf(out, "uint32_t cmph_size(void) {\n");
+	fprintf(out, "uint32_t cmph_c_size(void) {\n");
 	fprintf(out, "    return %u;\n}\n", data->m);
 	return 0;
 }

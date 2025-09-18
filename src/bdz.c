@@ -564,7 +564,7 @@ int bdz_compile(cmph_t *mphf, cmph_config_t *mph, FILE *out)
 #endif
 	fprintf(out, "    return base_rank;\n");
 	fprintf(out, "}\n");
-	fprintf(out, "\nuint32_t cmph_search(const char* key, uint32_t keylen) {\n");
+	fprintf(out, "\nuint32_t cmph_c_search(const char* key, uint32_t keylen) {\n");
 	fprintf(out, "    /* n: %u */\n", bdz->n);
 	fprintf(out, "    /* m: %u */\n", bdz->m);
 	cmph_uint32 sizeg = (cmph_uint32)ceil(bdz->n/4.0);
@@ -592,7 +592,7 @@ int bdz_compile(cmph_t *mphf, cmph_config_t *mph, FILE *out)
 #endif
 	fprintf(out, "    return rank(ranktable, g, vertex);\n");
 	fprintf(out, "};\n");
-	fprintf(out, "\nuint32_t cmph_size(void) {\n");
+	fprintf(out, "\nuint32_t cmph_c_size(void) {\n");
 	fprintf(out, "    return %u;\n}\n", bdz->m);
 	fclose(out);
 	return 1;

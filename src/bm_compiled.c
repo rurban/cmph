@@ -1,13 +1,20 @@
-/* benchmark all compiled algos and hashes for creation and run-time search time costs */
+/* Benchmark all compiled algos and hashes, dlopening the compiled search function */
+/* Added by Reini Urban, 2025 */
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
+#include <dlfcn.h>
+#include <unistd.h>
+#include <sys/stat.h>
 
 #include "config.h"
 #include "bitbool.h"
 #include "cmph.h"
 #include "cmph_benchmark.h"
+#include "debug.h"
 #include "linear_string_map.h"
+
+//typedef uint32_t(const char*,uint32_t) (*searchfn_t)();
 
 // Generates a vector with random unique 32 bits integers
 cmph_uint32* random_numbers_vector_new(cmph_uint32 size) {
@@ -38,20 +45,27 @@ char* create_lsmap_key(CMPH_ALGO algo, CMPH_HASH hash, int iters) {
   return strdup(mphf_name);
 }
 
+long file_size_kb(const char *path)
+{
+    struct stat st;
+    if (stat(path, &st) != 0) return -1;      /* errno set by stat */
+    return st.st_size / 1024;                 /* integer KB */
+}
+
 static cmph_uint32 g_numbers_len = 0;
 static cmph_uint32 *g_numbers = NULL;
 static lsmap_t *g_created_mphf = NULL;
 static lsmap_t *g_expected_probes = NULL;
 static lsmap_t *g_mphf_probes = NULL;
 
-int bm_create(CMPH_ALGO algo, CMPH_HASH *hashes, int iters) {
+int bm_create(CMPH_ALGO algo, CMPH_HASH *hashes, int size) {
   cmph_io_adapter_t* source = NULL;
   cmph_config_t* config = NULL;
   cmph_t* mphf = NULL;
   cmph_uint32 nhashes = 0;
   CMPH_HASH hash = hashes ? hashes[0] : 0;
   char c_file[24];
-  char cmd[80];
+  char cmd[256];
   int result;
 #ifdef HAVE_CRC32_HW
   const char hw[] = "HW ";
@@ -59,7 +73,7 @@ int bm_create(CMPH_ALGO algo, CMPH_HASH *hashes, int iters) {
   const char hw[] = "SW ";
 #endif
 
-  if (iters > (int)g_numbers_len) {
+  if (size > (int)g_numbers_len) {
     fprintf(stderr, "No input with proper size.");
     exit(-1);
   }
@@ -70,23 +84,24 @@ int bm_create(CMPH_ALGO algo, CMPH_HASH *hashes, int iters) {
 
   source = cmph_io_struct_vector_adapter(
       (void*)g_numbers, sizeof(cmph_uint32),
-      0, sizeof(cmph_uint32), iters);
+      0, sizeof(cmph_uint32), size);
   config = cmph_config_new(source);
   cmph_config_set_algo(config, algo);
   if (nhashes) cmph_config_set_hashfuncs(config, hashes);
-  snprintf(c_file, sizeof(c_file), "%s_%s.c", cmph_names[algo], cmph_hash_names[hash]);
+  snprintf(c_file, sizeof(c_file), "bm_%s_%s.c", cmph_names[algo], cmph_hash_names[hash]);
 
   cmph_config_set_graphsize(config, 5);
   mphf = cmph_new(config);
   if (!mphf) {
     fprintf(stderr, "Failed to create mphf for algorithm %s with %shash %s and %u keys\n",
             cmph_names[algo], hash == CMPH_HASH_CRC32 ? hw : "",
-            cmph_hash_names[hash], iters);
+            cmph_hash_names[hash], size);
     cmph_config_destroy(config);
     cmph_io_struct_vector_adapter_destroy(source);
     //g_created_mphf = NULL;
     return 1;
   }
+  DEBUGP("cmph_compile(mphf, config, \"%s\", \"<>\")\n", c_file);
   result = cmph_compile(mphf, config, c_file, "<>");
   if (!result) {
     fprintf(stderr, "Failed to compile mphf for algorithm %s with %shash %s\n",
@@ -96,19 +111,28 @@ int bm_create(CMPH_ALGO algo, CMPH_HASH *hashes, int iters) {
     cmph_io_struct_vector_adapter_destroy(source);
     return 1;
   }
-  snprintf(cmd, sizeof(cmd), "cc -O2 -o %s_%s %s", cmph_names[algo],
+  long c_sz = file_size_kb(c_file);
+  printf("Created %s: %lu KB\n", c_file, c_sz);
+#if defined(__GNUC__) && defined(__x86_64__)
+  #define OPTIMS "-march=native"
+#else
+  #define OPTIMS ""
+#endif
+  snprintf(cmd, sizeof(cmd),
+           "cc -shared -fPIC %s %s -g -I\"%s/src\" -o bm_%s_%s.so %s",
+           c_sz > 2000 ? "-O0" : "-O2", OPTIMS, top_srcdir, cmph_names[algo],
            cmph_hash_names[hash], c_file);
+  DEBUGP("%s\n", cmd);
   if (system(cmd)) {
-    fprintf(stderr, "Failed to cc -O2 %s\n", c_file);
+    fprintf(stderr, "Failed to run %s\n", cmd);
     cmph_config_destroy(config);
     cmph_io_struct_vector_adapter_destroy(source);
     return 1;
   }
-  //system("./%s_%s bm_keys", cmph_names[algo], cmph_hash_names[hash]);
 
   cmph_config_destroy(config);
   cmph_io_struct_vector_adapter_destroy(source);
-  lsmap_append(g_created_mphf, create_lsmap_key(algo, hash, iters), mphf);
+  lsmap_append(g_created_mphf, create_lsmap_key(algo, hash, size), mphf);
   return 0;
 }
 
@@ -123,15 +147,25 @@ int bm_search(CMPH_ALGO algo, CMPH_HASH *hashes, int iters) {
   mphf = (cmph_t*)lsmap_search(g_created_mphf, mphf_name);
   free(mphf_name);
 
-  if (!mphf) {
-//#ifdef HAVE_CRC32_HW
-//    const char hw[] = "HW ";
-//#else
-//    const char hw[] = "SW ";
-//#endif
-//    fprintf(stderr, "No mphf found for algorithm %s with %shash %s and %u keys\n",
-//            cmph_names[algo], hash == CMPH_HASH_CRC32 ? hw : "",
-//            cmph_hash_names[hash], iters);
+  if (!mphf)
+    return 1;
+  char so_file[80];
+  snprintf(so_file, sizeof(so_file), "./bm_%s_%s.so", cmph_names[algo],
+           cmph_hash_names[hash]);
+  DEBUGP("dlopen \"%s\"\n", so_file);
+  void* dl = dlopen(so_file, RTLD_NOW | RTLD_GLOBAL);
+  if (!dl) {
+    fprintf(stderr, "Failed to dlopen %s\n", so_file);
+    //unlink(so_file);
+    return 1;
+  }
+  DEBUGP("cmph_c_search\n");
+  uint32_t (*search_fn)(const char*,uint32_t) =
+    (uint32_t (*)(const char*,uint32_t))dlsym(dl, "cmph_c_search");
+  if (!search_fn) {
+    fprintf(stderr, "Failed to find symbol cmph_c_search in %s\n", so_file);
+    dlclose(dl);
+    //unlink(so_file);
     return 1;
   }
 
@@ -140,30 +174,33 @@ int bm_search(CMPH_ALGO algo, CMPH_HASH *hashes, int iters) {
   cmph_uint32* hash_count = (cmph_uint32*)calloc(size, sizeof(cmph_uint32));
 
   for (i = 0; i < iters * 100; ++i) {
-    cmph_uint32 pos = random() % iters;
+    cmph_uint32 pos = random() % size;
     const char* buf = (const char*)(g_numbers + pos);
-    cmph_uint32 h = cmph_search(mphf, buf, sizeof(cmph_uint32));
+    cmph_uint32 h = search_fn(buf, sizeof(cmph_uint32));
     ++count[pos];
     assert(h < size && "h out of bounds");
     ++hash_count[h];
   }
 
-  // Verify correctness later.
+  // Verify correctness later. NYI
   lsmap_append(g_expected_probes, create_lsmap_key(algo, hash, iters), count);
   lsmap_append(g_mphf_probes, create_lsmap_key(algo, hash, iters), hash_count);
+  dlclose(dl);
+  unlink(so_file);
   return 0;
 }
 
+// not yet
 void verify() { }
 
 #define DECLARE_ALGO(algo)                                            \
-  int bm_create_ ## algo(int iters) { return bm_create(algo, NULL, iters); } \
+  int bm_create_ ## algo(int iters) { return bm_create(algo, NULL, g_numbers_len); } \
   int bm_search_ ## algo(int iters) { return bm_search(algo, NULL, iters); }
 
 #define DECLARE_ALGO_HASH(algo, hash)                                   \
   int bm_create_ ## algo ## _ ## hash(int iters) {                      \
     CMPH_HASH hashes[3] = {CMPH_HASH_ ## hash, CMPH_HASH_COUNT, CMPH_HASH_COUNT}; \
-    return bm_create(algo, hashes, iters); }                            \
+    return bm_create(algo, hashes, g_numbers_len); }                            \
   int bm_search_ ## algo ## _ ## hash(int iters) {                      \
     CMPH_HASH hashes[3] = {CMPH_HASH_ ## hash, CMPH_HASH_COUNT, CMPH_HASH_COUNT}; \
     return bm_search(algo, hashes, iters); }
@@ -239,7 +276,7 @@ int main(int argc, char **argv) {
       strncpy(algo, argv[++i], sizeof(algo)-1);
     else if (strcmp(argv[i], "-h") == 0)  // all algos for this hash
       strncpy(hash, argv[++i], sizeof(algo)-1);
-    else if (strcmp(argv[i], "-s") == 0) // size
+    else if (strcmp(argv[i], "-s") == 0) // size (number of keys)
       g_numbers_len = (cmph_uint32)strtol(argv[++i], NULL, 10);
     else if (strcmp(argv[i], "-i") == 0) // iters
       iters = (cmph_uint32)strtol(argv[++i], NULL, 10);
