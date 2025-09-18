@@ -1,0 +1,13 @@
+#!/bin/sh
+set -e
+cd "$(dirname "$0")" || exit 1
+@top_builddir@/src/bm_numbers -i 100
+@top_builddir@/src/bm_compiled -i 100
+
+for a in bmz bmz8 chm brz fch bdz bdz_ph chd_ph chd
+do
+         for h in jenkins wyhash crc32 fnv djb2 sdbm
+         do
+             rm -f "bm_${a}_${h}.c" 2>/dev/null
+         done
+done
