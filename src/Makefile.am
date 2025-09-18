@@ -39,6 +39,6 @@ cmph_LDADD = libcmph.la
 bm_numbers_SOURCES = bm_numbers.c
 bm_numbers_LDADD = libcmph.la
 
-bm_compiled_SOURCES = bm_compiled.c
-bm_compiled_CFLAGS = $(CFLAGS) -Dtop_srcdir=\"$(abs_top_srcdir)\"
-bm_compiled_LDADD = libcmph.la -lm
+bm_compiled_SOURCES = bm_numbers.c
+bm_compiled_CFLAGS = $(AM_CFLAGS) -DCOMPILED -Dtop_srcdir=\"$(abs_top_srcdir)\"
+bm_compiled_LDADD = libcmph.la
