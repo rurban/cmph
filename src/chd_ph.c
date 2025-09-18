@@ -868,7 +868,7 @@ int chd_ph_compile(cmph_t *mphf, cmph_config_t *mph, FILE *out)
 	DEBUGP("Compiling chd_ph\n");
 	hash_state_compile(3, &chd_ph->hl, true, out);
 	fprintf(out, "// NYI\n");
-	fprintf(out, "\nuint32_t cmph_search(const char* key, uint32_t keylen) {\n");
+	fprintf(out, "\nuint32_t cmph_c_search(const char* key, uint32_t keylen) {\n");
 	fprintf(out, "    /* n: %u */\n", chd_ph->n);
 	fprintf(out, "    /* m: %u */\n", chd_ph->m);
 	cmph_uint32 occup_size = chd_ph->n;
@@ -894,7 +894,7 @@ int chd_ph_compile(cmph_t *mphf, cmph_config_t *mph, FILE *out)
 	fprintf(out, "    return (uint32_t)((f + ((cmph_uint64_t)h)*probe0_num + probe1_num) %% %u);\n",
 	       chd_ph->n);
 	fprintf(out, "};\n");
-	fprintf(out, "uint32_t cmph_size(void) {\n");
+	fprintf(out, "uint32_t cmph_c_size(void) {\n");
 	fprintf(out, "    return %u;\n}\n", chd_ph->m);
 	fclose(out);
 	return 0; // not yet

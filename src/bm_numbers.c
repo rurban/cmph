@@ -102,14 +102,6 @@ int bm_search(CMPH_ALGO algo, CMPH_HASH *hashes, int iters) {
   free(mphf_name);
 
   if (!mphf) {
-//#ifdef HAVE_CRC32_HW
-//    const char hw[] = "HW ";
-//#else
-//    const char hw[] = "SW ";
-//#endif
-//    fprintf(stderr, "No mphf found for algorithm %s with %shash %s and %u keys\n",
-//            cmph_names[algo], hash == CMPH_HASH_CRC32 ? hw : "",
-//            cmph_hash_names[hash], iters);
     return 1;
   }
 
@@ -126,12 +118,13 @@ int bm_search(CMPH_ALGO algo, CMPH_HASH *hashes, int iters) {
     ++hash_count[h];
   }
 
-  // Verify correctness later.
+  // Verify correctness later. NYI
   lsmap_append(g_expected_probes, create_lsmap_key(algo, hash, iters), count);
   lsmap_append(g_mphf_probes, create_lsmap_key(algo, hash, iters), hash_count);
   return 0;
 }
 
+// not yet
 void verify() { }
 
 #define DECLARE_ALGO(algo)                                            \

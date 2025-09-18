@@ -96,7 +96,8 @@ Added compilation to standalone C files.
 Optimize bmz,chm search with hash_vector.
 When selecting one hash function with -f, it selects this hash function
 for the next hash functions also, to override the default jenkins.
-Fixed minor bm_numbers issues.
+Extended bm_numbers to accept -h hash, -a algo, -s size, -i iters.
+Added bm_compiled benchmarks.
 mphf_tests got -s, -a and -f support.
 Added -Wextra
 Removed unused args in the internal API.
@@ -221,6 +222,8 @@ Djamel Belazzougui (db8192@users.sourceforge.net)
 Fabiano Cupertino Botelho (fc_botelho@users.sourceforge.net)
 
 Nivio Ziviani (nivio@dcc.ufmg.br)
+
+Reini Urban (reini.urban@gmail.com)
 
 ----------------------------------------
 
