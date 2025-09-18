@@ -496,7 +496,7 @@ int bdz_ph_compile(cmph_t *mphf, cmph_config_t *mph, FILE *out)
 	fprintf(out, "    vertex = hl[(byte0 + byte1 + byte2) %% 3];\n");
 #ifdef DEBUG
 	fprintf(out, "#ifdef DEBUG\n");
-	fprintf(out, "    fprintf(stderr, \"search key: \\\"%%s\\\"\\n\", key);\n");
+	fprintf(out, "    fprintf(stderr, \"search key: \\\"%%.*s\\\"\\n\", (int)keylen, key);\n");
 	fprintf(out, "    fprintf(stderr, \"hl: {%%u, %%u, %%u}, \", hl[0], hl[1], hl[2]);\n");
 	fprintf(out, "    fprintf(stderr, \"vertex: %%u, \", vertex);\n");
 	fprintf(out, "#endif\n");

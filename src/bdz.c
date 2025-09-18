@@ -585,7 +585,7 @@ int bdz_compile(cmph_t *mphf, cmph_config_t *mph, FILE *out)
 	fprintf(out, "    vertex = hl[(GETVALUE(g, hl[0]) + GETVALUE(g, hl[1]) + GETVALUE(g, hl[2])) %% 3];\n");
 #ifdef DEBUG
 	fprintf(out, "#ifdef DEBUG\n");
-	fprintf(out, "    fprintf(stderr, \"search key: \\\"%%s\\\"\\n\", key);\n");
+	fprintf(out, "    fprintf(stderr, \"search key: \\\"%%.*s\\\"\\n\", (int)keylen, key);\n");
 	fprintf(out, "    fprintf(stderr, \"hl: {%%u, %%u, %%u}, \", hl[0], hl[1], hl[2]);\n");
 	fprintf(out, "    fprintf(stderr, \"vertex: %%u, \", vertex);\n");
 	fprintf(out, "#endif\n");
@@ -710,7 +710,7 @@ cmph_uint32 bdz_search(cmph_t *mphf, const char *key, cmph_uint32 keylen)
 	hl[1] = hl[1] % bdz->r + bdz->r;
 	hl[2] = hl[2] % bdz->r + (bdz->r << 1);
 	vertex = hl[(GETVALUE(bdz->g, hl[0]) + GETVALUE(bdz->g, hl[1]) + GETVALUE(bdz->g, hl[2])) % 3];
-        DEBUGP("search key: \"%s\"\n", key);
+        DEBUGP("search key: \"%.*s\"\n", (int)keylen, key);
         DEBUGP("hl: {%u, %u, %u}, vertex %u\n", hl[0], hl[1], hl[2], vertex);
 	return rank(bdz->b, bdz->ranktable, bdz->g, vertex);
 }
