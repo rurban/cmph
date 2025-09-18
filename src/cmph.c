@@ -531,6 +531,12 @@ void cmph_config_set_graphsize(cmph_config_t *mph, double c)
 	return;
 }
 
+void cmph_config_set_c_prefix(cmph_config_t *mph, char *c_prefix)
+{
+	mph->c_prefix = c_prefix;
+	return;
+}
+
 int cmph_is_order_preserving(cmph_t *mphf)
 {
 	switch (mphf->algo)

@@ -462,7 +462,7 @@ int bdz_ph_compile(cmph_t *mphf, cmph_config_t *mph, FILE *out)
 	fprintf(out, "#ifdef DEBUG\n");
 	fprintf(out, "#include <stdio.h>\n");
 	fprintf(out, "#endif\n");
-	fprintf(out, "\nuint32_t cmph_c_search(const char* key, uint32_t keylen) {\n");
+	fprintf(out, "\nuint32_t %s_search(const char* key, uint32_t keylen) {\n", mph->c_prefix);
 	fprintf(out, "    /* n: %u */\n", bdz->n);
 	fprintf(out, "    /* m: %u */\n", bdz->m);
 	fprintf(out, "const uint8_t lookup_table[5][256] = {\n");
@@ -503,7 +503,7 @@ int bdz_ph_compile(cmph_t *mphf, cmph_config_t *mph, FILE *out)
 #endif
 	fprintf(out, "    return vertex;\n");
 	fprintf(out, "};\n");
-	fprintf(out, "\nuint32_t cmph_c_size(void) {\n");
+	fprintf(out, "\nuint32_t %s_size(void) {\n", mph->c_prefix);
 	fprintf(out, "    return %u;\n}\n", bdz->m);
 	fclose(out);
 	return 1;

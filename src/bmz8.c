@@ -484,7 +484,7 @@ int bmz8_compile(cmph_t *mphf, cmph_config_t *mph, FILE *out)
 	bmz8_data_t *data = (bmz8_data_t *)mphf->data;
 	DEBUGP("Compiling bmz8\n");
 	fprintf(out, "// NYI\n");
-	fprintf(out, "uint32_t cmph_c_size(void) {\n");
+	fprintf(out, "uint32_t %s_size(void) {\n", mph->c_prefix);
 	fprintf(out, "    return %u;\n}\n", data->m);
 	return 0;
 }

@@ -20,11 +20,16 @@ cmph_config_t *__config_new(cmph_io_adapter_t *key_source)
 	mph->hashfuncs[1] = CMPH_HASH_JENKINS;
 	mph->hashfuncs[2] = CMPH_HASH_JENKINS;
 	mph->nhashfuncs = 1;
+	mph->c_prefix = "cmph_c";
 	return mph;
 }
 
 void __config_destroy(cmph_config_t *mph)
 {
+	if (mph->c_prefix != NULL && strcmp(mph->c_prefix, "cmph_c") != 0)
+	{
+		free((void *)mph->c_prefix);
+	}
 	free(mph);
 }
 

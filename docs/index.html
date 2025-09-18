@@ -534,7 +534,7 @@ utility.
 <p>
 usage: cmph [-v][-h][-V][-C] <a href="nkeys">-k</a> <a href="hash_function">-f</a> <a href="algorithm_dependent_value">-g [-c</a><a href="seed">-s</a> ]
             <a href="algorithm">-a</a> <a href="memory_in_MB">-M</a> <a href="algorithm_dependent_value">-b</a> <a href="keys_per_bin">-t</a> <a href="tmp_dir">-d</a>
-            <a href="file.mph">-m</a> keysfile
+            <a href="file.mph">-m</a> <a href="c_file">-o</a> <a href="c_func_prefix">-p</a> keysfile
 Minimum perfect hashing tool
 </p>
 <p>
@@ -565,6 +565,8 @@ Minimum perfect hashing tool
   -k	 number of keys
   -g	 generate a .mph file
   -C	 generate a C file
+  -o	 name of C file (default: stdout)
+  -p	 name of C functions prefix (default: cmph_c_)
   -s	 random seed
   -m	 minimum perfect hash function .mph file
   -M	 main memory availability (in MB) used in BRZ algorithm
