@@ -2,6 +2,7 @@
 #define __CMPH_SELECT_H__
 
 #include "cmph_types.h"
+#include <stdio.h>
 
 struct _select_t
 {
@@ -25,6 +26,9 @@ cmph_uint32 select_next_query(select_t * sel, cmph_uint32 vec_bit_idx);
 cmph_uint32 select_get_space_usage(select_t * sel);
 
 void select_dump(select_t *sel, char **buf, cmph_uint32 *buflen);
+void select_compile(FILE* out, const char *name, select_t *sel);
+void select_query_compile(FILE* out);
+void select_query_packed_compile(FILE* out);
 
 void select_load(select_t * sel, const char *buf);
 

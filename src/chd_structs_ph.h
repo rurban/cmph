@@ -15,10 +15,11 @@ struct __chd_ph_data_t
 struct __chd_ph_config_data_t
 {
 	CMPH_HASH hashfunc;	// linear hash function to be used
-	compressed_seq_t * cs;	// compressed displacement values
+	compressed_seq_t * cs;	// compressed displacement values (is NULL)
 	cmph_uint32 nbuckets;	// number of buckets
 	cmph_uint32 n;		// number of bins
 	hash_state_t *hl;	// linear hash function
+	cmph_uint32 hv[3];      // hash seeds
 	
 	cmph_uint32 m;		// number of keys
 	cmph_uint8 use_h;	// flag to indicate the of use of a heuristic (use_h = 1)

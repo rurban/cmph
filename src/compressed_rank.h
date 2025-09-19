@@ -51,4 +51,7 @@ cmph_uint32 compressed_rank_packed_size(compressed_rank_t *cr);
  */
 cmph_uint32 compressed_rank_query_packed(void * cr_packed, cmph_uint32 idx);
 
+/* compile to C support */
+void compressed_rank_query_packed_compile(FILE *out);
+
 #endif

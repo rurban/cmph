@@ -359,14 +359,14 @@ int main(int argc, char **argv) {
       BM_REGISTER(bm_create_CMPH_BDZ_PH, iters);
       BM_REGISTER(bm_search_CMPH_BDZ_PH, iters);
     }
+    if (!*algo || strcmp(algo, "chd_ph") == 0) {
+      BM_REGISTER(bm_create_CMPH_CHD_PH, iters);
+      BM_REGISTER(bm_search_CMPH_CHD_PH, iters);
+    }
 #ifndef COMPILED
     if (!*algo || strcmp(algo, "chd") == 0) {
       BM_REGISTER(bm_create_CMPH_CHD, iters);
       BM_REGISTER(bm_search_CMPH_CHD, iters);
-    }
-    if (!*algo || strcmp(algo, "chd_ph") == 0) {
-      BM_REGISTER(bm_create_CMPH_CHD_PH, iters);
-      BM_REGISTER(bm_search_CMPH_CHD_PH, iters);
     }
     if (!*algo || strcmp(algo, "brz") == 0) {
       // instable:
@@ -401,14 +401,14 @@ int main(int argc, char **argv) {
       BM_REGISTER(bm_create_CMPH_BDZ_PH_WYHASH, iters);
       BM_REGISTER(bm_search_CMPH_BDZ_PH_WYHASH, iters);
     }
+    if (!*algo || strcmp(algo, "chd_ph") == 0) {
+      BM_REGISTER(bm_create_CMPH_CHD_PH_WYHASH, iters);
+      BM_REGISTER(bm_search_CMPH_CHD_PH_WYHASH, iters);
+    }
 #ifndef COMPILED
     if (!*algo || strcmp(algo, "chd") == 0) {
       BM_REGISTER(bm_create_CMPH_CHD_WYHASH, iters);
       BM_REGISTER(bm_search_CMPH_CHD_WYHASH, iters);
-    }
-    if (!*algo || strcmp(algo, "chd_ph") == 0) {
-      BM_REGISTER(bm_create_CMPH_CHD_PH_WYHASH, iters);
-      BM_REGISTER(bm_search_CMPH_CHD_PH_WYHASH, iters);
     }
     if (!*algo || strcmp(algo, "brz") == 0) {
       // instable:
@@ -441,16 +441,16 @@ int main(int argc, char **argv) {
       BM_REGISTER(bm_create_CMPH_BDZ_PH_DJB2, iters);
       BM_REGISTER(bm_search_CMPH_BDZ_PH_DJB2, iters);
     }
+    if (strcmp(algo, "chd_ph") == 0) {
+      // unstable
+      BM_REGISTER(bm_create_CMPH_CHD_PH_DJB2, iters);
+      BM_REGISTER(bm_search_CMPH_CHD_PH_DJB2, iters);
+    }
 #ifndef COMPILED
     if (strcmp(algo, "chd") == 0) {
       // unstable
       BM_REGISTER(bm_create_CMPH_CHD_DJB2, iters);
       BM_REGISTER(bm_search_CMPH_CHD_DJB2, iters);
-    }
-    if (strcmp(algo, "chd_ph") == 0) {
-      // unstable
-      BM_REGISTER(bm_create_CMPH_CHD_PH_DJB2, iters);
-      BM_REGISTER(bm_search_CMPH_CHD_PH_DJB2, iters);
     }
     if (!*algo || strcmp(algo, "brz") == 0) {
       // instable:
@@ -481,14 +481,14 @@ int main(int argc, char **argv) {
       BM_REGISTER(bm_create_CMPH_BDZ_PH_FNV, iters);
       BM_REGISTER(bm_search_CMPH_BDZ_PH_FNV, iters);
     }
+    if (!*algo || strcmp(algo, "chd_ph") == 0) {
+      BM_REGISTER(bm_create_CMPH_CHD_PH_FNV, iters);
+      BM_REGISTER(bm_search_CMPH_CHD_PH_FNV, iters);
+    }
 #ifndef COMPILED
     if (!*algo || strcmp(algo, "chd") == 0) {
       BM_REGISTER(bm_create_CMPH_CHD_FNV, iters);
       BM_REGISTER(bm_search_CMPH_CHD_FNV, iters);
-    }
-    if (!*algo || strcmp(algo, "chd_ph") == 0) {
-      BM_REGISTER(bm_create_CMPH_CHD_PH_FNV, iters);
-      BM_REGISTER(bm_search_CMPH_CHD_PH_FNV, iters);
     }
     if (!*algo || strcmp(algo, "brz") == 0) {
       // instable:
@@ -521,16 +521,16 @@ int main(int argc, char **argv) {
       BM_REGISTER(bm_create_CMPH_BDZ_PH_SDBM, iters);
       BM_REGISTER(bm_search_CMPH_BDZ_PH_SDBM, iters);
     }
+    if (strcmp(algo, "chd_ph") == 0) {
+      // unstable
+      BM_REGISTER(bm_create_CMPH_CHD_PH_SDBM, iters);
+      BM_REGISTER(bm_search_CMPH_CHD_PH_SDBM, iters);
+    }
 #ifndef COMPILED
     if (strcmp(algo, "chd") == 0) {
       // unstable
       BM_REGISTER(bm_create_CMPH_CHD_SDBM, iters);
       BM_REGISTER(bm_search_CMPH_CHD_SDBM, iters);
-    }
-    if (strcmp(algo, "chd_ph") == 0) {
-      // unstable
-      BM_REGISTER(bm_create_CMPH_CHD_PH_SDBM, iters);
-      BM_REGISTER(bm_search_CMPH_CHD_PH_SDBM, iters);
     }
     if (!*algo || strcmp(algo, "brz") == 0) {
       // instable:
@@ -561,14 +561,14 @@ int main(int argc, char **argv) {
       BM_REGISTER(bm_create_CMPH_BDZ_PH_CRC32, iters);
       BM_REGISTER(bm_search_CMPH_BDZ_PH_CRC32, iters);
     }
+    if (!*algo || strcmp(algo, "chd_ph") == 0) {
+      BM_REGISTER(bm_create_CMPH_CHD_PH_CRC32, iters);
+      BM_REGISTER(bm_search_CMPH_CHD_PH_CRC32, iters);
+    }
 #ifndef COMPILED
     if (!*algo || strcmp(algo, "chd") == 0) {
       BM_REGISTER(bm_create_CMPH_CHD_CRC32, iters);
       BM_REGISTER(bm_search_CMPH_CHD_CRC32, iters);
-    }
-    if (!*algo || strcmp(algo, "chd_ph") == 0) {
-      BM_REGISTER(bm_create_CMPH_CHD_PH_CRC32, iters);
-      BM_REGISTER(bm_search_CMPH_CHD_PH_CRC32, iters);
     }
     if (!*algo || strcmp(algo, "brz") == 0) {
       // instable:

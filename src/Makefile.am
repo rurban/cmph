@@ -10,6 +10,7 @@ libcmph_la_SOURCES =  hash.h hash.c hash_state.h \
 		      debug.h \
 		      vstack.h vstack.c vqueue.h vqueue.c\
 		      graph.h graph.c bitbool.h \
+	              compile.h compile.c \
 		      cmph.h cmph.c cmph_structs.h cmph_structs.c\
 		      chm.h chm.c chm_structs.h \
 		      bmz.h bmz.c bmz_structs.h \

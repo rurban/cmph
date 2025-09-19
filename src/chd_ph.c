@@ -12,6 +12,7 @@
 #include "chd_ph.h"
 #include "miller_rabin.h"
 #include "bitbool.h"
+#include "compile.h"
 
 //#define DEBUG
 #include "debug.h"
@@ -77,6 +78,7 @@ void chd_ph_bucket_clean(chd_ph_bucket_t * buckets, cmph_uint32 nbuckets)
 	for(i = 0; i < nbuckets; i++)
 		buckets[i].size = 0;
 }
+
 static cmph_uint8 chd_ph_bucket_insert(chd_ph_bucket_t * buckets,chd_ph_map_item_t * map_items, chd_ph_item_t * items, cmph_uint32 item_idx)
 {
 	cmph_uint32 i = 0;
@@ -128,9 +130,7 @@ static inline double chd_ph_get_entropy(cmph_uint32 * disp_table, cmph_uint32 n,
 	double entropy = 0;
 
 	for(i = 0; i < n; i++)
-	{
 		probe_counts[disp_table[i]]++;
-	};
 
 	for(i = 0; i < max_probes; i++)
 	{
@@ -182,7 +182,8 @@ void chd_ph_config_set_hashfuncs(cmph_config_t *mph, CMPH_HASH *hashfuncs)
 	cmph_uint32 i = 0;
 	while(*hashptr != CMPH_HASH_COUNT)
 	{
-		if (i >= 1) break; //chd_ph only uses one linear hash function
+		if (i >= 1)
+		    break; //chd_ph only uses one linear hash function
 		chd_ph->hashfunc = *hashptr;
 		mph->hashfuncs[0] = *hashptr;
 		++i, ++hashptr;
@@ -206,16 +207,14 @@ void chd_ph_config_set_keys_per_bin(cmph_config_t *mph, cmph_uint32 keys_per_bin
 	assert(mph);
 	chd_ph_config_data_t *chd_ph = (chd_ph_config_data_t *)mph->data;
 	if(keys_per_bin <= 1 || keys_per_bin >= 128)
-	{
 	    keys_per_bin = 1;
-	}
 	chd_ph->keys_per_bin = keys_per_bin;
 }
 
 cmph_uint8 chd_ph_mapping(cmph_config_t *mph, chd_ph_bucket_t * buckets, chd_ph_item_t * items, cmph_uint32 *max_bucket_size)
 {
 	cmph_uint32 i = 0, g = 0;
-	cmph_uint32 hl[3];
+	cmph_uint32 hl[3] = {0, 0, 0};
 	chd_ph_config_data_t *chd_ph = (chd_ph_config_data_t *)mph->data;
 	char * key = NULL;
 	cmph_uint32 keylen = 0;
@@ -272,6 +271,9 @@ cmph_uint8 chd_ph_mapping(cmph_config_t *mph, chd_ph_bucket_t * buckets, chd_ph_
 		if(i == chd_ph->m)
 		{
 			free(map_items);
+			chd_ph->hv[0] = hl[0];
+			chd_ph->hv[1] = hl[1];
+			chd_ph->hv[2] = hl[2];
 			return 1; // SUCCESS
 		}
 
@@ -650,14 +652,9 @@ cmph_t *chd_ph_new(cmph_config_t *mph, double c)
 	DEBUGP("nbuckets = %u\n", chd_ph->nbuckets);
 
 	if(load_factor < 0.5 )
-	{
 		load_factor = 0.5;
-	}
-
 	if(load_factor >= 0.99)
-	{
 		load_factor = 0.99;
-	}
 
 	DEBUGP("load_factor = %.3f\n", load_factor);
 
@@ -675,14 +672,10 @@ cmph_t *chd_ph_new(cmph_config_t *mph, double c)
 
 	DEBUGP("n = %u \n", chd_ph->n);
 	if(chd_ph->keys_per_bin == 1)
-	{
 		space_lower_bound = chd_ph_space_lower_bound(chd_ph->m, chd_ph->n);
-	}
 
 	if(mph->verbosity)
-	{
 		fprintf(stderr, "space lower bound is %.3f bits per key\n", space_lower_bound);
-	}
 
        	// We allocate the working tables
 	buckets = chd_ph_bucket_new(chd_ph->nbuckets);
@@ -769,14 +762,10 @@ cmph_t *chd_ph_new(cmph_config_t *mph, double c)
 #endif
 
 	if (mph->verbosity)
-	{
 		fprintf(stderr, "Starting compressing step\n");
-	}
 
 	if(chd_ph->cs)
-	{
 		free(chd_ph->cs);
-	}
 	chd_ph->cs = (compressed_seq_t *) calloc(1, sizeof(compressed_seq_t));
 	compressed_seq_init(chd_ph->cs);
 	compressed_seq_generate(chd_ph->cs, disp_table, chd_ph->nbuckets);
@@ -795,10 +784,9 @@ cleanup:
 	if(failure)
 	{
 		if(chd_ph->hl)
-		{
 			hash_state_destroy(chd_ph->hl);
-		}
 		chd_ph->hl = NULL;
+		free(chd_ph->cs);
 		return NULL;
 	}
 
@@ -807,7 +795,7 @@ cleanup:
 	chd_phf = (chd_ph_data_t *)malloc(sizeof(chd_ph_data_t));
 
 	chd_phf->cs = chd_ph->cs;
-	chd_ph->cs = NULL; //transfer memory ownership
+	chd_ph->cs = NULL; //transfer memory ownership from config to data
 	chd_phf->hl = chd_ph->hl;
 	chd_ph->hl = NULL; //transfer memory ownership
 	chd_phf->n = chd_ph->n;
@@ -818,9 +806,7 @@ cleanup:
 
 	DEBUGP("Successfully generated minimal perfect hash\n");
 	if (mph->verbosity)
-	{
 		fprintf(stderr, "Successfully generated minimal perfect hash function\n");
-	}
 
 #ifdef CMPH_TIMING
 	cmph_uint32 space_usage = chd_ph_packed_size(mphf)*8;
@@ -863,42 +849,40 @@ void chd_ph_load(FILE *fd, cmph_t *mphf)
 
 int chd_ph_compile(cmph_t *mphf, cmph_config_t *mph, FILE *out)
 {
-        //chd_ph_data_t *data = (chd_ph_data_t *)mphf->data;
+        chd_ph_data_t *data = (chd_ph_data_t *)mphf->data;
 	chd_ph_config_data_t *chd_ph = (chd_ph_config_data_t *)mph->data;
 	DEBUGP("Compiling chd_ph\n");
-	hash_state_compile(3, &chd_ph->hl, true, out);
-	fprintf(out, "// NYI\n");
+	fprintf(out, "#include <assert.h>\n");
+	hash_state_compile(1, &data->hl, true, out);
 	cmph_uint32 occup_size = chd_ph->n;
 	if (chd_ph->keys_per_bin <= 1)
 		occup_size  = ((chd_ph->n + 31)/32) * 4;
-	fprintf(out, "const uint8_t occup_table[%u] = {\n    ", occup_size);
-	for (unsigned i=0; i < occup_size - 1; i++) {
-		fprintf(out, "%u, ", chd_ph->occup_table[i]);
-		if (i % 16 == 15)
-			fprintf(out, "\n    ");
-	}
-	fprintf(out, "%u\n};\n", chd_ph->occup_table[occup_size - 1]);
-	// TODO compressed_seq_query_packed()
+	bytes_compile(out, "occup_table", chd_ph->occup_table, occup_size);
+	assert(data->cs);
+	compressed_seq_compile(out, "cs", data->cs); // data->cs
+	compressed_seq_query_compile(out, data->cs); // the function
+
 	fprintf(out, "\nuint32_t %s_search(const char* key, uint32_t keylen) {\n", mph->c_prefix);
 	fprintf(out, "    /* n: %u */\n", chd_ph->n);
 	fprintf(out, "    /* m: %u */\n", chd_ph->m);
+	fprintf(out, "    /* nbuckets: %u */\n", data->nbuckets);
 	fprintf(out, "    uint32_t disp, position, probe0_num, probe1_num, f, g, h;\n");
 	fprintf(out, "    uint32_t hv[3];\n");
 	fprintf(out, "    %s_hash_vector(%u, (const unsigned char*)key, keylen, hv);\n",
-	       cmph_hash_names[chd_ph->hashfunc], chd_ph->hl->seed);
+	       cmph_hash_names[chd_ph->hashfunc], data->hl->seed);
 	fprintf(out, "    g = hv[0] %% %u;\n", chd_ph->nbuckets);
 	fprintf(out, "    f = hv[1] %% %u;\n", chd_ph->n);
 	fprintf(out, "    h = hv[1] %% %u + 1;\n", chd_ph->n - 1);
-	fprintf(out, "    disp = compressed_seq_query_packed(ptr, g);\n");
-	fprintf(out, "    probe0_num = disp %% %u\n", chd_ph->n);
-	fprintf(out, "    probe1_num = disp / %u\n", chd_ph->n);
-	fprintf(out, "    return (uint32_t)((f + ((cmph_uint64_t)h)*probe0_num + probe1_num) %% %u);\n",
+	fprintf(out, "    disp = compressed_seq_query(&cs, g);\n");
+	fprintf(out, "    probe0_num = disp %% %u;\n", chd_ph->n);
+	fprintf(out, "    probe1_num = disp / %u;\n", chd_ph->n);
+	fprintf(out, "    return (uint32_t)((f + ((uint64_t)h)*probe0_num + probe1_num) %% %u);\n",
 	       chd_ph->n);
 	fprintf(out, "};\n");
 	fprintf(out, "uint32_t %s_size(void) {\n", mph->c_prefix);
 	fprintf(out, "    return %u;\n}\n", chd_ph->m);
 	fclose(out);
-	return 0; // not yet
+	return 1;
 }
 int chd_ph_dump(cmph_t *mphf, FILE *fd)
 {
@@ -951,7 +935,7 @@ cmph_uint32 chd_ph_search(cmph_t *mphf, const char *key, cmph_uint32 keylen)
 
 	disp = compressed_seq_query(chd_ph->cs, g);
 	probe0_num = disp % chd_ph->n;
-	probe1_num = disp/chd_ph->n;
+	probe1_num = disp / chd_ph->n;
 	position = (cmph_uint32)((f + ((cmph_uint64 )h)*probe0_num + probe1_num) % chd_ph->n);
 	return position;
 }

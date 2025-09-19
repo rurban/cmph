@@ -690,13 +690,13 @@ int cmph_compile(cmph_t *mphf, cmph_config_t *config, const char *c_file,
 		    return fch_compile(mphf, config, out);
 		case CMPH_BDZ_PH:
 		    return bdz_ph_compile(mphf, config, out);
+		case CMPH_CHD_PH:
+		    return chd_ph_compile(mphf, config, out);
 #ifdef DEBUG
 		case CMPH_BMZ8:
 		    return bmz8_compile(mphf, config, out);
 		case CMPH_BRZ:
 		    return brz_compile(mphf, config, out);
-		case CMPH_CHD_PH:
-		    return chd_ph_compile(mphf, config, out);
 		case CMPH_CHD:
 		    return chd_compile(mphf, config, out);
 #endif

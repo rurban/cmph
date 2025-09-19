@@ -6,6 +6,7 @@
 #include"bitbool.h"
 // #define DEBUG
 #include"debug.h"
+
 static inline cmph_uint32 compressed_rank_i_log2(cmph_uint32 x)
 {
 	register cmph_uint32 res = 0;
@@ -317,5 +318,48 @@ cmph_uint32 compressed_rank_query_packed(void * cr_packed, cmph_uint32 idx)
 	return rank;
 }
 
-
-
+void compressed_rank_query_packed_compile(FILE *out) {
+  fprintf(out,
+      "static uint32_t compressed_rank_query_packed(void *cr_packed, uint32_t idx) {\n"
+      "    // unpacking cr_packed\n"
+      "    uint32_t *ptr = (uint32_t *)cr_packed;\n"
+      "    uint32_t max_val = *ptr++;\n"
+      "    uint32_t n = *ptr++;\n"
+      "    uint32_t rem_r = *ptr++;\n"
+      "    uint32_t buflen_sel = *ptr++;\n"
+      "    uint32_t * sel_packed = ptr;\n"
+      "\n"
+      "    uint32_t * bits_vec = sel_packed + 2; // skipping n and m\n"
+      "\n"
+      "	   uint32_t * vals_rems = (ptr += (buflen_sel >> 2)); \n"
+      "\n"
+      "    // compressed sequence query computation\n"
+      "    uint32_t rems_mask;\n"
+      "    uint32_t val_quot, val_rem;\n"
+      "    uint32_t sel_res, rank;\n"
+      "\n"
+      "    if(idx > max_val)\n"
+      "    	return n;\n"
+      "\n"
+      "    val_quot = idx >> rem_r;\n"
+      "    rems_mask = (1U << rem_r) - 1U;\n"
+      "    val_rem = idx & rems_mask;\n"
+      "    if(val_quot == 0) {\n"
+      "    	rank = sel_res = 0;\n"
+      "    }\n"
+      "    else {\n"
+      "    	sel_res = select_query_packed(sel_packed, val_quot - 1) + 1;\n"
+      "    	rank = sel_res - val_quot;\n"
+      "    }\n"
+      "\n"
+      "    do {\n"
+      "    	if(GETBIT32(bits_vec, sel_res))\n"
+      "    	    break;\n"
+      "    	if(get_bits_value(vals_rems, rank, rem_r, rems_mask) >= val_rem)\n"
+      "   	    break;\n"
+      "   	sel_res++;\n"
+      "   	rank++;\n"
+      "     } while (1);\n"
+      "     return rank;\n"
+      "}\n");
+}

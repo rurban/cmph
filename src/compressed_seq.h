@@ -1,7 +1,8 @@
 #ifndef __CMPH_COMPRESSED_SEQ_H__
 #define __CMPH_COMPRESSED_SEQ_H__
 
-#include"select.h"
+#include <stdio.h>
+#include "select.h"
 
 struct _compressed_seq_t
 {
@@ -55,6 +56,11 @@ cmph_uint32 compressed_seq_query(compressed_seq_t * cs, cmph_uint32 idx);
 cmph_uint32 compressed_seq_get_space_usage(compressed_seq_t * cs);
 
 void compressed_seq_dump(compressed_seq_t * cs, char ** buf, cmph_uint32 * buflen);
+// the cs data
+void compressed_seq_compile(FILE *out, const char *name, compressed_seq_t *cs);
+// the function
+void compressed_seq_query_compile(FILE *out, compressed_seq_t *cs);
+//void compressed_seq_query_packed_compile(FILE *out, struct __chd_data_t *data);
 
 void compressed_seq_load(compressed_seq_t * cs, const char * buf);
 
@@ -70,7 +76,6 @@ void compressed_seq_pack(compressed_seq_t *cs, void *cs_packed);
  *  \return the size of the packed compressed sequence structure or zero for failures
  */
 cmph_uint32 compressed_seq_packed_size(compressed_seq_t *cs);
-
 
 /** \fn cmph_uint32 compressed_seq_query_packed(void * cs_packed, cmph_uint32 idx);
  *  \brief Returns the value stored at index @see idx of the packed compressed sequence structure.
