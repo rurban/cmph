@@ -28,4 +28,5 @@ cmph_benchmark_test_SOURCES = cmph_benchmark_test.c
 cmph_benchmark_test_LDADD = ../src/libcmph.la
 
 CLEANFILES = test-suite.log _words _words.mph _words100 _words100.mph TAGS \
-  cmph_compile_run.o cmph_compile_run
+  cmph_compile_run.o cmph_compile_run \
+  bmz.c bmz8.c chm.c brz.c fch.c bdz.c bdz_ph.c chd_ph.c chd.c
