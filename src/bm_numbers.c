@@ -132,8 +132,8 @@ int bm_create(CMPH_ALGO algo, CMPH_HASH *hashes, int iters) {
   #define OPTIMS ""
 #endif
   snprintf(cmd, sizeof(cmd),
-           "cc -shared -fPIC %s %s -g -I\"%s/src\" -o bm_%s_%s.so %s",
-           c_sz > 2000 ? "-O0" : "-O2", OPTIMS, top_srcdir, cmph_names[algo],
+           "cc -shared -fPIC -O2 %s -g -I\"%s/src\" -o bm_%s_%s.so %s",
+           OPTIMS, top_srcdir, cmph_names[algo],
            cmph_hash_names[hash], c_file);
   DEBUGP("%s\n", cmd);
   if (system(cmd)) {
@@ -313,7 +313,8 @@ int main(int argc, char **argv) {
   }
 
 #ifdef COMPILED
-  if (iters > 100000) {
+  if (iters > 1000000) {
+    // not relevant anymore. can be disabled
     const rlim_t kStackSize = (2 * iters) + 48;   // stack size = 16 MB
     struct rlimit rl;
     int result = getrlimit(RLIMIT_STACK, &rl);

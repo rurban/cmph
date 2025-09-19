@@ -343,19 +343,19 @@ int fch_compile(cmph_t *mphf, cmph_config_t *mph, FILE *out)
 	fprintf(out, "    }\n");
 	fprintf(out, "    return initial_index;\n");
 	fprintf(out, "}\n");
+	fprintf(out, "const uint32_t _%s_g[%u] = {\n    ", mph->c_prefix, data->b);
+	for (unsigned i=0; i < data->b - 1; i++) {
+		fprintf(out, "%u, ", data->g[i]);
+		if (i % 16 == 15)
+			fprintf(out, "\n    ");
+	}
+	fprintf(out, "%u\n};\n", data->g[data->b - 1]);
 	fprintf(out, "\nuint32_t %s_search(const char* key, uint32_t keylen) {\n", mph->c_prefix);
 	fprintf(out, "    /* m: %u */\n", data->m);
 	fprintf(out, "    /* c: %f */\n", data->c);
 	fprintf(out, "    /* b: %u */\n", data->b);
 	fprintf(out, "    /* p1: %f */\n", data->p1);
 	fprintf(out, "    /* p2: %f */\n", data->p2);
-	fprintf(out, "    const uint32_t g[%u] = {\n        ", data->b);
-	for (unsigned i=0; i < data->b - 1; i++) {
-		fprintf(out, "%u, ", data->g[i]);
-		if (i % 16 == 15)
-			fprintf(out, "\n        ");
-	}
-	fprintf(out, "%u\n    };\n", data->g[data->b - 1]);
 	fprintf(out, "    uint32_t h1, h2;\n");
 	if (mph->nhashfuncs > 1) {
 		fprintf(out, "   h1 = %s0(%u, (const unsigned char*)key, keylen) %% %u;\n",
@@ -372,8 +372,8 @@ int fch_compile(cmph_t *mphf, cmph_config_t *mph, FILE *out)
 	}
 	fprintf(out, "    h1 = mixh10h11h12 (h1);\n");
 	fprintf(out, "    assert(h1 < %u);\n", data->b);
-	//fprintf(out, "    DEBUGP(\"key: %%s h1: %%u h2: %%u  g[h1]: %%u\\n\", key, h1, h2, g[h1]);\n");
-	fprintf(out, "    return (h2 + g[h1]) %% %u;\n", data->m);
+	//fprintf(out, "    DEBUGP(\"key: %%s h1: %%u h2: %%u  _%s_g[h1]: %%u\\n\", key, h1, h2, g[h1]);\n", mph->c_prefix);
+	fprintf(out, "    return (h2 + _%s_g[h1]) %% %u;\n", mph->c_prefix, data->m);
 	fprintf(out, "}\n");
 
 	fprintf(out, "uint32_t %s_size(void) {\n", mph->c_prefix);

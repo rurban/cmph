@@ -238,16 +238,16 @@ int chm_compile(cmph_t *mphf, cmph_config_t *mph, FILE *out)
 	hash_state_compile(data->nhashes, data->hashes, do_vector, out);
 	// single hash: jenkins_hash_%d
 	// hash_vector: jenkins_hash_vector
-	fprintf(out, "\nuint32_t %s_search(const char* key, uint32_t keylen) {\n", mph->c_prefix);
-	fprintf(out, "    /* n: %u */\n", data->n);
-	fprintf(out, "    /* m: %u */\n", data->m);
-	fprintf(out, "    const uint32_t g[%u] = {\n        ", data->n);
+	fprintf(out, "const uint32_t _%s_g[%u] = {\n        ", mph->c_prefix, data->n);
 	for (unsigned i=0; i < data->n - 1; i++) {
 		fprintf(out, "%u, ", data->g[i]);
 		if (i % 16 == 15)
-			fprintf(out, "\n        ");
+			fprintf(out, "\n    ");
 	}
-	fprintf(out, "%u\n    };\n", data->g[data->n - 1]);
+	fprintf(out, "%u\n};\n", data->g[data->n - 1]);
+	fprintf(out, "\nuint32_t %s_search(const char* key, uint32_t keylen) {\n", mph->c_prefix);
+	fprintf(out, "    /* n: %u */\n", data->n);
+	fprintf(out, "    /* m: %u */\n", data->m);
 	fprintf(out, "    uint32_t h1, h2;\n");
 	if (!do_vector) {
 		fprintf(out, "    h1 = %s_hash_0((const unsigned char*)key, keylen) %% %u;\n",
@@ -265,7 +265,8 @@ int chm_compile(cmph_t *mphf, cmph_config_t *mph, FILE *out)
 	//DEBUGP("key: %s h1: %u h2: %u\n", key, h1, h2);
 	fprintf(out, "    if (h1 == h2 && ++h2 >= %u) h2 = 0;\n", data->n);
 	//DEBUGP("key: %s g[h1]: %u g[h2]: %u edges: %u\n", key, chm->g[h1], chm->g[h2], chm->m);
-	fprintf(out, "    return (g[h1] + g[h2]) %% %u;\n", data->m);
+	fprintf(out, "    return (_%s_g[h1] + _%s_g[h2]) %% %u;\n", mph->c_prefix,
+		mph->c_prefix, data->m);
 	fprintf(out, "};\n");
 	fprintf(out, "uint32_t %s_size(void) {\n", mph->c_prefix);
 	fprintf(out, "    return %u;\n}\n", data->m);

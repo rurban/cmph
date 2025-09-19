@@ -203,20 +203,20 @@ int chd_compile(cmph_t *mphf, cmph_config_t *mph, FILE *out)
 	cmph_uint32 rank = compressed_rank_query_packed(packed_cr, bin_idx);
 	return bin_idx - rank;
 	 */
-	//hash_state_compile(3, &chd_ph->hl, true);
-	fprintf(out, "\nuint32_t %s_search(const char* key, uint32_t keylen) {\n", mph->c_prefix);
-	fprintf(out, "    /* n: %u */\n", chd_ph->n);
-	fprintf(out, "    /* m: %u */\n", chd_ph->m);
 	cmph_uint32 occup_size = chd_ph->n;
 	if (chd_ph->keys_per_bin <= 1)
 		occup_size  = ((chd_ph->n + 31)/32) * 4;
-	fprintf(out, "    const uint8_t occup_table[%u] = {\n        ", occup_size);
+	fprintf(out, "const uint8_t occup_table[%u] = {\n    ", occup_size);
 	for (unsigned i=0; i < occup_size - 1; i++) {
 		fprintf(out, "%u, ", chd_ph->occup_table[i]);
 		if (i % 16 == 15)
-			fprintf(out, "\n        ");
+			fprintf(out, "\n    ");
 	}
-	fprintf(out, "%u\n    };\n", chd_ph->occup_table[occup_size - 1]);
+	fprintf(out, "%u\n};\n", chd_ph->occup_table[occup_size - 1]);
+	// TODO compressed_seq_query_packed()
+	fprintf(out, "\nuint32_t %s_search(const char* key, uint32_t keylen) {\n", mph->c_prefix);
+	fprintf(out, "    /* n: %u */\n", chd_ph->n);
+	fprintf(out, "    /* m: %u */\n", chd_ph->m);
 	fprintf(out, "    uint32_t disp, position, probe0_num, probe1_num, f, g, h;\n");
 	fprintf(out, "    uint32_t hv[3];\n");
 	fprintf(out, "    %s_hash_vector(%u, (const unsigned char*)key, keylen, hv);\n",
