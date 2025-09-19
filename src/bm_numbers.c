@@ -7,6 +7,7 @@
 #ifdef COMPILED
 #include <dlfcn.h>
 #include <unistd.h>
+#include <sys/resource.h>
 #include <sys/stat.h>
 #endif
 
@@ -122,7 +123,11 @@ int bm_create(CMPH_ALGO algo, CMPH_HASH *hashes, int iters) {
   long c_sz = file_size_kb(c_file);
   printf("Created %s: %lu KB\n", c_file, c_sz);
 #if defined(__GNUC__) && defined(__x86_64__)
-  #define OPTIMS "-march=native"
+  #ifdef DEBUG
+    #define OPTIMS "-fstack-usage -march=native"
+  #else
+    #define OPTIMS "-march=native"
+  #endif
 #else
   #define OPTIMS ""
 #endif
@@ -163,7 +168,7 @@ int bm_search(CMPH_ALGO algo, CMPH_HASH *hashes, int iters) {
   snprintf(so_file, sizeof(so_file), "./bm_%s_%s.so", cmph_names[algo],
            cmph_hash_names[hash]);
   DEBUGP("dlopen \"%s\"\n", so_file);
-  void* dl = dlopen(so_file, RTLD_NOW | RTLD_GLOBAL);
+  void* dl = dlopen(so_file, RTLD_NOW);
   if (!dl) {
     fprintf(stderr, "Failed to dlopen %s\n", so_file);
     //unlink(so_file);
@@ -306,6 +311,26 @@ int main(int argc, char **argv) {
       exit(1);
     }
   }
+
+#ifdef COMPILED
+  if (iters > 100000) {
+    const rlim_t kStackSize = (2 * iters) + 48;   // stack size = 16 MB
+    struct rlimit rl;
+    int result = getrlimit(RLIMIT_STACK, &rl);
+    if (result == 0) {
+      if (rl.rlim_cur < kStackSize) {
+        DEBUGP("setrlimit stack-size from %lu KB to %lu KB\n", rl.rlim_cur, kStackSize);
+        rl.rlim_cur = kStackSize;
+        result = setrlimit(RLIMIT_STACK, &rl);
+        if (result != 0)
+          fprintf(stderr, "setrlimit failed with %d\n", result);
+      } else {
+        DEBUGP("getrlimit stack-size: %lu KB >= %lu KB\n", rl.rlim_cur, kStackSize);
+      }
+    }
+  }
+#endif
+
   g_numbers = random_numbers_vector_new(g_numbers_len);
   g_created_mphf = lsmap_new();
   g_expected_probes = lsmap_new();
