@@ -116,9 +116,9 @@ void bm_end(const char* name) {
   timeval_subtract(&stime, &benchmark->end.ru_stime, &benchmark->begin.ru_stime);
 
   printf("Benchmark: %s\n", benchmark->name);
-  printf("User time used  : %ld.%06ld\n",
+  printf("User time used  : %ld.%06ld\t",
          utime.tv_sec, (long int)utime.tv_usec);
-  printf("System time used: %ld.%06ld\n",
+  printf("(System time used: %ld.%06ld)\n",
          stime.tv_sec, (long int)stime.tv_usec);
   printf("\n");
   fflush(stdout);
