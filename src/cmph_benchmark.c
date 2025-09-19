@@ -121,6 +121,7 @@ void bm_end(const char* name) {
   printf("System time used: %ld.%06ld\n",
          stime.tv_sec, (long int)stime.tv_usec);
   printf("\n");
+  fflush(stdout);
 }
 
 void run_benchmarks(void) {
