@@ -197,29 +197,47 @@ The CMPH Library encapsulates the newest and more efficient algorithms in an eas
 <section>
 <h2>News for version 2.1.0</h2>
 
-<p>
-Added compilation to standalone C files.
-Optimize bmz,chm search with hash_vector.
-When selecting one hash function with -f, it selects this hash function
-for the next hash functions also, to override the default jenkins.
-Extended bm_numbers to accept -h hash, -a algo, -s size, -i iters.
-Added bm_compiled benchmarks.
-mphf_tests got -s, -a and -f support.
-Added -Wextra
-Removed unused args in the internal API.
-Fixed a lot of memory leaks.
-</p>
+<ul>
+<li>Added compilation to standalone C files.
+</li>
+<li>Optimize bmz,chm search with hash_vector.
+</li>
+<li>When selecting one hash function with -f, it selects this hash function
+  for the next hash functions also, to override the default jenkins.
+</li>
+<li>Extended bm_numbers to accept -h hash, -a algo, -s size, -i iters.
+</li>
+<li>Added bm_compiled benchmarks.
+</li>
+<li>mphf_tests got -s, -a and -f support.
+</li>
+<li>Added -Wextra
+</li>
+<li>Removed unused args in the internal API.
+</li>
+<li>Fixed a lot of memory leaks.
+<p></p>
+</li>
+</ul>
+
+<hr class="light">
 
 </section>
 <section>
 <h2>News for version 2.0.3</h2>
 
-<p>
-Fixed hash states, re-enabled the other hashes, added wyhash.
-This fixed bzm8, chd and chd_pc.
-Minor fixes for buffer overflows, leaks and unaligned accesses.
-Fixes for make distcheck.
-</p>
+<ul>
+<li>Fixed hash states, re-enabled the other hashes, added wyhash.
+  This fixed bzm8, chd and chd_pc.
+</li>
+<li>Minor fixes for buffer overflows, leaks and unaligned accesses.
+</li>
+<li>Fixes for make distcheck.
+<p></p>
+</li>
+</ul>
+
+<hr class="light">
 
 </section>
 <section>
@@ -228,30 +246,41 @@ Fixes for make distcheck.
 <p>
 Cleaned up most warnings for the c code.
 </p>
-<p>
-Experimental C++ interface (--enable-cxxmph) implementing the BDZ algorithm in
-a convenient SimpleMPHIndex interface, which serves as the basis
-for drop-in replacements for std::unordered_map, sparsehash::sparse_hash_map
-and sparsehash::dense_hash_map. Faster lookup time at the expense of insertion
-time. See cxxmpph/mph_map.h and cxxmph/mph_index.h for details.
-</p>
+
+<ul>
+<li>Experimental C++ interface (--enable-cxxmph) implementing the BDZ algorithm in
+  a convenient SimpleMPHIndex interface, which serves as the basis
+  for drop-in replacements for std::unordered_map, sparsehash::sparse_hash_map
+  and sparsehash::dense_hash_map. Faster lookup time at the expense of insertion
+  time. See cxxmpph/mph_map.h and cxxmph/mph_index.h for details.
+<p></p>
+</li>
+</ul>
+
+<hr class="light">
 
 </section>
 <section>
 <h2>News for version 1.1</h2>
 
-<p>
-Fixed a bug in the chd_pc algorithm and reorganized tests.
-</p>
+<ul>
+<li>Fixed a bug in the chd_pc algorithm and reorganized tests.
+<p></p>
+</li>
+</ul>
+
+<hr class="light">
 
 </section>
 <section>
 <h2>News for version 1.0</h2>
 
-<p>
-This is a bugfix only version, after which a revamp of the cmph code and
-algorithms will be done.
-</p>
+<ul>
+<li>This is a bugfix only version, after which a revamp of the cmph code and
+  algorithms will be done.
+<p></p>
+</li>
+</ul>
 
 <hr class="light">
 
@@ -265,6 +294,7 @@ algorithms will be done.
 <li><a href="chd.html">The CHD_PH algorithm</a>, which is an algorithm to generate PHFs with load factor up to <em>99 %</em>. It is actually the CHD algorithm without the ranking step. If we set the load factor to <em>81 %</em>, which is the maximum that can be obtained with <a href="bdz.html">the BDZ algorithm</a>, the resulting functions can be stored in <em>1.40</em> bits per key. The space requirement increases with the load factor.
 </li>
 <li>All reported bugs and suggestions have been corrected and included as well.
+<p></p>
 </li>
 </ul>
 
@@ -286,6 +316,7 @@ algorithms will be done.
 <li>The hash functions djb2, fnv and sdbm were removed because they do not use random seeds and therefore are not useful for MPHFs algorithms.
 </li>
 <li>All reported bugs and suggestions have been corrected and included as well.
+<p></p>
 </li>
 </ul>
 
@@ -297,6 +328,7 @@ algorithms will be done.
 
 <ul>
 <li>Added man pages and a pkgconfig file.
+<p></p>
 </li>
 </ul>
 
@@ -390,7 +422,7 @@ Enjoy!
 <a href="mailto:nivio@dcc.ufmg.br">Nivio Ziviani</a>
 </p>
 <p>
-<a href="mailto:reini.urban@gmail.com">Reini Urban</a>
+<a href="https://github.com/rurban/">Reini Urban</a>
 </p>
 <script type="text/javascript">
 var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
@@ -528,99 +560,70 @@ minimal perfect hash functions:
 
 <p>
 The additional options let you set most of the parameters you have
-available through the C API. Below you can see the full help message for the 
-utility.
+available through the C API.
 </p>
+
+</section>
+<section>
+<h2>Additional Documentation</h2>
+
 <p>
-usage: cmph [-v][-h][-V][-C] <a href="nkeys">-k</a> <a href="hash_function">-f</a> <a href="algorithm_dependent_value">-g [-c</a><a href="seed">-s</a> ]
-            <a href="algorithm">-a</a> <a href="memory_in_MB">-M</a> <a href="algorithm_dependent_value">-b</a> <a href="keys_per_bin">-t</a> <a href="tmp_dir">-d</a>
-            <a href="file.mph">-m</a> <a href="c_file">-o</a> <a href="c_func_prefix">-p</a> keysfile
-Minimum perfect hashing tool
+<a href="faq.html">FAQ</a>
 </p>
+
+</section>
+<section>
+<h2>Downloads</h2>
+
 <p>
-  -h	 print this help message
-  -c	 c value determines:
-    	  * the number of vertices in the graph for the algorithms BMZ and CHM
-    	  * the number of bits per key required in the FCH algorithm
-    	  * the load factor in the CHD_PH algorithm
-  -a	 algorithm - valid values are
-    	  * bmz
-    	  * bmz8
-    	  * chm
-    	  * brz
-    	  * fch
-    	  * bdz
-    	  * bdz_ph
-    	  * chd_ph
-    	  * chd
-  -f	 hash function (may be used multiple times) - valid values are
-    	  * jenkins
-      	  * wyhash
-      	  * djb2
-      	  * fnv
-      	  * sdbm
-      	  * crc32
-  -V	 print version number and exit
-  -v	 increase verbosity (may be used multiple times)
-  -k	 number of keys
-  -g	 generate a .mph file
-  -C	 generate a C file
-  -o	 name of C file (default: stdout)
-  -p	 name of C functions prefix (default: cmph_c_)
-  -s	 random seed
-  -m	 minimum perfect hash function .mph file
-  -M	 main memory availability (in MB) used in BRZ algorithm
-  -d	 temporary directory used in BRZ algorithm
-  -b	 the meaning of this parameter depends on the algorithm selected in the -a option:
-    	  * For BRZ it is used to make the maximal number of keys in a bucket lower than 256.
-    	    In this case its value should be an integer in the range [64,175]. Default is 128.
+Use the github releases page at: <a href="https://github.com/bonitao/cmph/releases">https://github.com/bonitao/cmph/releases</a>
 </p>
+
+</section>
+<section>
+<h2>License Stuff</h2>
+
 <p>
-    	  * For BDZ it is used to determine the size of some precomputed rank
-    	    information and its value should be an integer in the range [3,10]. Default
-    	    is 7. The larger is this value, the more compact are the resulting functions
-    	    and the slower are them at evaluation time.
-</p>
-<p>
-    	  * For CHD and CHD_PH it is used to set the average number of keys per bucket
-    	    and its value should be an integer in the range [1,32]. Default is 4. The
-    	    larger is this value, the slower is the construction of the functions.
-    	    This parameter has no effect for other algorithms.
-</p>
-<p>
-  -t	 set the number of keys per bin for a t-perfect hashing function. A t-perfect
-    	 hash function allows at most t collisions in a given bin. This parameter applies
-    	 only to the CHD and CHD_PH algorithms. Its value should be an integer in the
-    	 range [1,128]. Default is 1.
-  keysfile	 line separated file with keys
-</p>
-
-<pre>
-
-==Additional Documentation==
-
-[FAQ faq.html]
-
-==Downloads==
-
-Use the github releases page at: https://github.com/bonitao/cmph/releases
-
-==License Stuff==
-
 Code is under the LGPL and the MPL 1.1. 
-----------------------------------------
+</p>
 
-%!include: FOOTER.t2t
+<hr class="light">
 
-%!include(html): ''LOGO.t2t''
-Last Updated: %%date(%c)
-
-%!include(html): ''GOOGLEANALYTICS.t2t''
-</pre>
-
+<p>
+Enjoy!
+</p>
+<p>
+<a href="mailto:davi@users.sourceforge.net">Davi de Castro Reis</a>
+</p>
+<p>
+<a href="mailto:db8192@users.sourceforge.net">Djamel Belazzougui</a>
+</p>
+<p>
+<a href="mailto:fc_botelho@users.sourceforge.net">Fabiano Cupertino Botelho</a>
+</p>
+<p>
+<a href="mailto:nivio@dcc.ufmg.br">Nivio Ziviani</a>
+</p>
+<p>
+<a href="https://github.com/rurban/">Reini Urban</a>
+</p>
+<a href="http://sourceforge.net"><img src="http://sourceforge.net/sflogo.php?group_id=96251&type=1" width="88" height="31" border="0" alt="SourceForge.net Logo" /> </a>
+<p>
+Last Updated: Sat Sep 20 18:51:32 2025
+</p>
+<script type="text/javascript">
+var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+</script>
+<script type="text/javascript">
+try {
+var pageTracker = _gat._getTracker("UA-7698683-2");
+pageTracker._trackPageview();
+} catch(err) {}</script>
 </section>
 </section>
 </div>
-<!-- html code generated by txt2tags 3.4 (http://txt2tags.org) -->
+
+<!-- html code generated by txt2tags 3.3 (http://txt2tags.org) -->
 <!-- cmdline: txt2tags -t html -i README.t2t -o index.html -->
 </article></body></html>

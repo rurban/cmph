@@ -204,10 +204,7 @@ minimal perfect hash functions:
 ```
 
 The additional options let you set most of the parameters you have
-available through the C API. Below you can see the full help message for the 
-utility.
-
-%!include: CMPH.t2t
+available through the C API.
 
 ==Additional Documentation==
 

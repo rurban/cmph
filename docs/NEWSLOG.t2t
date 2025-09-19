@@ -7,42 +7,50 @@ News Log
 
 ==News for version 2.1.0==
 
-Added compilation to standalone C files.
-Optimize bmz,chm search with hash_vector.
-When selecting one hash function with -f, it selects this hash function
-for the next hash functions also, to override the default jenkins.
-Extended bm_numbers to accept -h hash, -a algo, -s size, -i iters.
-Added bm_compiled benchmarks.
-mphf_tests got -s, -a and -f support.
-Added -Wextra
-Removed unused args in the internal API.
-Fixed a lot of memory leaks.
+- Added compilation to standalone C files.
+- Optimize bmz,chm search with hash_vector.
+- When selecting one hash function with -f, it selects this hash function
+  for the next hash functions also, to override the default jenkins.
+- Extended bm_numbers to accept -h hash, -a algo, -s size, -i iters.
+- Added bm_compiled benchmarks.
+- mphf_tests got -s, -a and -f support.
+- Added -Wextra
+- Removed unused args in the internal API.
+- Fixed a lot of memory leaks.
+
+----------------------------------------
 
 ==News for version 2.0.3==
 
-Fixed hash states, re-enabled the other hashes, added wyhash.
-This fixed bzm8, chd and chd_pc.
-Minor fixes for buffer overflows, leaks and unaligned accesses.
-Fixes for make distcheck.
+- Fixed hash states, re-enabled the other hashes, added wyhash.
+  This fixed bzm8, chd and chd_pc.
+- Minor fixes for buffer overflows, leaks and unaligned accesses.
+- Fixes for make distcheck.
+
+----------------------------------------
 
 ==News for version 2.0==
 
 Cleaned up most warnings for the c code.
 
-Experimental C++ interface (--enable-cxxmph) implementing the BDZ algorithm in
-a convenient SimpleMPHIndex interface, which serves as the basis
-for drop-in replacements for std::unordered_map, sparsehash::sparse_hash_map
-and sparsehash::dense_hash_map. Faster lookup time at the expense of insertion
-time. See cxxmpph/mph_map.h and cxxmph/mph_index.h for details.
+- Experimental C++ interface (--enable-cxxmph) implementing the BDZ algorithm in
+  a convenient SimpleMPHIndex interface, which serves as the basis
+  for drop-in replacements for std::unordered_map, sparsehash::sparse_hash_map
+  and sparsehash::dense_hash_map. Faster lookup time at the expense of insertion
+  time. See cxxmpph/mph_map.h and cxxmph/mph_index.h for details.
+
+----------------------------------------
 
 ==News for version 1.1==
 
-Fixed a bug in the chd_pc algorithm and reorganized tests.
+- Fixed a bug in the chd_pc algorithm and reorganized tests.
+
+----------------------------------------
 
 ==News for version 1.0==
 
-This is a bugfix only version, after which a revamp of the cmph code and
-algorithms will be done.
+- This is a bugfix only version, after which a revamp of the cmph code and
+  algorithms will be done.
 
 ----------------------------------------
 
@@ -51,7 +59,6 @@ algorithms will be done.
 - [The CHD algorithm chd.html], which is an algorithm that can be tuned to generate MPHFs that require approximately 2.07 bits per key to be stored. The algorithm outperforms [the BDZ algorithm bdz.html] and therefore is the fastest one available in the literature for sets that can be treated in internal memory.
 - [The CHD_PH algorithm chd.html], which is an algorithm to generate PHFs with load factor up to //99 %//. It is actually the CHD algorithm without the ranking step. If we set the load factor to //81 %//, which is the maximum that can be obtained with [the BDZ algorithm bdz.html], the resulting functions can be stored in //1.40// bits per key. The space requirement increases with the load factor.
 - All reported bugs and suggestions have been corrected and included as well.
-
 
 ----------------------------------------
 
@@ -64,13 +71,11 @@ algorithms will be done.
 - The hash functions djb2, fnv and sdbm were removed because they do not use random seeds and therefore are not useful for MPHFs algorithms.
 - All reported bugs and suggestions have been corrected and included as well.
 
-
 ----------------------------------------
 
 ==News for version 0.7==
 
 - Added man pages and a pkgconfig file.
-
 
 ----------------------------------------
 

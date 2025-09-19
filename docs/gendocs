@@ -1,5 +1,6 @@
 #!/bin/sh
 
+cd "$(dirname "$0")" || exit 1
 txt2tags -t html -i README.t2t -o index.html
 txt2tags -t html -i CHD.t2t -o chd.html
 txt2tags -t html -i BDZ.t2t -o bdz.html
@@ -30,4 +31,4 @@ txt2tags -t txt -i NEWSLOG.t2t -o NEWSLOG
 txt2tags -t txt -i EXAMPLES.t2t -o EXAMPLES.txt
 mv -v EXAMPLES.txt EXAMPLES
 
-cd ../man && txt2tags -t man -i CMPH.t2t -o CMPH.1; cd -
+cd ../man && txt2tags -t man -i ../docs/CMPH.t2t -o cmph.1; cd -
