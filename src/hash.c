@@ -146,9 +146,8 @@ void hash_state_compile(int count, hash_state_t **states, bool do_vector, FILE* 
 		case CMPH_HASH_SDBM:
 			DEBUGP("Compile hash[%d] sdbm with seed %u\n", i, state->seed);
 			if (i == 0 || states[0]->hashfunc != CMPH_HASH_SDBM)
-				sdbm_prep_compile(out);
-			else
-				sdbm_state_compile_seed(i, state->seed, out);
+				sdbm_prep_compile(do_vector, out);
+			sdbm_state_compile_seed(i, state->seed, do_vector, out);
 			break;
 		default:
 			if (state->hashfunc < CMPH_HASH_COUNT)

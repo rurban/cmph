@@ -231,14 +231,14 @@ static int chm_gen_edges(cmph_config_t *mph)
 int chm_compile(cmph_t *mphf, cmph_config_t *mph, FILE *out)
 {
 	chm_data_t *data = (chm_data_t *)mphf->data;
-	bool do_vector = data->nhashes == 1 ||
+	bool do_vector = mph->nhashfuncs == 1 ||
 		mph->hashfuncs[0] == mph->hashfuncs[1];
 	//chm_config_data_t *config = (chm_config_data_t *)mph->data;
 	DEBUGP("Compiling chm\n");
 	hash_state_compile(data->nhashes, data->hashes, do_vector, out);
 	// single hash: jenkins_hash_%d
 	// hash_vector: jenkins_hash_vector
-	fprintf(out, "const uint32_t _%s_g[%u] = {\n        ", mph->c_prefix, data->n);
+	fprintf(out, "const uint32_t _%s_g[%u] = {\n    ", mph->c_prefix, data->n);
 	for (unsigned i=0; i < data->n - 1; i++) {
 		fprintf(out, "%u, ", data->g[i]);
 		if (i % 16 == 15)
