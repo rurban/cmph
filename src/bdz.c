@@ -3,6 +3,7 @@
 #include "bdz_structs.h"
 #include "hash.h"
 #include "bitbool.h"
+#include "compile.h"
 
 #include <math.h>
 #include <stdlib.h>
@@ -504,40 +505,11 @@ int bdz_compile(cmph_t *mphf, cmph_config_t *mph, FILE *out)
 	fprintf(out, "#define UNASSIGNED 3U\n");
 	//fprintf(out, "#define NULL_EDGE 0xffffffff\n");
 	fprintf(out, "#define GETVALUE(array, i) ((uint8_t)((array[i >> 2] >> ((i & UNASSIGNED) << 1U)) & UNASSIGNED))\n\n");
-	fprintf(out, "const uint8_t bdz_lookup_table[256] = {\n");
-	fprintf(out, "    4, 4, 4, 3, 4, 4, 4, 3, 4, 4, 4, 3, 3, 3, 3, 2,\n");
-	fprintf(out, "    4, 4, 4, 3, 4, 4, 4, 3, 4, 4, 4, 3, 3, 3, 3, 2,\n");
-	fprintf(out, "    4, 4, 4, 3, 4, 4, 4, 3, 4, 4, 4, 3, 3, 3, 3, 2,\n");
-	fprintf(out, "    3, 3, 3, 2, 3, 3, 3, 2, 3, 3, 3, 2, 2, 2, 2, 1,\n");
-	fprintf(out, "    4, 4, 4, 3, 4, 4, 4, 3, 4, 4, 4, 3, 3, 3, 3, 2,\n");
-	fprintf(out, "    4, 4, 4, 3, 4, 4, 4, 3, 4, 4, 4, 3, 3, 3, 3, 2,\n");
-	fprintf(out, "    4, 4, 4, 3, 4, 4, 4, 3, 4, 4, 4, 3, 3, 3, 3, 2,\n");
-	fprintf(out, "    3, 3, 3, 2, 3, 3, 3, 2, 3, 3, 3, 2, 2, 2, 2, 1,\n");
-	fprintf(out, "    4, 4, 4, 3, 4, 4, 4, 3, 4, 4, 4, 3, 3, 3, 3, 2,\n");
-	fprintf(out, "    4, 4, 4, 3, 4, 4, 4, 3, 4, 4, 4, 3, 3, 3, 3, 2,\n");
-	fprintf(out, "    4, 4, 4, 3, 4, 4, 4, 3, 4, 4, 4, 3, 3, 3, 3, 2,\n");
-	fprintf(out, "    3, 3, 3, 2, 3, 3, 3, 2, 3, 3, 3, 2, 2, 2, 2, 1,\n");
-	fprintf(out, "    3, 3, 3, 2, 3, 3, 3, 2, 3, 3, 3, 2, 2, 2, 2, 1,\n");
-	fprintf(out, "    3, 3, 3, 2, 3, 3, 3, 2, 3, 3, 3, 2, 2, 2, 2, 1,\n");
-	fprintf(out, "    3, 3, 3, 2, 3, 3, 3, 2, 3, 3, 3, 2, 2, 2, 2, 1,\n");
-	fprintf(out, "    2, 2, 2, 1, 2, 2, 2, 1, 2, 2, 2, 1, 1, 1, 1, 0\n");
-	fprintf(out, "};\n");
-	fprintf(out, "const uint32_t bdz_ranktable[%u] = {\n    ", bdz->ranktablesize);
-	for (cmph_uint32 i=0; i < bdz->ranktablesize - 1; i++) {
-		fprintf(out, "%u, ", bdz->ranktable[i]);
-		if (i % 16 == 15)
-			fprintf(out, "\n    ");
-	}
-	fprintf(out, "    %u\n};\n", bdz->ranktable[bdz->ranktablesize - 1]);
+	bytes_compile(out, "bdz_lookup_table", bdz_lookup_table, 256);
+	uint32_compile(out, "bdz_ranktable", bdz->ranktable, bdz->ranktablesize);
 	cmph_uint32 sizeg = (cmph_uint32)ceil(bdz->n/4.0);
-	fprintf(out, "const uint8_t bdz_g[%u] = {\n    ", sizeg);
-	for (unsigned i=0; i < sizeg - 1; i++) {
-		fprintf(out, "%u, ", bdz->g[i]);
-		if (i % 16 == 15)
-			fprintf(out, "\n    ");
-	}
-	fprintf(out, "%u\n};\n", bdz->g[sizeg - 1]);
-	fprintf(out, "\nstatic inline uint32_t rank(uint32_t vertex) {\n");
+	bytes_compile(out, "bdz_g", bdz->g, sizeg);
+	fprintf(out, "\nstatic inline uint32_t rank(const uint32_t vertex) {\n");
 	fprintf(out, "    uint32_t index = vertex >> %u;\n", bdz->b);
 	fprintf(out, "    assert(index < %u);\n", bdz->ranktablesize);
 	fprintf(out, "    uint32_t base_rank = bdz_ranktable[index];\n");
@@ -568,14 +540,13 @@ int bdz_compile(cmph_t *mphf, cmph_config_t *mph, FILE *out)
 	fprintf(out, "\nuint32_t %s_search(const char* key, uint32_t keylen) {\n", mph->c_prefix);
 	fprintf(out, "    /* n: %u */\n", bdz->n);
 	fprintf(out, "    /* m: %u */\n", bdz->m);
-	fprintf(out, "    uint32_t vertex;\n");
 	fprintf(out, "    uint32_t hl[3];\n");
 	fprintf(out, "    %s_hash_vector(%u, (const unsigned char*)key, keylen, hl);\n",
 	       cmph_hash_names[config->hashfunc], bdz->hl->seed);
 	fprintf(out, "    hl[0] = hl[0] %% %u;\n", bdz->r);
 	fprintf(out, "    hl[1] = hl[1] %% %u + %u;\n", bdz->r, bdz->r);
 	fprintf(out, "    hl[2] = hl[2] %% %u + (%u << 1);\n", bdz->r, bdz->r);
-	fprintf(out, "    vertex = hl[(GETVALUE(bdz_g, hl[0]) + GETVALUE(bdz_g, hl[1]) + GETVALUE(bdz_g, hl[2])) %% 3];\n");
+	fprintf(out, "    const uint32_t vertex = hl[(GETVALUE(bdz_g, hl[0]) + GETVALUE(bdz_g, hl[1]) + GETVALUE(bdz_g, hl[2])) %% 3];\n");
 #ifdef DEBUG
 	fprintf(out, "#ifdef DEBUG\n");
 	fprintf(out, "    fprintf(stderr, \"search key: \\\"%%.*s\\\"\\n\", (int)keylen, key);\n");

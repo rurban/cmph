@@ -4,6 +4,8 @@
 #include "hash.h"
 #include "bitbool.h"
 #include "fch_buckets.h"
+#include "compile.h"
+
 #include <math.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -330,6 +332,7 @@ cmph_t *fch_new(cmph_config_t *mph, double c)
 int fch_compile(cmph_t *mphf, cmph_config_t *mph, FILE *out)
 {
 	fch_data_t *data = (fch_data_t *)mphf->data;
+	char g_name[24];
 	bool do_vector = mph->nhashfuncs == 1 ||
 		mph->hashfuncs[0] == mph->hashfuncs[1];
 	hash_state_t *hl[2] = { data->h1, data->h2 };
@@ -350,24 +353,16 @@ int fch_compile(cmph_t *mphf, cmph_config_t *mph, FILE *out)
 	fprintf(out, "    }\n");
 	fprintf(out, "    return initial_index;\n");
 	fprintf(out, "}\n");
-	fprintf(out, "const uint32_t _%s_g[%u] = {\n    ", mph->c_prefix, data->b);
-	for (unsigned i=0; i < data->b - 1; i++) {
-		fprintf(out, "%u, ", data->g[i]);
-		if (i % 16 == 15)
-			fprintf(out, "\n    ");
-	}
-	fprintf(out, "%u\n};\n", data->g[data->b - 1]);
+	snprintf(g_name, sizeof(g_name)-1, "_%s_g", mph->c_prefix);
+	uint32_compile(out, g_name, data->g, data->b);
 	fprintf(out, "\nuint32_t %s_search(const char* key, uint32_t keylen) {\n", mph->c_prefix);
 	fprintf(out, "    /* m: %u */\n", data->m);
 	fprintf(out, "    /* c: %f */\n", data->c);
-	fprintf(out, "    /* b: %u */\n", data->b);
-	fprintf(out, "    /* p1: %f */\n", data->p1);
-	fprintf(out, "    /* p2: %f */\n", data->p2);
 	fprintf(out, "    uint32_t h1, h2;\n");
 	if (mph->nhashfuncs > 1) {
-		fprintf(out, "   h1 = %s_hash_0((const unsigned char*)key, keylen) %% %u;\n",
+		fprintf(out, "    h1 = %s_hash_0((const unsigned char*)key, keylen) %% %u;\n",
 		       cmph_hash_names[hl[0]->hashfunc], data->m);
-		fprintf(out, "   h2 = %s_hash_1((const unsigned char*)key, keylen) %% %u;\n",
+		fprintf(out, "    h2 = %s_hash_1((const unsigned char*)key, keylen) %% %u;\n",
 		       cmph_hash_names[hl[1]->hashfunc], data->m);
 	}
 	else {
@@ -380,7 +375,7 @@ int fch_compile(cmph_t *mphf, cmph_config_t *mph, FILE *out)
 	fprintf(out, "    h1 = mixh10h11h12 (h1);\n");
 	fprintf(out, "    assert(h1 < %u);\n", data->b);
 	//fprintf(out, "    DEBUGP(\"key: %%s h1: %%u h2: %%u  _%s_g[h1]: %%u\\n\", key, h1, h2, g[h1]);\n", mph->c_prefix);
-	fprintf(out, "    return (h2 + _%s_g[h1]) %% %u;\n", mph->c_prefix, data->m);
+	fprintf(out, "    return (h2 + %s[h1]) %% %u;\n", g_name, data->m);
 	fprintf(out, "}\n");
 
 	fprintf(out, "uint32_t %s_size(void) {\n", mph->c_prefix);

@@ -4,6 +4,7 @@
 #include "chm_structs.h"
 #include "hash.h"
 #include "bitbool.h"
+#include "compile.h"
 
 #include <math.h>
 #include <stdlib.h>
@@ -231,6 +232,7 @@ static int chm_gen_edges(cmph_config_t *mph)
 int chm_compile(cmph_t *mphf, cmph_config_t *mph, FILE *out)
 {
 	chm_data_t *data = (chm_data_t *)mphf->data;
+	char g_name[24];
 	bool do_vector = mph->nhashfuncs == 1 ||
 		mph->hashfuncs[0] == mph->hashfuncs[1];
 	//chm_config_data_t *config = (chm_config_data_t *)mph->data;
@@ -238,13 +240,8 @@ int chm_compile(cmph_t *mphf, cmph_config_t *mph, FILE *out)
 	hash_state_compile(data->nhashes, data->hashes, do_vector, out);
 	// single hash: jenkins_hash_%d
 	// hash_vector: jenkins_hash_vector
-	fprintf(out, "const uint32_t _%s_g[%u] = {\n    ", mph->c_prefix, data->n);
-	for (unsigned i=0; i < data->n - 1; i++) {
-		fprintf(out, "%u, ", data->g[i]);
-		if (i % 16 == 15)
-			fprintf(out, "\n    ");
-	}
-	fprintf(out, "%u\n};\n", data->g[data->n - 1]);
+	snprintf(g_name, sizeof(g_name)-1, "_%s_g", mph->c_prefix);
+	uint32_compile(out, g_name, data->g, data->n);
 	fprintf(out, "\nuint32_t %s_search(const char* key, uint32_t keylen) {\n", mph->c_prefix);
 	fprintf(out, "    /* n: %u */\n", data->n);
 	fprintf(out, "    /* m: %u */\n", data->m);
@@ -265,8 +262,7 @@ int chm_compile(cmph_t *mphf, cmph_config_t *mph, FILE *out)
 	//DEBUGP("key: %s h1: %u h2: %u\n", key, h1, h2);
 	fprintf(out, "    if (h1 == h2 && ++h2 >= %u) h2 = 0;\n", data->n);
 	//DEBUGP("key: %s g[h1]: %u g[h2]: %u edges: %u\n", key, chm->g[h1], chm->g[h2], chm->m);
-	fprintf(out, "    return (_%s_g[h1] + _%s_g[h2]) %% %u;\n", mph->c_prefix,
-		mph->c_prefix, data->m);
+	fprintf(out, "    return (%s[h1] + %s[h2]) %% %u;\n", g_name, g_name, data->m);
 	fprintf(out, "};\n");
 	fprintf(out, "uint32_t %s_size(void) {\n", mph->c_prefix);
 	fprintf(out, "    return %u;\n}\n", data->m);
