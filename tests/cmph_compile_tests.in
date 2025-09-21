@@ -73,7 +73,7 @@ for f in $funcs; do
                 ;;
             *) ;;
         esac
-        echo "** cmph -C -f $f -a $a $words >${a}_${f}.c"
+        echo "** cmph -C -f $args -a $a $words >${a}_${f}.c"
         ../src/cmph -C -f $args -a "$a" "$words" >"${a}_${f}.c"
         echo "** cc -O2 -Wall -Wextra -c -I@top_srcdir@/src ${a}_${f}.c"
         cc -O2 -Wall -Wextra -c -I"@top_srcdir@/src" "${a}_${f}.c"

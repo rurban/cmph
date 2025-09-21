@@ -33,7 +33,7 @@ int main(int argc, char **argv) {
 
         h = cmph_c_search(key, len-1);
 
-        if (h >= nkeys) {
+        if (h >= nkeys) { // FIXME for _ph variants
             fprintf(stderr, "Unknown key %*s, h %u too large\n", len-1, key, h);
             failed++;
         } else if (hasharray[h]) {

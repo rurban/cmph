@@ -138,7 +138,7 @@ void fnv_hash_vector_packed(void *fnv_packed, const char *k, cmph_uint32 keylen,
 void fnv_prep_compile(bool do_vector, FILE* out) {
 	fprintf(out,
 "\n/* fnv_hash */\n"
-"static uint32_t fnv_hash(uint32_t seed, const uint8_t *k, const uint32_t keylen) {\n"
+"static uint32_t fnv_hash(const uint32_t seed, const uint8_t *k, const uint32_t keylen) {\n"
 "    const unsigned char *bp = (const unsigned char *)k;\n"
 "    const unsigned char *be = bp + keylen;\n"
 "    unsigned int hval = (unsigned int)seed;\n"
@@ -157,10 +157,10 @@ void fnv_prep_compile(bool do_vector, FILE* out) {
     if (do_vector)
 	    fprintf(out,
 "/* 3x 32bit hashes. */\n"
-"static inline void fnv_hash_vector(uint32_t seed, const unsigned char *key, uint32_t keylen, uint32_t *hashes) {\n"
-"    hashes[0] = fnv_hash(seed++, key, keylen);\n"
-"    hashes[1] = fnv_hash(seed++, key, keylen);\n"
-"    hashes[2] = fnv_hash(seed, key, keylen);\n"
+"static inline void fnv_hash_vector(const uint32_t seed, const unsigned char *key, uint32_t keylen, uint32_t *hashes) {\n"
+"    hashes[0] = fnv_hash(seed, key, keylen);\n"
+"    hashes[1] = fnv_hash(seed+1, key, keylen);\n"
+"    hashes[2] = fnv_hash(seed+2, key, keylen);\n"
 "}\n"
 "\n");
 }
