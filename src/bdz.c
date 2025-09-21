@@ -19,22 +19,22 @@
 // table used for looking up the number of assigned vertices, a 8-bit integer
 const cmph_uint8 bdz_lookup_table[256] =
 {
-4, 4, 4, 3, 4, 4, 4, 3, 4, 4, 4, 3, 3, 3, 3, 2,
-4, 4, 4, 3, 4, 4, 4, 3, 4, 4, 4, 3, 3, 3, 3, 2,
-4, 4, 4, 3, 4, 4, 4, 3, 4, 4, 4, 3, 3, 3, 3, 2,
-3, 3, 3, 2, 3, 3, 3, 2, 3, 3, 3, 2, 2, 2, 2, 1,
-4, 4, 4, 3, 4, 4, 4, 3, 4, 4, 4, 3, 3, 3, 3, 2,
-4, 4, 4, 3, 4, 4, 4, 3, 4, 4, 4, 3, 3, 3, 3, 2,
-4, 4, 4, 3, 4, 4, 4, 3, 4, 4, 4, 3, 3, 3, 3, 2,
-3, 3, 3, 2, 3, 3, 3, 2, 3, 3, 3, 2, 2, 2, 2, 1,
-4, 4, 4, 3, 4, 4, 4, 3, 4, 4, 4, 3, 3, 3, 3, 2,
-4, 4, 4, 3, 4, 4, 4, 3, 4, 4, 4, 3, 3, 3, 3, 2,
-4, 4, 4, 3, 4, 4, 4, 3, 4, 4, 4, 3, 3, 3, 3, 2,
-3, 3, 3, 2, 3, 3, 3, 2, 3, 3, 3, 2, 2, 2, 2, 1,
-3, 3, 3, 2, 3, 3, 3, 2, 3, 3, 3, 2, 2, 2, 2, 1,
-3, 3, 3, 2, 3, 3, 3, 2, 3, 3, 3, 2, 2, 2, 2, 1,
-3, 3, 3, 2, 3, 3, 3, 2, 3, 3, 3, 2, 2, 2, 2, 1,
-2, 2, 2, 1, 2, 2, 2, 1, 2, 2, 2, 1, 1, 1, 1, 0
+    4, 4, 4, 3, 4, 4, 4, 3, 4, 4, 4, 3, 3, 3, 3, 2,
+    4, 4, 4, 3, 4, 4, 4, 3, 4, 4, 4, 3, 3, 3, 3, 2,
+    4, 4, 4, 3, 4, 4, 4, 3, 4, 4, 4, 3, 3, 3, 3, 2,
+    3, 3, 3, 2, 3, 3, 3, 2, 3, 3, 3, 2, 2, 2, 2, 1,
+    4, 4, 4, 3, 4, 4, 4, 3, 4, 4, 4, 3, 3, 3, 3, 2,
+    4, 4, 4, 3, 4, 4, 4, 3, 4, 4, 4, 3, 3, 3, 3, 2,
+    4, 4, 4, 3, 4, 4, 4, 3, 4, 4, 4, 3, 3, 3, 3, 2,
+    3, 3, 3, 2, 3, 3, 3, 2, 3, 3, 3, 2, 2, 2, 2, 1,
+    4, 4, 4, 3, 4, 4, 4, 3, 4, 4, 4, 3, 3, 3, 3, 2,
+    4, 4, 4, 3, 4, 4, 4, 3, 4, 4, 4, 3, 3, 3, 3, 2,
+    4, 4, 4, 3, 4, 4, 4, 3, 4, 4, 4, 3, 3, 3, 3, 2,
+    3, 3, 3, 2, 3, 3, 3, 2, 3, 3, 3, 2, 2, 2, 2, 1,
+    3, 3, 3, 2, 3, 3, 3, 2, 3, 3, 3, 2, 2, 2, 2, 1,
+    3, 3, 3, 2, 3, 3, 3, 2, 3, 3, 3, 2, 2, 2, 2, 1,
+    3, 3, 3, 2, 3, 3, 3, 2, 3, 3, 3, 2, 2, 2, 2, 1,
+    2, 2, 2, 1, 2, 2, 2, 1, 2, 2, 2, 1, 1, 1, 1, 0
 };
 
 typedef struct
@@ -314,9 +314,7 @@ cmph_t *bdz_new(cmph_config_t *mph, double c)
 	// Mapping step
 	iterations = 1000;
 	if (mph->verbosity)
-	{
 		fprintf(stderr, "Entering mapping step for mph creation of %u keys with graph sized %u\n", bdz->m, bdz->n);
-	}
 	while(1)
 	{
 		int ok;
@@ -331,13 +329,13 @@ cmph_t *bdz_new(cmph_config_t *mph, double c)
 			bdz->hl = NULL;
 			DEBUGP("%u iterations remaining\n", iterations);
 			if (mph->verbosity)
-			{
 				fprintf(stderr, "acyclic graph creation failure - %u iterations remaining\n",
                                         iterations);
-			}
-			if (iterations == 0) break;
+			if (iterations == 0)
+				break;
 		}
-		else break;
+		else
+			break;
 	}
 
 	if (iterations == 0)
@@ -349,19 +347,15 @@ cmph_t *bdz_new(cmph_config_t *mph, double c)
 	bdz_partial_free_graph3(&graph3);
 	// Assigning step
 	if (mph->verbosity)
-	{
 		fprintf(stderr, "Entering assigning step for mph creation of %u keys with graph sized %u\n",
                         bdz->m, bdz->n);
-	}
 	assigning(bdz, &graph3, edges);
 
 	bdz_free_queue(&edges);
 	bdz_free_graph3(&graph3);
 	if (mph->verbosity)
-	{
 		fprintf(stderr, "Entering ranking step for mph creation of %u keys with graph sized %u\n",
                         bdz->m, bdz->n);
-	}
 	ranking(bdz);
 #ifdef CMPH_TIMING
 	ELAPSED_TIME_IN_SECONDS(&construction_time);
@@ -386,9 +380,7 @@ cmph_t *bdz_new(cmph_config_t *mph, double c)
 
 	DEBUGP("Successfully generated minimal perfect hash\n");
 	if (mph->verbosity)
-	{
 		fprintf(stderr, "Successfully generated minimal perfect hash function\n");
-	}
 
 
 #ifdef CMPH_TIMING
@@ -417,7 +409,7 @@ static int bdz_mapping(cmph_config_t *mph, bdz_graph3_t* graph3, bdz_queue_t que
 		cmph_uint32 keylen;
 		char *key = NULL;
 		mph->key_source->read(mph->key_source->data, &key, &keylen);
-		hash_vector(bdz->hl, key, keylen,hl);
+		hash_vector(bdz->hl, key, keylen, hl);
 		h0 = hl[0] % bdz->r;
 		h1 = hl[1] % bdz->r + bdz->r;
 		h2 = hl[2] % bdz->r + (bdz->r << 1);
@@ -503,6 +495,7 @@ int bdz_compile(cmph_t *mphf, cmph_config_t *mph, FILE *out)
 	bdz_data_t *bdz = (bdz_data_t *)mphf->data;
 	bdz_config_data_t *config = (bdz_config_data_t *)mph->data;
 	DEBUGP("Compiling bdz\n");
+	// only one function, but vectorized
 	hash_state_compile(1, &bdz->hl, true, out);
 	fprintf(out, "#include <assert.h>\n");
 	fprintf(out, "#ifdef DEBUG\n");

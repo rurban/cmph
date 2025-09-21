@@ -27,6 +27,8 @@ compressed_rank_tests_LDADD = ../src/libcmph.la
 cmph_benchmark_test_SOURCES = cmph_benchmark_test.c
 cmph_benchmark_test_LDADD = ../src/libcmph.la
 
-CLEANFILES = test-suite.log _words _words.mph _words100 _words100.mph TAGS \
-  cmph_compile_run.o cmph_compile_run \
-  bmz.c bmz8.c chm.c brz.c fch.c bdz.c bdz_ph.c chd_ph.c chd.c
+CLEANFILES = test-suite.log _words _words.mph _words100 _words100.mph \
+  _words1000 _words1000.mph TAGS cmph_compile_run.o cmph_compile_run \
+  bmz.c bmz8.c chm.c brz.c fch.c bdz.c bdz_ph.c chd_ph.c chd.c \
+  bdz_ph_crc32.c chd_ph_wyhash.c chd_ph_crc32.c chd_ph_fnv.c \
+  bdz_ph_fnv.c fch_jenkins.c bdz_ph_jenkins.c chd_ph_jenkins.c bdz_ph_wyhash.c

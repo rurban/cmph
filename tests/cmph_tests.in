@@ -7,13 +7,16 @@ WORDS=/usr/share/dict/words
 
 test -e _words || head -n $N <${WORDS} >_words
 test -e _words100 || head -n 100 <${WORDS} >_words100
-#test -e _words1000 || head -n 1000 <${WORDS} >_words1000
+test -e _words1000 || head -n 1000 <${WORDS} >_words1000
 
 for a in bmz chm brz fch bdz bdz_ph bmz8 chd chd_ph; do
     rm -f _words.mph
     if [ $a = bmz8 ]; then
         rm -f _words100.mph
         words=_words100
+    elif [ $a = fch ]; then
+        rm -f _words1000.mph
+        words=_words1000
     else
         words=_words
     fi
@@ -26,8 +29,16 @@ for a in bmz chm brz fch bdz bdz_ph bmz8 chd chd_ph; do
         if [ $f = sdbm ] || [ $f = djb2 ]
         then
             echo too weak $f hash alone, add a seperate hashfunc and a seed
-            f="$f -f jenkins -s 11"
-        elif [ $a = chm -o $a = brz ] && [ $f = crc32 ]
+            if [ $a = bdz -o $a = bdz_ph ] && [ $f = sdbm ]; then
+                words=_words100
+                f="jenkins -f $f -s 11"
+            elif [ $a = bdz -o $a = bdz_ph ] && [ $f = djb2 ]; then
+                words=_words1000
+                f="jenkins -f $f -s 11"
+            else
+                f="$f -f jenkins -s 11"
+            fi
+        elif [ $a = chm -o $a = brz -o $a = bmz ] && [ $f = crc32 ]
         then
             echo too weak $f hash alone, add a seperate hashfunc and a seed
             f="$f -f jenkins -s 11"
@@ -35,9 +46,14 @@ for a in bmz chm brz fch bdz bdz_ph bmz8 chd chd_ph; do
         then
             echo too weak $f hash alone, add a seperate hashfunc and a seed
             f="$f -f jenkins -s 11"
-        elif [ $a = fch ] && [ $f = wyhash ]; then
-            rm -f _words1000.mph
-            words=_words1000
+        elif [ $a = fch ] && [ $f = wyhash -o $f = fnv ]
+        then
+            echo too weak $f hash alone, add a seperate hashfunc and a seed
+            f="$f -f jenkins -s 11"
+        elif [ $a = bmz8 ] && [ $f = wyhash -o $f = fnv ]
+        then
+            echo too weak $f hash alone, add a seperate hashfunc and a seed
+            f="$f -f jenkins -s 11"
         fi
         #case $f in
         #    sdbm|djb2*)
@@ -54,5 +70,5 @@ for a in bmz chm brz fch bdz bdz_ph bmz8 chd chd_ph; do
     done
 done
 rm -f _words100 _words100.mph
-#rm -f _words1000 _words1000.mph
+rm -f _words1000 _words1000.mph
 rm -f _words _words.mph
