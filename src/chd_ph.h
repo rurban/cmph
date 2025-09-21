@@ -57,4 +57,6 @@ cmph_uint32 chd_ph_packed_size(cmph_t *mphf);
  */
 cmph_uint32 chd_ph_search_packed(void *packed_mphf, const char *key, cmph_uint32 keylen);
 
+//void chd_ph_search_packed_compile(FILE *out, hash_state_t *state);
+
 #endif

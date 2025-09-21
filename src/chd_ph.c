@@ -866,7 +866,7 @@ int chd_ph_compile(cmph_t *mphf, cmph_config_t *mph, FILE *out)
 	fprintf(out, "    /* n: %u */\n", chd_ph->n);
 	fprintf(out, "    /* m: %u */\n", chd_ph->m);
 	fprintf(out, "    /* nbuckets: %u */\n", data->nbuckets);
-	fprintf(out, "    uint32_t disp, position, probe0_num, probe1_num, f, g, h;\n");
+	fprintf(out, "    uint32_t disp, probe0_num, probe1_num, f, g, h;\n");
 	fprintf(out, "    uint32_t hv[3];\n");
 	fprintf(out, "    %s_hash_vector(%u, (const unsigned char*)key, keylen, hv);\n",
 	       cmph_hash_names[chd_ph->hashfunc], data->hl->seed);
@@ -965,7 +965,6 @@ void chd_ph_pack(cmph_t *mphf, void *packed_mphf)
 	// packing cs
 	compressed_seq_pack(data->cs, ptr);
 	//ptr += compressed_seq_packed_size(data->cs);
-
 }
 
 cmph_uint32 chd_ph_packed_size(cmph_t *mphf)
@@ -1004,4 +1003,43 @@ cmph_uint32 chd_ph_search_packed(void *packed_mphf, const char *key, cmph_uint32
 	probe1_num = disp/n;
 	position = (cmph_uint32)((f + ((cmph_uint64 )h)*probe0_num + probe1_num) % n);
 	return position;
+}
+
+void chd_ph_search_packed_compile(FILE *out, hash_state_t *state)
+{
+    compressed_seq_query_packed_compile(out);
+    fputs(
+	"static uint32_t chd_ph_search_packed(const uint32_t *packed_mphf, const char *key, uint32_t keylen) {\n"
+	"    packed_mphf++; // algo\n"
+	//"    CMPH_HASH hl_type = (CMPH_HASH)*(uint32_t *)packed_mphf;\n"
+	"    uint8_t *hl_ptr = (uint8_t *)(packed_mphf) + 4;\n"
+	"    //uint32_t hl_seed = *(uint32_t *)hl_ptr;\n"
+	"\n", out);
+    DEBUGP("hash_state_packed_size = %u\n", hash_state_packed_size(state->hashfunc));
+    fprintf(out,
+	"    uint32_t *ptr = (uint32_t *)(hl_ptr + %u);\n", hash_state_packed_size(state->hashfunc));
+    fputs(
+	"    uint32_t n = *ptr++;\n"
+	"    uint32_t nbuckets = *ptr++;\n"
+	"\n"
+	"    uint32_t disp, position;\n"
+	"    uint32_t probe0_num, probe1_num;\n"
+	"    uint32_t f, g, h;\n"
+	"    uint32_t hl[3];\n"
+	"\n", out);
+    fprintf(out,
+	"    %s_hash_vector(%uU, (const unsigned char*)key, keylen, hl);\n",
+	         cmph_hash_names[state->hashfunc], state->seed);
+    fputs(
+	"\n"
+	"    g = hl[0] % nbuckets;\n"
+	"    f = hl[1] % n;\n"
+	"    h = hl[2] % (n-1) + 1;\n"
+	"\n"
+	"    disp = compressed_seq_query_packed(ptr, g);\n"
+	"    probe0_num = disp % n;\n"
+	"    probe1_num = disp/n;\n"
+	"    position = (uint32_t)((f + ((uint64_t )h)*probe0_num + probe1_num) % n);\n"
+	"    return position;\n"
+	"}\n", out);
 }

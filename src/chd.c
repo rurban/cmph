@@ -98,7 +98,7 @@ cmph_t *chd_new(cmph_config_t *mph, double c) {
   /* Make sure that we have enough space to pack the mphf. */
   packed_chd_phf = (cmph_uint8 *)calloc((size_t)packed_chd_phf_size, (size_t)1);
 
-  /* Pack the mphf. */
+  /* Pack the chd_ph */
   cmph_pack(chd_phf, packed_chd_phf);
 
   cmph_destroy(chd_phf);
@@ -180,23 +180,30 @@ void chd_load(FILE *fd, cmph_t *mphf) {
   CHK_FREAD(chd->packed_cr, chd->packed_cr_size, (size_t)1, fd);
 }
 
+void chd_ph_search_packed_compile(FILE *out, hash_state_t *state);
+
 int chd_compile(cmph_t *mphf, cmph_config_t *mph, FILE *out) {
   chd_data_t *data = (chd_data_t *)mphf->data;
   chd_config_data_t *config = (chd_config_data_t *)mph->data;
   chd_ph_config_data_t *chd_ph = (chd_ph_config_data_t *)config->chd_ph->data;
-  cmph_config_t cmph_config = {0};
-  cmph_config.data = chd_ph;
-  cmph_config.c_prefix = "chd_ph";
-  chd_ph_compile((cmph_t *)data->packed_chd_phf, &cmph_config, out);
+  // hash_vector_packed is just the hashfunc and seed
+  CMPH_HASH hashfunc  = (CMPH_HASH)*(uint32_t *)(data->packed_chd_phf + 4);
+  uint32_t *seed = (uint32_t*)&data->packed_chd_phf[8];
+  hash_state_t state = {hashfunc, *seed};
+  hash_state_t *states = &state;
   DEBUGP("Compiling chd\n");
+  hash_state_compile(1, (hash_state_t **)&states, true, out);
+  uint32_compile(out, "packed_chd_phf", (uint32_t*)data->packed_chd_phf, data->packed_chd_phf_size/4);
+  uint32_compile(out, "packed_cr", (uint32_t*)data->packed_cr, data->packed_cr_size/4);
+  chd_ph_search_packed_compile(out, &state);
   compressed_rank_query_packed_compile(out);
   fprintf(out, "\nuint32_t %s_search(const char* key, uint32_t keylen) {\n",
           mph->c_prefix);
   fprintf(out, "    /* n: %u */\n", chd_ph->n);
   fprintf(out, "    /* m: %u */\n", chd_ph->m);
-  fprintf(out, "    uint32_t bin_idx = %s_search(packed_chd_phf, packed_cr, key, keylen);\n", mph->c_prefix);
-  fprintf(out, "    uint32_t rank = compressed_rank_query_packed(packed_cr, bin_idx);\n");
-  fprintf(out, "    return bin_idx - rank);\n");
+  fprintf(out, "    uint32_t bin_idx = chd_ph_search_packed((const uint32_t*)packed_chd_phf, key, keylen);\n");
+  fprintf(out, "    uint32_t rank = compressed_rank_query_packed((const uint32_t*)packed_cr, bin_idx);\n");
+  fprintf(out, "    return bin_idx - rank;\n");
   fprintf(out, "};\n");
   fprintf(out, "uint32_t %s_size(void) {\n", mph->c_prefix);
   fprintf(out, "    return %u;\n}\n", chd_ph->m);

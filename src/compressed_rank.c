@@ -4,6 +4,7 @@
 #include<string.h>
 #include"compressed_rank.h"
 #include"bitbool.h"
+#include"compile.h"
 // #define DEBUG
 #include"debug.h"
 
@@ -319,19 +320,21 @@ cmph_uint32 compressed_rank_query_packed(void * cr_packed, cmph_uint32 idx)
 }
 
 void compressed_rank_query_packed_compile(FILE *out) {
-  fprintf(out,
-      "static uint32_t compressed_rank_query_packed(void *cr_packed, uint32_t idx) {\n"
+    uint32_compile(out, "bitmask32", bitmask32, 32);
+    fprintf(out,
+      "#define GETBIT32(array, i) (array[i >> 5] & bitmask32[i & 0x0000001f])\n"
+      "static uint32_t compressed_rank_query_packed(const uint32_t *cr_packed, uint32_t idx) {\n"
       "    // unpacking cr_packed\n"
       "    uint32_t *ptr = (uint32_t *)cr_packed;\n"
       "    uint32_t max_val = *ptr++;\n"
       "    uint32_t n = *ptr++;\n"
       "    uint32_t rem_r = *ptr++;\n"
       "    uint32_t buflen_sel = *ptr++;\n"
-      "    uint32_t * sel_packed = ptr;\n"
+      "    const uint32_t *sel_packed = ptr;\n"
       "\n"
-      "    uint32_t * bits_vec = sel_packed + 2; // skipping n and m\n"
+      "    const uint32_t *bits_vec = sel_packed + 2; // skipping n and m\n"
       "\n"
-      "	   uint32_t * vals_rems = (ptr += (buflen_sel >> 2)); \n"
+      "    const uint32_t *vals_rems = (ptr += (buflen_sel >> 2)); \n"
       "\n"
       "    // compressed sequence query computation\n"
       "    uint32_t rems_mask;\n"

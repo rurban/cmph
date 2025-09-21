@@ -476,27 +476,23 @@ void compressed_seq_query_compile(FILE *out, compressed_seq_t *cs)
 	  "}\n");
 }
 
-#if 0
-void compressed_seq_query_packed_compile(FILE *out, struct __chd_data_t *data)
+void compressed_seq_query_packed_compile(FILE *out)
 {
-  bytes_compile(out, "rank_lookup_table", rank_lookup_table, 256);
-  bytes_2_compile(out, "select_lookup_table", (uint8_t *)select_lookup_table, 256, 8);
-  bytes_compile(out, "packed_chd_phf", data->packed_chd_phf, data->packed_chd_phf_size);
-  bytes_compile(out, "packed_cr", data->packed_cr, data->packed_cr_size);
+  //struct __chd_data_t *data = (struct __chd_data_t *)data;
   select_query_packed_compile(out);
   get_bits_at_pos_compile(out);
   fprintf(out,
-      "static uint32_t compressed_seq_query_packed(void *cs_packed, uint32_t idx) {\n"
+      "static uint32_t compressed_seq_query_packed(uint32_t *cs_packed, uint32_t idx) {\n"
       "    // unpacking cs_packed\n"
       "    uint32_t *ptr = (uint32_t *)cs_packed;\n"
       "    uint32_t n = *ptr++;\n"
       "    uint32_t rem_r = *ptr++;\n"
       "    ptr++; // skipping total_length\n"
       "    uint32_t buflen_sel = *ptr++;\n"
-      "    uint32_t * sel_packed = ptr;\n"
-      "    uint32_t * length_rems = (ptr += (buflen_sel >> 2)); \n"
+      "    const uint32_t * sel_packed = ptr;\n"
+      "    const uint32_t * length_rems = (ptr += (buflen_sel >> 2)); \n"
       "    uint32_t length_rems_size = BITS_TABLE_SIZE(n, rem_r);\n"
-      "    uint32_t * store_table = (ptr += length_rems_size);\n"
+      "    const uint32_t *store_table = (ptr += length_rems_size);\n"
       "    // compressed sequence query computation\n"
       "    uint32_t enc_idx, enc_length;\n"
       "    uint32_t rems_mask;\n"
@@ -524,4 +520,3 @@ void compressed_seq_query_packed_compile(FILE *out, struct __chd_data_t *data)
       "    return stored_value + ((1U << enc_length) - 1U);\n"
       "}\n");
 }
-#endif

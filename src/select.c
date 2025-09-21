@@ -268,8 +268,7 @@ void select_compile(FILE* out, const char *name, select_t *sel)
 	fprintf(out, "    select_table};\n");
 }
 
-// no select_query_packed
-void select_query_compile(FILE* out)
+static void _select_query_compile(FILE* out)
 {
   bytes_compile(out, "rank_lookup_table", rank_lookup_table, 256);
   bytes_2_compile(out, "select_lookup_table", (uint8_t *)select_lookup_table, 256, 8);
@@ -332,7 +331,13 @@ void select_query_compile(FILE* out)
       "\n"
       "    return select_lookup_table[bits_table[(vec_byte_idx - 1)]]\n"
       "               [(one_idx - old_part_sum)] + ((vec_byte_idx - 1) << 3);\n"
-      "}\n"
+      "}\n");
+}
+
+void select_query_compile(FILE* out)
+{
+  _select_query_compile(out);
+  fprintf(out,
       "static inline uint32_t select_query(const select_t *sel, uint32_t one_idx) {\n"
       "    return _select_query((uint8_t *)sel->bits_vec, sel->select_table, one_idx);\n"
       "};\n"
@@ -341,101 +346,29 @@ void select_query_compile(FILE* out)
       "};\n");
 }
 
-#if 0
 void select_query_packed_compile(FILE* out)
 {
-  fprintf(out, "#define BITS_TABLE_SIZE(n, bits_length) ((n * bits_length + "
-               "31) >> 5)\n");
+  _select_query_compile(out);
   fprintf(out,
-      "static inline uint32_t select_query(select_t *sel, uint32_t one_idx) {\n"
-      "    return _select_query((uint8_t *)sel->bits_vec, sel->select_table, one_idx);\n"
-      "};\n"
-      "static inline uint32_t _select_query(const uint8_t *bits_table,\n"
-      "                                     const uint32_t *select_table,\n"
-      "                                     uint32_t one_idx)\n"
-      "{\n"
-      "    uint32_t vec_bit_idx ,vec_byte_idx;\n"
-      "    uint32_t part_sum, old_part_sum;\n"
-      "\n"
-      "    vec_bit_idx = select_table[one_idx >> NBITS_STEP_SELECT_TABLE];\n"
-      "    vec_byte_idx = vec_bit_idx >> 3; // vec_bit_idx / 8\n"
-      "\n"
-      "    one_idx &= MASK_STEP_SELECT_TABLE;\n"
-      "    one_idx += rank_lookup_table[bits_table[vec_byte_idx] & ((1 << "
-      "(vec_bit_idx & 0x7)) - 1)];\n"
-      "    part_sum = 0;	\n"
-      "    do {\n"
-      "        old_part_sum = part_sum; \n"
-      "        part_sum += rank_lookup_table[bits_table[vec_byte_idx]];\n"
-      "        vec_byte_idx++;\n"
-      "    } while (part_sum <= one_idx);\n"
-      "    return select_lookup_table[bits_table[vec_byte_idx - 1]][one_idx - "
-      "old_part_sum] + ((vec_byte_idx-1) << 3);\n"
-      "}\n"
-      "static uint32_t select_query_packed(void * sel_packed, uint32_t one_idx)\n"
+      "static uint32_t select_query_packed(const uint32_t *sel_packed, uint32_t one_idx)\n"
       "{\n"
       "    uint32_t *ptr = (uint32_t *)sel_packed;\n"
       "    uint32_t n = *ptr++;\n"
       "    uint32_t m = *ptr++;\n"
       "    uint32_t nbits = n + m;\n"
       "    uint32_t vec_size = (nbits + 31) >> 5;\n"
-      "    uint8_t * bits_vec = (uint8_t *)ptr;\n"
-      "    uint32_t * select_table = ptr + vec_size;\n"
+      "    const uint8_t *bits_vec = (uint8_t *)ptr;\n"
+      "    const uint32_t *select_table = ptr + vec_size;\n"
       "\n"
       "    return _select_query(bits_vec, select_table, one_idx);\n"
       "}\n"
-      "static inline uint32_t get_bits_value(const uint32_t * bits_table, uint32_t index,\n"
-      "                                      uint32_t string_length, uint32_t string_mask)\n"
+      "static uint32_t select_next_query_packed(const void *sel_packed, uint32_t vec_bit_idx)\n"
       "{\n"
-      "    uint32_t bit_idx = index * string_length;\n"
-      "    uint32_t word_idx = bit_idx >> 5;\n"
-      "    uint32_t shift1 = bit_idx & 0x0000001f;\n"
-      "    uint32_t shift2 = 32 - shift1;\n"
-      "    uint32_t bits_string;\n"
-      "\n"
-      "    bits_string = (bits_table[word_idx] >> shift1) & string_mask;\n"
-      "\n"
-      "    if(shift2 < string_length)\n"
-      "        bits_string |= (bits_table[word_idx+1] << shift2) & string_mask;\n"
-      "\n"
-      "    return bits_string;\n"
-      "};\n"
-      "static inline uint32_t _select_next_query(uint8_t *bits_table, uint32_t vec_bit_idx) {\n"
-      "    uint32_t vec_byte_idx, one_idx;\n"
-      "    uint32_t part_sum, old_part_sum;\n"
-      "    vec_byte_idx = vec_bit_idx >> 3;\n"
-      "    one_idx = rank_lookup_table[bits_table[vec_byte_idx] &\n"
-      "    	         ((1U << (vec_bit_idx & 0x7)) - 1U)] + 1U;\n"
-      "    part_sum = 0;\n"
-      "    do {\n"
-      "        old_part_sum = part_sum; \n"
-      "        part_sum += rank_lookup_table[bits_table[vec_byte_idx]];\n"
-      "        vec_byte_idx++;\n"
-      "    } while (part_sum <= one_idx);	\n"
-      "    return select_lookup_table[bits_table[(vec_byte_idx - 1)]][(one_idx - old_part_sum)]\n"
-      "    	+ ((vec_byte_idx - 1) << 3);\n"
-      "}\n"
-      "static uint32_t select_next_query_packed(void *sel_packed, uint32_t vec_bit_idx)\n"
-      "{\n"
-      "    uint8_t * bits_vec = (uint8_t *)sel_packed;\n"
+      "    const uint8_t *bits_vec = (const uint8_t *)sel_packed;\n"
       "    bits_vec += 8; // skipping n and m\n"
       "    return _select_next_query(bits_vec, vec_bit_idx);\n"
-      "}\n"
-      "static inline uint32_t get_bits_value(const uint32_t * bits_table, uint32_t index,\n"
-      "                                      uint32_t string_length, uint32_t string_mask)\n"
-      "{\n"
-      "    uint32_t bit_idx = index * string_length;\n"
-      "    uint32_t word_idx = bit_idx >> 5;\n"
-      "    uint32_t shift1 = bit_idx & 0x0000001f;\n"
-      "    uint32_t shift2 = 32-shift1;\n"
-      "    uint32_t bits_string;\n"
-      "    bits_string = (bits_table[word_idx] >> shift1) & string_mask;\n"
-      "    if(shift2 < string_length)\n"
-      "    	bits_string |= (bits_table[word_idx+1] << shift2) & string_mask;\n"
-      "    return bits_string;\n"
-      "};\n");
+      "}\n");
 }
-#endif
 
 void select_load(select_t * sel, const char *buf)
 {

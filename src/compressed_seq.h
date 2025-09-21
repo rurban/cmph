@@ -60,7 +60,7 @@ void compressed_seq_dump(compressed_seq_t * cs, char ** buf, cmph_uint32 * bufle
 void compressed_seq_compile(FILE *out, const char *name, compressed_seq_t *cs);
 // the function
 void compressed_seq_query_compile(FILE *out, compressed_seq_t *cs);
-//void compressed_seq_query_packed_compile(FILE *out, struct __chd_data_t *data);
+void compressed_seq_query_packed_compile(FILE *out);
 
 void compressed_seq_load(compressed_seq_t * cs, const char * buf);
 
