@@ -5,6 +5,7 @@
 #include "hash.h"
 #include "vqueue.h"
 #include "bitbool.h"
+#include "compile.h"
 
 #include <math.h>
 #include <stdlib.h>
@@ -488,25 +489,21 @@ static int bmz_gen_edges(cmph_config_t *mph)
 int bmz_compile(cmph_t *mphf, cmph_config_t *mph, FILE *out)
 {
 	bmz_data_t *data = (bmz_data_t *)mphf->data;
+	char g_name[24];
+	bool do_vector = mph->nhashfuncs == 1 ||
+		mph->hashfuncs[0] == mph->hashfuncs[1];
 	DEBUGP("Compiling bmz\n");
-	hash_state_compile(data->nhashes, data->hashes, true, out);
-	fprintf(out, "const uint32_t _%s_g[%u] = {\n        ", mph->c_prefix,
-		data->n);
-	for (unsigned i=0; i < data->n - 1; i++) {
-		fprintf(out, "%u, ", data->g[i]);
-		if (i % 16 == 15)
-			fprintf(out, "\n    ");
-	}
-	fprintf(out, "%u\n};\n", data->g[data->n - 1]);
+	hash_state_compile(data->nhashes, data->hashes, do_vector, out);
+	snprintf(g_name, sizeof(g_name)-1, "_%s_g", mph->c_prefix);
+	uint32_compile(out, g_name, data->g, data->n);
 	fprintf(out, "\nuint32_t %s_search(const char* key, uint32_t keylen) {\n", mph->c_prefix);
 	fprintf(out, "    /* n: %u */\n", data->n);
 	fprintf(out, "    uint32_t h1, h2;\n");
 	if (data->nhashes > 1) {
-		fprintf(out, "   h1 = %s0(%u, (const unsigned char*)key, keylen) %% %u;\n",
-		       cmph_hash_names[mph->hashfuncs[0]], data->hashes[0]->seed, data->n);
-		fprintf(out, "   h2 = %s1(%u, (const unsigned char*)key, keylen) %% %u;\n",
-		       cmph_hash_names[mph->hashfuncs[1]], data->hashes[1]->seed,
-		       data->n);
+		fprintf(out, "   h1 = %s_hash_0((const unsigned char*)key, keylen) %% %u;\n",
+		       cmph_hash_names[mph->hashfuncs[0]], data->n);
+		fprintf(out, "   h2 = %s_hash_1((const unsigned char*)key, keylen) %% %u;\n",
+		       cmph_hash_names[mph->hashfuncs[1]], data->n);
 	}
 	else {
 		fprintf(out, "    uint32_t hv[3];\n");
@@ -516,8 +513,8 @@ int bmz_compile(cmph_t *mphf, cmph_config_t *mph, FILE *out)
 		fprintf(out, "    h2 = hv[1] %% %u;\n", data->n);
 	}
 	fprintf(out, "    if (h1 == h2 && ++h2 >= %u) h2 = 0;\n", data->n);
-	fprintf(out, "    return (_%s_g[h1] + _%s_g[h2]) %% %u;\n", mph->c_prefix,
-		mph->c_prefix, data->m);
+	fprintf(out, "    return (%s[h1] + %s[h2]) %% %uU;\n", g_name,
+		g_name, data->m);
 	fprintf(out, "};\n");
 	fprintf(out, "uint32_t %s_size(void) {\n", mph->c_prefix);
 	fprintf(out, "    return %u;\n}\n", data->m);

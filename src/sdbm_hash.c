@@ -105,13 +105,13 @@ void sdbm_hash_vector_packed(void *packed, const char *k, cmph_uint32 keylen, cm
 void sdbm_prep_compile(bool do_vector, FILE* out) {
 	fprintf(out,
 "/* sdbm_hash */\n"
-"static uint32_t sdbm_hash(uint32_t seed, const unsigned char *k, const uint32_t keylen) {\n"
+"static uint32_t sdbm_hash(const uint32_t seed, const unsigned char *k, const uint32_t keylen) {\n"
 "    uint32_t hash = seed;\n"
 "    const unsigned char *ptr = k;\n"
 "    uint32_t i = 0;\n"
 "    while (i < keylen) {\n"
 "        hash = *ptr + (hash << 6) + (hash << 16) - hash;\n"
-"	 ++ptr, ++i;\n"
+"        ++ptr, ++i;\n"
 "    }\n"
 "    return hash;\n"
 "}\n"
@@ -119,11 +119,11 @@ void sdbm_prep_compile(bool do_vector, FILE* out) {
 	if (do_vector)
 		fprintf(out,
 "/* 3x 32bit hashes. */\n"
-"static inline void sdbm_hash_vector(uint32_t seed, const unsigned char *key, uint32_t keylen, uint32_t *hashes)\n"
+"static inline void sdbm_hash_vector(const uint32_t seed, const unsigned char *key, uint32_t keylen, uint32_t *hashes)\n"
 "{\n"
-"    hashes[0] = sdbm_hash(seed++, key, keylen);\n"
-"    hashes[1] = sdbm_hash(seed++, key, keylen);\n"
-"    hashes[2] = sdbm_hash(seed, key, keylen);\n"
+"    hashes[0] = sdbm_hash(seed, key, keylen);\n"
+"    hashes[1] = sdbm_hash(seed+1, key, keylen);\n"
+"    hashes[2] = sdbm_hash(seed+2, key, keylen);\n"
 "}\n"
 "\n");
 }

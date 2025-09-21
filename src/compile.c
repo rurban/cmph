@@ -13,11 +13,11 @@ void bytes_compile(FILE *out, const char *name, const uint8_t *buf, unsigned len
 void uint32_compile(FILE *out, const char *name, const uint32_t *buf, unsigned len) {
   fprintf(out, "const uint32_t %s[%u] = {\n    ", name, len);
   for (unsigned i = 0; i < len - 1; i++) {
-    fprintf(out, "%uU, ", buf[i]);
+    fprintf(out, "%u, ", buf[i]);
     if (i % 16 == 15)
       fprintf(out, "\n    ");
   }
-  fprintf(out, "%uU\n};\n", buf[len - 1]);
+  fprintf(out, "%u\n};\n", buf[len - 1]);
 }
 
 void bytes_2_compile(FILE *out, const char *name, const uint8_t *buf,
