@@ -127,10 +127,14 @@ cmph_t *bmz8_new(cmph_config_t *mph, double c)
 	  if (iterations == 0)
 	  {
 		graph_destroy(bmz8->graph);
-		hash_state_destroy(bmz8->hashes[0]);
-		bmz8->hashes[0] = NULL;
-		hash_state_destroy(bmz8->hashes[1]);
-		bmz8->hashes[1] = NULL;
+		if (bmz8->hashes[0]) {
+		    hash_state_destroy(bmz8->hashes[0]);
+		    bmz8->hashes[0] = NULL;
+		}
+		if (bmz8->hashes[1]) {
+		    hash_state_destroy(bmz8->hashes[1]);
+		    bmz8->hashes[1] = NULL;
+		}
 		free(bmz8->hashes);
 		return NULL;
 	  }
