@@ -325,9 +325,11 @@ cmph_t *fch_new(cmph_config_t *mph, double c)
 int fch_compile(cmph_t *mphf, cmph_config_t *mph, FILE *out)
 {
 	fch_data_t *data = (fch_data_t *)mphf->data;
+	bool do_vector = mph->nhashfuncs == 1 ||
+		mph->hashfuncs[0] == mph->hashfuncs[1];
 	hash_state_t *hl[2] = { data->h1, data->h2 };
 	DEBUGP("Compiling fch\n");
-	hash_state_compile(1, (hash_state_t**)hl, mph->nhashfuncs == 1, out);
+	hash_state_compile(mph->nhashfuncs, (hash_state_t**)hl, mph->nhashfuncs == 1, out);
 	fprintf(out, "#include <assert.h>\n");
 	fprintf(out, "#ifdef DEBUG\n");
 	fprintf(out, "#include <stdio.h>\n");
@@ -358,14 +360,14 @@ int fch_compile(cmph_t *mphf, cmph_config_t *mph, FILE *out)
 	fprintf(out, "    /* p2: %f */\n", data->p2);
 	fprintf(out, "    uint32_t h1, h2;\n");
 	if (mph->nhashfuncs > 1) {
-		fprintf(out, "   h1 = %s0(%u, (const unsigned char*)key, keylen) %% %u;\n",
-		       cmph_hash_names[hl[0]->hashfunc], hl[0]->seed, data->m);
-		fprintf(out, "   h2 = %s1(%u, (const unsigned char*)key, keylen) %% %u;\n",
-		       cmph_hash_names[hl[1]->hashfunc], hl[1]->seed, data->m);
+		fprintf(out, "   h1 = %s_hash_0((const unsigned char*)key, keylen) %% %u;\n",
+		       cmph_hash_names[hl[0]->hashfunc], data->m);
+		fprintf(out, "   h2 = %s_hash_1((const unsigned char*)key, keylen) %% %u;\n",
+		       cmph_hash_names[hl[1]->hashfunc], data->m);
 	}
 	else {
 		fprintf(out, "    uint32_t hv[3];\n");
-		fprintf(out, "    %s_hash_vector(%u, (const unsigned char*)key, keylen, hv);\n",
+		fprintf(out, "    %s_hash_vector(%uU, (const unsigned char*)key, keylen, hv);\n",
 		       cmph_hash_names[hl[0]->hashfunc], hl[0]->seed);
 		fprintf(out, "    h1 = hv[0] %% %u;\n", data->m);
 		fprintf(out, "    h2 = hv[1] %% %u;\n", data->m);
