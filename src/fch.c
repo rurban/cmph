@@ -299,7 +299,12 @@ cmph_t *fch_new(cmph_config_t *mph, double c)
         } while(restart_mapping && iterations > 0);
 	if (buckets) fch_buckets_destroy(buckets, mph);
 	if (sorted_indexes) free (sorted_indexes);
-	if (iterations == 0) return NULL;
+	if (iterations == 0) {
+	    free (fch->g);
+	    hash_state_destroy(fch->h1);
+	    hash_state_destroy(fch->h2);
+	    return NULL;
+	}
 	mphf = (cmph_t *)malloc(sizeof(cmph_t));
 	mphf->algo = mph->algo;
 	fchf = (fch_data_t *)malloc(sizeof(fch_data_t));

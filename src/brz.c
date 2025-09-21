@@ -151,9 +151,7 @@ cmph_t *brz_new(cmph_config_t *mph, double c)
         // the caller must set the file to store the resulting MPHF before calling
         // this function.
         if (brz->mphf_fd == NULL)
-        {
             return NULL;
-        }
 
 	switch(brz->algo) // validating restrictions over parameter c.
 	{
@@ -169,9 +167,7 @@ cmph_t *brz_new(cmph_config_t *mph, double c)
 	brz->c = c;
 	brz->m = mph->key_source->nkeys;
         if (brz->m < 5)
-        {
         	brz->c = 5;
-        }
 
 	DEBUGP("m: %u\n", brz->m);
         brz->k = (cmph_uint32)ceil(brz->m/((double)brz->b));
@@ -180,9 +176,7 @@ cmph_t *brz_new(cmph_config_t *mph, double c)
 
 	// Clustering the keys by graph id.
 	if (mph->verbosity)
-	{
 		fprintf(stderr, "Partitioning the set of keys.\n");
-	}
 
 	while(1)
 	{
@@ -198,12 +192,12 @@ cmph_t *brz_new(cmph_config_t *mph, double c)
 			brz->h0 = NULL;
 			DEBUGP("%u iterations remaining to create the graphs in a external file\n", iterations);
 			if (mph->verbosity)
-			{
 				fprintf(stderr, "Failure: A graph with more than 255 keys was created - %u iterations remaining\n", iterations);
-			}
-			if (iterations == 0) break;
+			if (iterations == 0)
+				break;
 		}
-		else break;
+		else
+			break;
 	}
 	if (iterations == 0)
 	{
@@ -215,9 +209,7 @@ cmph_t *brz_new(cmph_config_t *mph, double c)
 
 	brz->offset = (cmph_uint32 *)calloc((size_t)brz->k, sizeof(cmph_uint32));
 	for (i = 1; i < brz->k; ++i)
-	{
 		brz->offset[i] = brz->size[i-1] + brz->offset[i-1];
-	}
 	// Generating a mphf
 	mphf = (cmph_t *)malloc(sizeof(cmph_t));
 	mphf->algo = mph->algo;
@@ -242,9 +234,7 @@ cmph_t *brz_new(cmph_config_t *mph, double c)
 	mphf->size = brz->m;
 	DEBUGP("Successfully generated minimal perfect hash\n");
 	if (mph->verbosity)
-	{
 		fprintf(stderr, "Successfully generated minimal perfect hash function\n");
-	}
 	return mphf;
 }
 
@@ -328,10 +318,16 @@ static int brz_gen_mphf(cmph_config_t *mph)
 		memory_usage += keylen + (cmph_uint32)sizeof(keylen);
 		h0 = hash(brz->h0, key, keylen) % brz->k;
 
-		if ((brz->size[h0] == MAX_BUCKET_SIZE) || (brz->algo == CMPH_BMZ8 && ((brz->c >= 1.0) && (cmph_uint8)(brz->c * brz->size[h0]) < brz->size[h0])))
+		if ((brz->size[h0] == MAX_BUCKET_SIZE)
+		    || (brz->algo == CMPH_BMZ8 &&
+			((brz->c >= 1.0)
+			 && (cmph_uint8)(brz->c * brz->size[h0]) < brz->size[h0])))
 		{
+			if (buff_manager)
+				buffer_manager_destroy(buff_manager);
 			free(buffer);
 			free(buckets_size);
+			mph->key_source->dispose(key);
 			return 0;
 		}
 		brz->size[h0] = (cmph_uint8)(brz->size[h0] + 1U);
@@ -342,9 +338,7 @@ static int brz_gen_mphf(cmph_config_t *mph)
 	if (memory_usage != 0) // flush buffers
 	{
 		if(mph->verbosity)
-		{
 			fprintf(stderr, "Flushing  %u\n", nkeys_in_buffer);
-		}
 		cmph_uint32 value = buckets_size[0];
 		cmph_uint32 sum = 0;
 		cmph_uint32 keylen1 = 0;
@@ -389,9 +383,7 @@ static int brz_gen_mphf(cmph_config_t *mph)
 	if(nflushes > 1024) return 0; // Too many files generated.
 	// mphf generation
 	if(mph->verbosity)
-	{
 		fprintf(stderr, "\nMPHF generation \n");
-	}
 	/* Starting to dump to disk the resulting MPHF: __cmph_dump function */
 	CHK_FWRITE(cmph_names[CMPH_BRZ], (size_t)(strlen(cmph_names[CMPH_BRZ]) + 1), (size_t)1, brz->mphf_fd);
 	CHK_FWRITE(&(brz->m), sizeof(brz->m), (size_t)1, brz->mphf_fd);
@@ -476,21 +468,21 @@ static int brz_gen_mphf(cmph_config_t *mph)
 			if (mphf_tmp == NULL)
 			{
 				if(mph->verbosity)
-                                  fprintf(stderr, "ERROR: Can't generate MPHF for bucket %u out of %u\n",
-                                          cur_bucket + 1, brz->k);
+					fprintf(stderr, "ERROR: Can't generate MPHF for bucket %u out of %u\n",
+						cur_bucket + 1, brz->k);
 				error = 1;
 				cmph_config_destroy(config);
  				brz_destroy_keys_vd(keys_vd, nkeys_vd);
 				cmph_io_byte_vector_adapter_destroy(source);
+				if (key)
+					free(key);
 				break;
 			}
 			if(mph->verbosity)
 			{
-			  if (cur_bucket % 1000 == 0)
-  			  {
-			  	fprintf(stderr, "MPHF for bucket %u out of %u was generated.\n",
-                                        cur_bucket + 1, brz->k);
-			  }
+				if (cur_bucket % 1000 == 0)
+					fprintf(stderr, "MPHF for bucket %u out of %u was generated.\n",
+						cur_bucket + 1, brz->k);
 			}
 			switch(brz->algo)
 			{
@@ -524,7 +516,8 @@ static int brz_gen_mphf(cmph_config_t *mph)
 	free(keys_vd);
 	free(buffer_merge);
 	free(buffer_h0);
-	if (error) return 0;
+	if (error)
+		return 0;
 	return 1;
 }
 
