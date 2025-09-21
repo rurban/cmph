@@ -7,10 +7,11 @@ WORDS=/usr/share/dict/words
 
 test -e _words || head -n $N <${WORDS} >_words
 test -e _words100 || head -n 100 <${WORDS} >_words100
+#test -e _words1000 || head -n 1000 <${WORDS} >_words1000
 
 for a in bmz chm brz fch bdz bdz_ph bmz8 chd chd_ph; do
     rm -f _words.mph
-    if [ $a = bmz8 ] || [ $a = fch ]; then
+    if [ $a = bmz8 ]; then
         rm -f _words100.mph
         words=_words100
     else
@@ -19,40 +20,27 @@ for a in bmz chm brz fch bdz bdz_ph bmz8 chd chd_ph; do
     #if [ $a = fch ]; then
     #    a="fch -f crc32 -s 1"
     #fi
-    echo "** cmph -g -a $a $words"
-    ../src/cmph -g -a $a $words
-    echo "** cmph -a $a $words"
-    ../src/cmph -a $a $words
-    echo "** mphf_tests -a $a $words"
-    ./mphf_tests -a $a $words
+    for f in jenkins wyhash crc32 fnv djb2 sdbm; do
+        rm -f $words.mph
+        if [ $f = crc32 ] || [ $f = sdbm ] || [ $f = djb2 ]
+        then
+            echo too weak $f hash alone, add a seperate hashfunc and a seed
+            f="$f -f jenkins -s 11"
+        fi
+        #case $f in
+        #    sdbm|djb2*)
+        #        echo too weak $f hash with $a
+        #        break
+        #        ;;
+        #esac
+        echo "** cmph -g -a $a -f $f $words"
+        ../src/cmph -g -a $a -f $f $words
+        echo "** cmph -a $a -f $f $words"
+        ../src/cmph -a $a -f $f $words
+        echo "** mphf_tests -a $a -f $f $words"
+        ./mphf_tests -a $a -f $f $words
+    done
 done
 rm -f _words100 _words100.mph
-for f in jenkins wyhash crc32 fnv djb2 sdbm; do
-    rm -f _words.mph
-    if [ $f = crc32 ] || [ $f = sdbm ] || [ $f = djb2 ]
-    then
-        echo too weak $f hash, use a seperate hashfunc and a seed
-        f="$f -f jenkins -s 11"
-    fi
-    echo "** cmph -g -f $f _words"
-    ../src/cmph -g -f $f _words
-    echo "** cmph -f $f _words"
-    ../src/cmph -f $f _words
-    echo "** mphf_tests -f $f _words"
-    ./mphf_tests -f $f _words
-    # bdz uses the hash_vector API, 3x in one
-    case $f in
-        sdbm|djb2*)
-            echo too weak $f hash with BDZ
-            break
-            ;;
-    esac
-    rm -f _words.mph
-    echo "** cmph -g -f $f -a bdz _words"
-    ../src/cmph -g -f $f -a bdz _words
-    echo "** cmph -f $f -a bdz _words"
-    ../src/cmph -f $f -a bdz _words
-    echo "** mphf_tests -f $f -a bdz _words"
-    ./mphf_tests -f $f -a bdz _words
-done
-rm -f _words _words.mph _words100 _words100.mph
+#rm -f _words1000 _words1000.mph
+rm -f _words _words.mph

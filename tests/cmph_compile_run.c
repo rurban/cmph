@@ -47,9 +47,11 @@ int main(int argc, char **argv) {
             failed++;
         }
         l++;
+        if (failed > 5)
+            break;
     }
     free(hasharray);
     fclose(f);
     if (failed)
-        exit(1);
+        return 1;
 }

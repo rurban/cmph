@@ -48,20 +48,35 @@ for f in $funcs; do
     echo "** cc -O2 -Wall -Wextra -c -I@top_srcdir@/src $f.c"
     cc -O2 -Wall -Wextra -c -I"@top_srcdir@/src" "$f.c"
     echo "** compile_run $f _cwords $N"
-    ./compile_run "$f" _cwords "$N" && rm "$f.c" "$f.o"
+    ./compile_run "$f" _cwords "$N" && rm "$f.c" "$f.o" || exit 1
 
-    # bdz uses the hash_vector API, 3x in one
-    case "$f" in
-        sdbm|djb2*)
-            echo "too weak $f hash with BDZ"
-            break
-            ;;
-    esac
-    echo "** cmph -C -f $f -a bdz _cwords >${f}_bdz.c"
-    ../src/cmph -C -f "$f" -a bdz _cwords >"${f}_bdz.c"
-    echo "** cc -O2 -Wall -Wextra -c -I@top_srcdir@/src ${f}_bdz.c"
-    cc -O2 -Wall -Wextra -c -I"@top_srcdir@/src" "${f}_bdz.c"
-    echo "** compile_run ${f}_bdz _cwords $N"
-    ./compile_run "${f}_bdz" _cwords "$N" && rm "${f}_bdz.c" "${f}_bdz.o"
+    for a in chd bmz bdz bdz_ph chd_ph fch; do
+        if [ "$a" = "fch" ]; then
+            rm -f _cwords100.mph
+            words=_cwords100
+            nwords=100
+        else
+            words=_cwords
+            nwords="$N"
+        fi
+        case "$a" in
+            bdz|bdz_ph|fch|chd|chd_ph)
+                # bdz uses the hash_vector API, 3x in one
+                case "$f" in
+                    sdbm|djb2*)
+                        echo "too weak $f hash with $a"
+                        break
+                        ;;
+                esac
+                ;;
+            *) ;;
+        esac
+        echo "** cmph -C -f $f -a $a $words >${f}_${a}.c"
+        ../src/cmph -C -f "$f" -a "$a" "$words" >"${f}_${a}.c"
+        echo "** cc -O2 -Wall -Wextra -c -I@top_srcdir@/src ${f}_${a}.c"
+        cc -O2 -Wall -Wextra -c -I"@top_srcdir@/src" "${f}_${a}.c"
+        echo "** compile_run ${f}_${a} $words $nwords"
+        ./compile_run "${f}_${a}" "$words" "$nwords" && rm "${f}_${a}.c" "${f}_${a}.o"
+    done
 done
 rm -f _cwords _cwords.mph _cwords100 _cwords100.mph
