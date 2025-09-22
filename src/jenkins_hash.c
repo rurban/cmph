@@ -15,10 +15,7 @@
 #define hashsize(n) ((cmph_uint32)1<<(n))
 #define hashmask(n) (hashsize(n)-1)
 
-
-
 //#define NM2 /* Define this if you do not want power of 2 table sizes*/
-
 
 /*
    --------------------------------------------------------------------
@@ -49,11 +46,11 @@
 #define mix(a,b,c) \
 { \
 	a -= b; a -= c; a ^= (c>>13); \
-	b -= c; b -= a; b ^= (a<<8); \
+	b -= c; b -= a; b ^= (a<<8);  \
 	c -= a; c -= b; c ^= (b>>13); \
-	a -= b; a -= c; a ^= (c>>12);  \
+	a -= b; a -= c; a ^= (c>>12); \
 	b -= c; b -= a; b ^= (a<<16); \
-	c -= a; c -= b; c ^= (b>>5); \
+	c -= a; c -= b; c ^= (b>>5);  \
 	a -= b; a -= c; a ^= (c>>3);  \
 	b -= c; b -= a; b ^= (a<<10); \
 	c -= a; c -= b; c ^= (b>>15); \
@@ -315,9 +312,12 @@ void jenkins_hash_vector_packed(void *jenkins_packed, const char *k, cmph_uint32
 	__jenkins_hash_vector(*((cmph_uint32 *)jenkins_packed), (const unsigned char*)k, keylen, hashes);
 }
 
-/* jenkins is always vectored */
+/* jenkins is always vectored
+   TODO optimize to skip the mix-step if not vectored
+ */
 void jenkins_prep_compile(bool do_vector, FILE* out) {
-	fprintf(out,
+	(void)do_vector;
+	fputs(
 "/* jenkins_hash */\n"
 "#define mix(a,b,c) \\\n"
 "{\\\n"
@@ -351,7 +351,7 @@ void jenkins_prep_compile(bool do_vector, FILE* out) {
 "		k += 12; len -= 12;\n"
 "	}\n"
 "	/*------------------------------------- handle the last 11 bytes */\n"
-"	hashes[2]  += length;\n"
+"	hashes[2] += length;\n"
 "	switch(len)              /* all the case statements fall through */\n"
 "	{\n"
 "	        case 11:\n"
@@ -392,7 +392,7 @@ void jenkins_prep_compile(bool do_vector, FILE* out) {
 "	}\n"
 "	mix(hashes[0], hashes[1], hashes[2]);\n"
 "}\n"
-"\n");
+"\n", out);
 }
 // if not vectored, compile extra call
 void jenkins_state_compile_seed(int i, cmph_uint32 seed, bool do_vector, FILE* out) {

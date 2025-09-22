@@ -5,6 +5,10 @@
 #endif
 #include <stdio.h>
 #include <stdlib.h>
+#ifdef __linux__
+#include <unistd.h>
+#include <fcntl.h>
+#endif
 #include <errno.h>
 #include <string.h>
 #include <time.h>
@@ -14,7 +18,7 @@
 #include "hash.h"
 
 #ifdef WIN32
-#define VERSION "0.8"
+#define VERSION "2.1"
 #else
 #include "config.h"
 #endif
@@ -27,7 +31,7 @@ void usage(const char *prg)
 void usage_long(const char *prg)
 {
 	cmph_uint32 i;
-	fprintf(stderr, "usage: %s [-v][-h][-V][-C] [-k nkeys] [-f hash_function] [-g [-c algorithm_dependent_value][-s seed] ] [-a algorithm] [-M memory_in_MB] [-b algorithm_dependent_value] [-t keys_per_bin] [-d tmp_dir] [-m file.mph] [-o c_file] [-p c_func_prefix] keysfile\n", prg);
+	usage(prg);
 	fprintf(stderr, "Minimum perfect hashing tool\n\n");
 	fprintf(stderr, "  -h\t print this help message\n");
 	fprintf(stderr, "  -c\t c value determines:\n");
@@ -76,8 +80,8 @@ int main(int argc, char **argv)
 	FILE *mphf_fd = stdout;
 	const char *keys_file = NULL;
 	FILE *keys_fd;
-	cmph_uint32 nkeys = UINT_MAX;
-	cmph_uint32 seed = UINT_MAX;
+	unsigned int nkeys = UINT_MAX;
+	unsigned int seed = UINT_MAX;
 	CMPH_HASH *hashes = NULL;
 	cmph_uint32 nhashes = 0;
 	cmph_uint32 i;
@@ -103,7 +107,7 @@ int main(int argc, char **argv)
 			case 's':
 				{
 					char *cptr;
-					seed = (cmph_uint32)strtoul(optarg, &cptr, 10);
+					seed = (unsigned)strtoul(optarg, &cptr, 10);
 					if(*cptr != 0) {
 						fprintf(stderr, "Invalid seed %s\n", optarg);
 						exit(1);
@@ -259,9 +263,6 @@ int main(int argc, char **argv)
 	}
 	keys_file = argv[optind];
 
-	if (seed == UINT_MAX) seed = (cmph_uint32)time(NULL);
-	srand(seed);
-
 	if (mphf_file == NULL)
 	{
 		mphf_file = (char *)malloc(strlen(keys_file) + 5);
@@ -280,7 +281,17 @@ int main(int argc, char **argv)
 		return -1;
 	}
 
-	if (seed == UINT_MAX) seed = (cmph_uint32)time(NULL);
+	if (seed == UINT_MAX) {
+#ifdef __linux__
+		int fd = open("/dev/urandom", O_RDONLY);
+		read(fd, &seed, sizeof(seed));
+	        srand(seed);
+#else
+		struct timespec ts;
+		clock_gettime(CLOCK_REALTIME, &ts);
+	        srand((unsigned)ts.tv_sec ^ ts.tv_nsec ^ (unsigned int)(uintptr_t)&ts);
+#endif
+	}
 	if (nkeys == UINT_MAX) source = cmph_io_nlfile_adapter(keys_fd);
 	else source = cmph_io_nlnkfile_adapter(keys_fd, nkeys);
 	if (generate || compile)
@@ -307,7 +318,7 @@ int main(int argc, char **argv)
 
 		if (mphf == NULL)
 		{
-			fprintf(stderr, "Unable to create minimum perfect hashing function\n");
+			fprintf(stderr, "Unable to create minimum perfect hashing function with seed %u\n", seed);
 			cmph_config_destroy(config);
 			if (nhashes)
 				free(hashes);
@@ -399,6 +410,8 @@ int main(int argc, char **argv)
 			}
 			source->dispose(buf);
 		}
+		if (errs >= 10)
+			fprintf(stderr, "%u key errors\n", errs);
 
 		cmph_destroy(mphf);
 		free(hashtable);

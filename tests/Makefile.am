@@ -31,4 +31,5 @@ CLEANFILES = test-suite.log _words _words.mph _words100 _words100.mph \
   _words1000 _words1000.mph TAGS cmph_compile_run.o cmph_compile_run \
   bmz.c bmz8.c chm.c brz.c fch.c bdz.c bdz_ph.c chd_ph.c chd.c \
   bdz_ph_crc32.c chd_ph_wyhash.c chd_ph_crc32.c chd_ph_fnv.c \
-  bdz_ph_fnv.c fch_jenkins.c bdz_ph_jenkins.c chd_ph_jenkins.c bdz_ph_wyhash.c
+  bdz_ph_fnv.c fch_jenkins.c bdz_ph_jenkins.c chd_ph_jenkins.c bdz_ph_wyhash.c \
+  chd_ph_sdbm.c chd_ph_djb2.c bdz_sdbm.c bdz_ph_djb2.c bdz_ph_sdbm.c

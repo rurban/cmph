@@ -27,7 +27,7 @@ cmph_uint32 djb2_hash(hash_state_t *state, const char *k, cmph_uint32 keylen)
 	cmph_uint32 i = 0;
 	while (i < keylen)
 	{
-		hash = hash*33 ^ *ptr;
+		hash = hash * 33 ^ *ptr;
 		++ptr, ++i;
 	}
 	return hash;
@@ -134,7 +134,7 @@ void djb2_prep_compile(bool do_vector, FILE* out) {
 "    uint32_t hash = seed;\n"
 "    uint32_t i = 0;\n"
 "    while (i < keylen) {\n"
-"        hash = hash*33 ^ *k;\n"
+"        hash = hash * 33 ^ *k;\n"
 "	 ++k, ++i;\n"
 "    }\n"
 "    return hash;\n"

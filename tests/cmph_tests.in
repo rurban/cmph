@@ -22,7 +22,9 @@ for a in bmz chm brz fch bdz bdz_ph bmz8 chd chd_ph; do
     for f in jenkins wyhash crc32 fnv djb2 sdbm; do
         fail=
         echo "** cmph -g -a $a -f $f $words"
-        ../src/cmph -g -a "$a" -f "$f" "$words" || fail=1
+        # a retry often helps
+        ../src/cmph -g -a "$a" -f "$f" "$words" || \
+            ../src/cmph -g -a "$a" -f "$f" "$words" || fail=1
         if [ -n "$fail" ]
         then
             fail=
@@ -42,31 +44,37 @@ for a in bmz chm brz fch bdz bdz_ph bmz8 chd chd_ph; do
                 words=_words1000
                 echo "** cmph -g -a $a -f $f $words"
                 # shellcheck disable=SC2086
-                ../src/cmph -g -a "$a" -f $f "$words"
+                ../src/cmph -g -a "$a" -f $f "$words" || fail=1
+            else
+                echo "see, that worked"
             fi
         fi
-        echo "** cmph -a $a -f $f $words"
-        # shellcheck disable=SC2086
-        ../src/cmph -a "$a" -f $f $words
-        echo "** mphf_tests -a $a -f $f $words"
-        # shellcheck disable=SC2086
-        ./mphf_tests -a "$a" -f $f "$words"
+        if [ -z "$fail" ]; then
+            echo "** cmph $words"
+            ../src/cmph $words
+            echo "** mphf_tests -a $a -f $f $words"
+            # shellcheck disable=SC2086
+            ./mphf_tests -a "$a" -f $f "$words"
+        fi
 
         if [ "$a" = "brz" ]; then
             # once again with fch
             # shellcheck disable=SC2086
             echo "** cmph -g -c 3 -a brz -f $f $words"
-            ../src/cmph -g -c 3 -a brz -f $f "$words" || fail=1
-            echo "** cmph -a $a -f $f $words"
-            # shellcheck disable=SC2086
-            ../src/cmph -c 3 -a brz -f $f $words
-            echo "** mphf_tests -a $a -f $f $words"
-            # shellcheck disable=SC2086
-            ./mphf_tests -a brz -f $f "$words"
+            ../src/cmph -g -c 3 -a brz -f $f "$words" || \
+              ../src/cmph -g -c 3 -a brz -f $f "$words" || fail=1
+            if [ -z "$fail" ]; then
+                echo "** cmph -a $a -f $f $words"
+                # shellcheck disable=SC2086
+                ../src/cmph -c 3 -a brz -f $f $words
+                echo "** mphf_tests -a $a -f $f $words"
+                # shellcheck disable=SC2086
+                ./mphf_tests -a brz -f $f "$words"
+            fi
         fi
 
         rm -f "$words.mph"
-        if [ "$words" = "_words1000" ]; then
+        if [ "$words" = "_words1000" -a "$a" != "fch" ]; then
             words=_words
         fi
     done

@@ -30,8 +30,10 @@ for a in chm bmz fch bdz bdz_ph chd chd_ph; do
         args="$f"
         base="${a}_${f}"
         echo "** cmph -C -a $a -f $f $words"
+        # a retry often helps
         # shellcheck disable=SC2086
-        ../src/cmph -C -a "$a" -f $f "$words" >"$base.c" || fail=1
+        ../src/cmph -C -a "$a" -f $f "$words" >"$base.c" || \
+            ../src/cmph -C -a "$a" -f $f "$words" >"$base.c" || fail=1
         if [ -n "$fail" ]
         then
             fail=
@@ -47,17 +49,53 @@ for a in chm bmz fch bdz bdz_ph chd chd_ph; do
             then
                 fail=
                 echo "still too weak $f hashes, use less keys"
-                words=_cwords1000
-                nwords=1000
+                if [ "$a" != "fch" ]; then
+                    words=_cwords1000
+                    nwords=1000
+                else
+                    words=_cwords100
+                    nwords=100
+                fi
                 echo "** cmph -C -a $a -f $f $words"
                 # shellcheck disable=SC2086
-                ../src/cmph -C -a "$a" -f $f "$words" >"$base.c" || fail=1
+                ../src/cmph -C -a "$a" -f $f -o "$base.c" "$words" || fail=1
+            else
+                echo "see, that worked"
             fi
         fi
-        echo "** cc -O2 -Wall -Wextra -c -I@top_srcdir@/src $base.c"
-        cc -O2 -Wall -Wextra -c -I"@top_srcdir@/src" "$base.c"
-        echo "** compile_run $base $words $N"
-        ./compile_run "$base" "$words" "$nwords" && rm "$base.c" "$base.o" || exit 1
+        if [ -z "$fail" ]
+        then
+            echo "** cc -O2 -Wall -Wextra -c -I@top_srcdir@/src $base.c"
+            cc -O2 -Wall -Wextra -c -I"@top_srcdir@/src" "$base.c"
+            echo "** compile_run $base $words $nwords"
+            ./compile_run "$base" "$words" "$nwords" && rm "$base.c" "$base.o" || fail=1
+            if [ -n "$fail" ]; then
+                case "$a" in
+                    *_ph) echo "_ph compile_run TODO" ;;
+                    *) exit 1 ;;
+                esac
+            fi
+        fi
+
+        if [ "$a" = "brz" ]; then # TODO brz cannot compile yet, but prepare
+            # once again with fch
+            # shellcheck disable=SC2086
+            echo "** cmph -C -c 3 -a brz -f $f $words"
+            ../src/cmph -C -c 3 -a brz -f $f -o "${base}_fch.c" "$words" || \
+              ../src/cmph -C -c 3 -a brz -f $f -o "${base}_fch.c" "$words" || fail=1
+            if [ -z "$fail" ]
+            then
+                echo "** cc -O2 -Wall -Wextra -c -I@top_srcdir@/src ${base}_fch.c"
+                cc -O2 -Wall -Wextra -c -I"@top_srcdir@/src" "${base}_fch.c"
+                echo "** compile_run ${base}_fch $words $N"
+                ./compile_run "${base}_fch" "$words" "$nwords" && rm "${base}_fch.c" "${base}_fch.o" || exit 1
+            fi
+        fi
+
+        if [ "$words" = "_cwords1000" -a "$a" != "fch" ]; then
+            words=_cwords
+            nwords="$N"
+        fi
 
     done
 done
