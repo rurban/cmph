@@ -153,23 +153,33 @@ static void key_vector_rewind(void *data)
 
 static cmph_uint32 count_nlfile_keys(FILE *fd)
 {
-	cmph_uint32 count = 0;
-	register char * ptr;
-	rewind(fd);
-	while(1)
-	{
-		char buf[BUFSIZ];
-		ptr = fgets(buf, BUFSIZ, fd);
-        if (feof(fd)) break;
-        if (ferror(fd) || ptr == NULL) {
-            perror("Error reading input file");
-            return 0;
-        }
-		if (buf[strlen(buf) - 1] != '\n') continue;
-		++count;
+    cmph_uint32 count = 0;
+    register char * ptr;
+    rewind(fd);
+    while(1)
+    {
+	char buf[BUFSIZ];
+	size_t len;
+	ptr = fgets(buf, BUFSIZ, fd);
+	if (feof(fd))
+	    break;
+	if (ferror(fd) || ptr == NULL) {
+	    perror("Error reading input file");
+	    return 0;
 	}
-	rewind(fd);
-	return count;
+	len = strlen(buf);
+	if (len == 0)
+	    continue; // skip empty lines
+	if (len > BUFSIZ - 1) {
+	    fprintf(stderr, "Error: line too long (max %d bytes)\n", BUFSIZ - 1);
+	    return 0;
+	}
+	if (buf[len - 1] != '\n')
+	    continue;
+	++count;
+    }
+    rewind(fd);
+    return count;
 }
 
 cmph_io_adapter_t *cmph_io_nlfile_adapter(FILE * keys_fd)
