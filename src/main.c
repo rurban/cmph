@@ -274,6 +274,7 @@ int main(int argc, char **argv)
 		fprintf(stderr, "Unable to open file %s: %s\n", keys_file, strerror(errno));
 		if (nhashes)
 			free(hashes);
+		free(mphf_file);
 		return -1;
 	}
 
@@ -323,11 +324,10 @@ int main(int argc, char **argv)
 			free(source);
 			return -1;
 		}
-		if (compile) {
+		if (compile)
 			cmph_compile(mphf, config, c_file, keys_file);
-			if (c_file)
-				free(c_file);
-		}
+		if (c_file)
+			free(c_file);
 		if (generate)
 			cmph_dump(mphf, mphf_fd);
 		cmph_config_destroy(config);
@@ -338,6 +338,8 @@ int main(int argc, char **argv)
 	else
 	{
 		cmph_uint8 * hashtable = NULL;
+		if (c_file)
+			free(c_file);
 		mphf_fd = fopen(mphf_file, "rb");
 		if (mphf_fd == NULL)
 		{
