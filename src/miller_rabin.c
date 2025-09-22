@@ -32,18 +32,17 @@ static inline cmph_uint8 check_witness(cmph_uint64 a_exp_d, cmph_uint64 n, cmph_
 cmph_uint8 check_primality(cmph_uint64 n)
 {
 	cmph_uint64 a, d, s, a_exp_d;
-	if((n % 2) == 0)
-		return 0;
-	if((n % 3) == 0)
-		return 0;
-	if((n % 5) == 0)
-		return 0;
-	if((n % 7 ) == 0)
-		return 0;
-	//we decompoe the number n - 1 into 2^s*d
+	cmph_uint64 low_primes[] = {2, 3, 5, 7, 11, 13, 17, 19, 23, 29,
+				    31, 37, 41, 43, 47};
+	for (unsigned i=0; i < sizeof(low_primes)/sizeof(*low_primes); i++)
+	{
+		if ((n % low_primes[i]) == 0)
+			return 0;
+	}
+	//we decompose the number n - 1 into 2^s*d
 	s = 0;
 	d = n - 1;
-	do 
+	do
 	{
 		s++;
 		d /= 2;
