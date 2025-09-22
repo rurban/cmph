@@ -54,32 +54,21 @@ void brz_config_destroy(cmph_config_t *mph)
 }
 
 // support 3 independent hash functions, but mostly just one for all
+// but we need all 3 set
 void brz_config_set_hashfuncs(cmph_config_t *mph, CMPH_HASH *hashfuncs)
 {
 	CMPH_HASH *hashptr = hashfuncs;
-	cmph_uint32 i = 0;
-	while (*hashptr != CMPH_HASH_COUNT)
+	CMPH_HASH def = *hashptr;
+	bool done = false;
+	int i = 0;
+	for (; i<3; i++) // set three hash functions
 	{
-		if (i >= 3) break; // brz up to three hash functions
-		mph->hashfuncs[i] = *hashptr;
-		++i, ++hashptr;
-	}
-	if (i >= 3) {
-		if (mph->hashfuncs[0] == mph->hashfuncs[1] &&
-		    mph->hashfuncs[0] == mph->hashfuncs[2])
-			mph->nhashfuncs = 1;
-		else
-			mph->nhashfuncs = 3;
-	} else if (i == 1) {
-		mph->hashfuncs[2] = mph->hashfuncs[1] = mph->hashfuncs[0];
-		mph->nhashfuncs = 1;
-	} else { // 2 set, the third is the default jenkins
-		if (mph->hashfuncs[0] == mph->hashfuncs[1]) {
-			mph->nhashfuncs = 1;
-			mph->hashfuncs[2] = mph->hashfuncs[1];
+		if (done || *hashptr == CMPH_HASH_COUNT) {
+		    done = true;
+		    mph->hashfuncs[i] = def;
 		} else {
-			mph->nhashfuncs = 3;
-			mph->hashfuncs[2] = mph->hashfuncs[1];
+		    mph->hashfuncs[i] = *hashptr++;
+		    mph->nhashfuncs = i + 1;
 		}
 	}
 }
@@ -586,13 +575,15 @@ int brz_compile(cmph_t *mphf, cmph_config_t *mph, FILE *out)
 {
 	brz_data_t *data = (brz_data_t *)mphf->data;
 	//brz_config_data_t *config = (brz_config_data_t *)mph->data;
+	bool do_vector = mph->nhashfuncs == 1 ||
+		mph->hashfuncs[0] == mph->hashfuncs[1];
 	hash_state_t *hashes[3];
 	(void)mph; // TODO
 	DEBUGP("Compiling brz\n");
 	hashes[0] = data->h1 ? data->h1[0] : data->h0;
 	hashes[1] = data->h2 ? data->h2[0] : data->h0;
 	hashes[2] = data->h0;
-	hash_state_compile(3, hashes, true, out);
+	hash_state_compile(3, hashes, do_vector, out);
 	fprintf(out, "// NYI\n");
 	fprintf(out, "uint32_t %s_size(void) {\n", mph->c_prefix);
 	fprintf(out, "    return %u;\n}\n", data->m);
