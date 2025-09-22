@@ -10,6 +10,8 @@
 #include "cmph.h"
 #include "hash.h"
 #include "bitbool.h"
+#include "compile.h"
+
 #include <math.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -593,6 +595,7 @@ int brz_compile(cmph_t *mphf, cmph_config_t *mph, FILE *out)
 	fprintf(out, "    return %u;\n}\n", data->m);
 	return 0;
 }
+
 int brz_dump(cmph_t *mphf, FILE *fd)
 {
 	brz_data_t *data = (brz_data_t *)mphf->data;

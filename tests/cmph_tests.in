@@ -19,48 +19,8 @@ for a in bmz chm brz fch bdz bdz_ph bmz8 chd chd_ph; do
     else
         words=_words
     fi
-    #if [ $a = fch ]; then
-    #    a="fch -f crc32 -s 1"
-    #fi
     for f in jenkins wyhash crc32 fnv djb2 sdbm; do
         fail=
-        #if [ $f = crc32 ] || [ $f = sdbm ] || [ $f = djb2 ]
-        #if [ $f = sdbm ] || [ $f = djb2 ]
-        #then
-        #    if [ $a = chd_ph ]; then break; fi
-        #    echo too weak $f hash alone, add a seperate hashfunc and a seed
-        #    if [ $a = bdz -o $a = bdz_ph ] && [ $f = sdbm ]; then
-        #        words=_words100
-        #        f="jenkins -f $f -s 11"
-        #    elif [ $a = bdz -o $a = bdz_ph ] && [ $f = djb2 ]; then
-        #        words=_words1000
-        #        f="jenkins -f $f -s 11"
-        #    else
-        #        f="$f -f jenkins -s 11"
-        #    fi
-        #elif [ $a = chm -o $a = brz -o $a = bmz ] && [ $f = crc32 ]
-        #then
-        #    echo too weak $f hash alone, add a seperate hashfunc and a seed
-        #    f="$f -f jenkins -s 11"
-        #elif [ $a = brz ] && [ $f = wyhash -o $f = fnv ]
-        #then
-        #    echo too weak $f hash alone, add a seperate hashfunc and a seed
-        #    f="$f -f jenkins -s 11"
-        #elif [ $a = fch ] && [ $f = wyhash -o $f = fnv ]
-        #then
-        #    echo too weak $f hash alone, add a seperate hashfunc and a seed
-        #    f="$f -f jenkins -s 11"
-        #elif [ $a = bmz8 ] && [ $f = wyhash -o $f = fnv ]
-        #then
-        #    echo too weak $f hash alone, add a seperate hashfunc and a seed
-        #    f="$f -f jenkins -s 11"
-        #fi
-        #case $f in
-        #    sdbm|djb2*)
-        #        echo too weak $f hash with $a
-        #        break
-        #        ;;
-        #esac
         echo "** cmph -g -a $a -f $f $words"
         ../src/cmph -g -a "$a" -f "$f" "$words" || fail=1
         if [ -n "$fail" ]
@@ -111,6 +71,4 @@ for a in bmz chm brz fch bdz bdz_ph bmz8 chd chd_ph; do
         fi
     done
 done
-rm -f _words100 _words100.mph
-rm -f _words1000 _words1000.mph
-rm -f _words _words.mph
+rm -f _words100 _words100.mph _words1000 _words1000.mph _words _words.mph

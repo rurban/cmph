@@ -9,76 +9,56 @@ N=10000
 WORDS=/usr/share/dict/words
 
 test -e _cwords || head -n "$N" <"${WORDS}" >_cwords
+test -e _cwords1000 || head -n 1000 <"${WORDS}" >_cwords1000
 test -e _cwords100 || head -n 100 <"${WORDS}" >_cwords100
 
-#all="bmz chm brz fch bdz bdz_ph bmz8 chd chd_ph"
-algos="chm bmz bdz bdz_ph fch chd_ph chd" # brz
-for a in $algos; do
-    rm -f _cwords.mph
-    if [ "$a" = "bmz8" ] || [ "$a" = "fch" ]; then
-        rm -f _cwords100.mph
-        words=_cwords100
+# brz bmz8
+for a in chm bmz fch bdz bdz_ph chd chd_ph; do
+    if [ "$a" = "bmz8" ]; then
+        words=_words100
         nwords=100
+    elif [ "$a" = "fch" ]; then
+        rm -f _cwords1000.mph
+        words=_cwords1000
+        nwords=1000
     else
         words=_cwords
         nwords="$N"
     fi
-    echo "** cmph -C -a $a $words >$a.c"
-    ../src/cmph -C -a "$a" $words >"$a.c"
-    echo "** cc -O2 -Wall -Wextra -c $a.c"
-    cc -O2 -Wall -Wextra -c "$a.c"
-    echo "** compile_run $a $words $nwords"
-    ./compile_run "$a" "$words" "$nwords" && rm "$a.c" "$a.o"
-done
-rm -f _cwords100.mph
-
-funcs="jenkins wyhash crc32 fnv djb2 sdbm"
-for f in $funcs; do
-    # cmh uses hash_vector
-    rm -f _cwords.mph
-    args="$f"
-    if [ "$f" = crc32 ] || [ "$f" = sdbm ] || [ "$f" = djb2 ]
-    then
-        echo too weak "$f" hash, use a seperate hashfunc and a seed
-        args="$f -f jenkins -s 11"
-    fi
-    echo "** cmph -C -f $args _cwords"
-    # shellcheck disable=SC2086
-    ../src/cmph -C -f $args _cwords >"$f.c"
-    echo "** cc -O2 -Wall -Wextra -c -I@top_srcdir@/src $f.c"
-    cc -O2 -Wall -Wextra -c -I"@top_srcdir@/src" "$f.c"
-    echo "** compile_run $f _cwords $N"
-    ./compile_run "$f" _cwords "$N" && rm "$f.c" "$f.o" || exit 1
-
-    for a in chd bmz bdz bdz_ph chd_ph fch; do
-        if [ "$a" = "fch" ]; then
-            rm -f _cwords100.mph
-            words=_cwords100
-            nwords=100
-            args="$f -f jenkins -s 11"
-        else
-            words=_cwords
-            nwords="$N"
-            args="$f"
+    for f in jenkins wyhash crc32 fnv djb2 sdbm; do
+        fail=
+        args="$f"
+        base="${a}_${f}"
+        echo "** cmph -C -a $a -f $f $words"
+        # shellcheck disable=SC2086
+        ../src/cmph -C -a "$a" -f $f "$words" >"$base.c" || fail=1
+        if [ -n "$fail" ]
+        then
+            fail=
+            echo "too weak $f hash alone, add a seperate hashfunc and a seed"
+            if [ $f = crc32 ]; then
+                f="$f -f jenkins -s 11"
+            else
+                f="$f -f crc32 -s 11"
+            fi
+            # shellcheck disable=SC2086
+            ../src/cmph -C -a "$a" -f $f "$words" >"$base.c" || fail=1
+            if [ -n "$fail" ]
+            then
+                fail=
+                echo "still too weak $f hashes, use less keys"
+                words=_cwords1000
+                nwords=1000
+                echo "** cmph -C -a $a -f $f $words"
+                # shellcheck disable=SC2086
+                ../src/cmph -C -a "$a" -f $f "$words" >"$base.c" || fail=1
+            fi
         fi
-        case "$a" in
-            bdz|bdz_ph|fch|chd|chd_ph)
-                # bdz uses the hash_vector API, 3x in one
-                case "$f" in
-                    sdbm|djb2*)
-                        echo "too weak $f hash with $a"
-                        break
-                        ;;
-                esac
-                ;;
-            *) ;;
-        esac
-        echo "** cmph -C -f $args -a $a $words >${a}_${f}.c"
-        ../src/cmph -C -f $args -a "$a" "$words" >"${a}_${f}.c"
-        echo "** cc -O2 -Wall -Wextra -c -I@top_srcdir@/src ${a}_${f}.c"
-        cc -O2 -Wall -Wextra -c -I"@top_srcdir@/src" "${a}_${f}.c"
-        echo "** compile_run ${a}_${f} $words $nwords"
-        ./compile_run "${a}_${f}" "$words" "$nwords" && rm "${a}_${f}.c" "${a}_${f}.o"
+        echo "** cc -O2 -Wall -Wextra -c -I@top_srcdir@/src $base.c"
+        cc -O2 -Wall -Wextra -c -I"@top_srcdir@/src" "$base.c"
+        echo "** compile_run $base $words $N"
+        ./compile_run "$base" "$words" "$nwords" && rm "$base.c" "$base.o" || exit 1
+
     done
 done
-rm -f _cwords _cwords.mph _cwords100 _cwords100.mph
+rm -f _cwords _cwords100 _cwords1000
