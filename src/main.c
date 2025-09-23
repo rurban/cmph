@@ -92,6 +92,8 @@ int main(int argc, char **argv)
 	cmph_uint32 memory_availability = 0;
 	cmph_uint32 b = 0;
 	cmph_uint32 keys_per_bin = 1;
+	unsigned errs = 0;
+
 	while (1)
 	{
 		char ch = (char)getopt(argc, argv, "hVvgCc:k:a:M:b:t:f:m:d:s:o:p:");
@@ -259,7 +261,7 @@ int main(int argc, char **argv)
 
 	if (seed == UINT_MAX) seed = (cmph_uint32)time(NULL);
 	srand(seed);
-	int ret = 0;
+
 	if (mphf_file == NULL)
 	{
 		mphf_file = (char *)malloc(strlen(keys_file) + 5);
@@ -376,18 +378,24 @@ int main(int argc, char **argv)
 			h = cmph_search(mphf, buf, buflen);
 			if (!(h < siz))
 			{
-				fprintf(stderr, "Unknown key %*s in the input.\n", buflen, buf);
-				ret = 1;
+				if (errs < 10)
+					fprintf(stderr, "Unknown key %*s in the input.\n", buflen, buf);
+				errs++;
 			} else if(hashtable[h] >= keys_per_bin)
 			{
-				fprintf(stderr, "More than %u keys were mapped to bin %u\n", keys_per_bin, h);
-				fprintf(stderr, "Duplicated or unknown key %*s in the input\n", buflen, buf);
-				ret = 1;
-			} else hashtable[h]++;
+				if (errs < 10) {
+					fprintf(stderr, "More than %u keys were mapped to bin %u\n", keys_per_bin, h);
+					fprintf(stderr, "Duplicated or unknown key %*s in the input\n", buflen, buf);
+				}
+				errs++;
+			} else
+				hashtable[h]++;
 
-			if (verbosity)
-			{
-				printf("%s -> %u\n", buf, h);
+			if (verbosity) {
+				if (i < 10)
+					printf("%s -> %u\n", buf, h);
+				else if (i == 10)
+					printf("...\n");
 			}
 			source->dispose(buf);
 		}
@@ -400,6 +408,5 @@ int main(int argc, char **argv)
 	free(tmp_dir);
         free(hashes);
 	free(source);
-	return ret;
-
+	return errs ? 1 : 0;
 }

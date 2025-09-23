@@ -91,6 +91,20 @@ for a in bmz chm brz fch bdz bdz_ph bmz8 chd chd_ph; do
         echo "** mphf_tests -a $a -f $f $words"
         # shellcheck disable=SC2086
         ./mphf_tests -a "$a" -f $f "$words"
+
+        if [ "$a" = "brz" ]; then
+            # once again with fch
+            # shellcheck disable=SC2086
+            echo "** cmph -g -c 3 -a brz -f $f $words"
+            ../src/cmph -g -c 3 -a brz -f $f "$words" || fail=1
+            echo "** cmph -a $a -f $f $words"
+            # shellcheck disable=SC2086
+            ../src/cmph -c 3 -a brz -f $f $words
+            echo "** mphf_tests -a $a -f $f $words"
+            # shellcheck disable=SC2086
+            ./mphf_tests -a brz -f $f "$words"
+        fi
+
         rm -f "$words.mph"
         if [ "$words" = "_words1000" ]; then
             words=_words

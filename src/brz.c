@@ -111,9 +111,7 @@ void brz_config_set_b(cmph_config_t *mph, cmph_uint32 b)
 {
 	brz_config_data_t *brz = (brz_config_data_t *)mph->data;
 	if(b <= 64 || b >= 175)
-	{
 		b =  128;
-	}
 	brz->b = (cmph_uint8)b;
 }
 
@@ -161,11 +159,12 @@ cmph_t *brz_new(cmph_config_t *mph, double c)
 	DEBUGP("m: %u\n", brz->m);
         brz->k = (cmph_uint32)ceil(brz->m/((double)brz->b));
 	DEBUGP("k: %u\n", brz->k);
-	brz->size   = (cmph_uint8 *) calloc((size_t)brz->k, sizeof(cmph_uint8));
+	brz->size = (cmph_uint8 *) calloc((size_t)brz->k, sizeof(cmph_uint8));
 
 	// Clustering the keys by graph id.
 	if (mph->verbosity)
-		fprintf(stderr, "Partitioning the set of keys.\n");
+	    fprintf(stderr, "Partitioning %u keys into %u sets with algo %s.\n",
+		    brz->m, brz->k, cmph_names[brz->algo]);
 
 	while(1)
 	{
@@ -250,7 +249,8 @@ static int brz_gen_mphf(cmph_config_t *mph)
 	cmph_uint8 ** keys_vd = NULL;
 
 	mph->key_source->rewind(mph->key_source->data);
-	DEBUGP("Generating graphs from %u keys\n", brz->m);
+	DEBUGP("Generating graphs from %u keys with algo %s\n", brz->m,
+	       cmph_names[brz->algo]);
 	// Partitioning
 	for (e = 0; e < brz->m; ++e)
 	{
@@ -260,9 +260,7 @@ static int brz_gen_mphf(cmph_config_t *mph)
 		if (memory_usage + keylen + sizeof(keylen) > brz->memory_availability) // flush buffers
 		{
 			if(mph->verbosity)
-			{
-				fprintf(stderr, "Flushing  %u\n", nkeys_in_buffer);
-			}
+				fprintf(stderr, "Flushing %u\n", nkeys_in_buffer);
 			cmph_uint32 value = buckets_size[0];
 			cmph_uint32 sum = 0;
 			cmph_uint32 keylen1 = 0;
@@ -327,7 +325,7 @@ static int brz_gen_mphf(cmph_config_t *mph)
 	if (memory_usage != 0) // flush buffers
 	{
 		if(mph->verbosity)
-			fprintf(stderr, "Flushing  %u\n", nkeys_in_buffer);
+			fprintf(stderr, "Flushing %u\n", nkeys_in_buffer);
 		cmph_uint32 value = buckets_size[0];
 		cmph_uint32 sum = 0;
 		cmph_uint32 keylen1 = 0;
