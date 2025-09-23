@@ -190,14 +190,10 @@ static cmph_uint8 searching(cmph_config_t *mph, fch_buckets_t *buckets, cmph_uin
 	//DEBUGP("max bucket size: %u\n", fch_buckets_get_max_size(buckets));
 
 	for(i = 0; i < fch->m; i++)
-	{
 		random_table[i] = i;
-	}
 	permut(random_table, fch->m);
 	for(i = 0; i < fch->m; i++)
-	{
 		map_table[random_table[i]] = i;
-	}
 	do {
 		if (fch->h2) hash_state_destroy(fch->h2);
 		fch->h2 = hash_state_new(mph->hashfuncs[1], fch->m);
@@ -333,11 +329,11 @@ int fch_compile(cmph_t *mphf, cmph_config_t *mph, FILE *out)
 {
 	fch_data_t *data = (fch_data_t *)mphf->data;
 	char g_name[24];
-	bool do_vector = mph->nhashfuncs == 1 ||
-		mph->hashfuncs[0] == mph->hashfuncs[1];
+	/*bool do_vector = mph->nhashfuncs == 1 ||
+	  mph->hashfuncs[0] == mph->hashfuncs[1];*/
 	hash_state_t *hl[2] = { data->h1, data->h2 };
 	DEBUGP("Compiling fch\n");
-	hash_state_compile(mph->nhashfuncs, (hash_state_t**)hl, mph->nhashfuncs == 1, out);
+	hash_state_compile(2, (hash_state_t**)hl, false, out);
 	fprintf(out, "#include <assert.h>\n");
 	fprintf(out, "#ifdef DEBUG\n");
 	fprintf(out, "#include <stdio.h>\n");
@@ -359,19 +355,10 @@ int fch_compile(cmph_t *mphf, cmph_config_t *mph, FILE *out)
 	fprintf(out, "    /* m: %u */\n", data->m);
 	fprintf(out, "    /* c: %f */\n", data->c);
 	fprintf(out, "    uint32_t h1, h2;\n");
-	if (mph->nhashfuncs > 1) {
-		fprintf(out, "    h1 = %s_hash_0((const unsigned char*)key, keylen) %% %u;\n",
-		       cmph_hash_names[hl[0]->hashfunc], data->m);
-		fprintf(out, "    h2 = %s_hash_1((const unsigned char*)key, keylen) %% %u;\n",
-		       cmph_hash_names[hl[1]->hashfunc], data->m);
-	}
-	else {
-		fprintf(out, "    uint32_t hv[3];\n");
-		fprintf(out, "    %s_hash_vector(%uU, (const unsigned char*)key, keylen, hv);\n",
-		       cmph_hash_names[hl[0]->hashfunc], hl[0]->seed);
-		fprintf(out, "    h1 = hv[0] %% %u;\n", data->m);
-		fprintf(out, "    h2 = hv[1] %% %u;\n", data->m);
-	}
+	fprintf(out, "    h1 = %s_hash_0((const unsigned char*)key, keylen) %% %u;\n",
+		cmph_hash_names[hl[0]->hashfunc], data->m);
+	fprintf(out, "    h2 = %s_hash_1((const unsigned char*)key, keylen) %% %u;\n",
+		cmph_hash_names[hl[1]->hashfunc], data->m);
 	fprintf(out, "    h1 = mixh10h11h12 (h1);\n");
 	fprintf(out, "    assert(h1 < %u);\n", data->b);
 	//fprintf(out, "    DEBUGP(\"key: %%s h1: %%u h2: %%u  _%s_g[h1]: %%u\\n\", key, h1, h2, g[h1]);\n", mph->c_prefix);
@@ -392,13 +379,23 @@ int fch_dump(cmph_t *mphf, FILE *fd)
 	__cmph_dump(mphf, fd);
 
 	hash_state_dump(data->h1, &buf, &buflen);
-	DEBUGP("Dumping hash state with %u bytes to disk\n", buflen);
+	DEBUGP("Dumping hash state with %u bytes to disk:\n", buflen);
+#ifdef DEBUG
+	for (unsigned i=0; i<buflen; i++)
+	    fprintf(stderr, "0x%02x ", (unsigned char)buf[i]);
+	fprintf(stderr, "\n");
+#endif
 	CHK_FWRITE(&buflen, sizeof(cmph_uint32), (size_t)1, fd);
 	CHK_FWRITE(buf, (size_t)buflen, (size_t)1, fd);
 	free(buf);
 
 	hash_state_dump(data->h2, &buf, &buflen);
-	DEBUGP("Dumping hash state with %u bytes to disk\n", buflen);
+	DEBUGP("Dumping hash state with %u bytes to disk:\n", buflen);
+#ifdef DEBUG
+	for (unsigned i=0; i<buflen; i++)
+	    fprintf(stderr, "0x%02x ", (unsigned char)buf[i]);
+	fprintf(stderr, "\n");
+#endif
 	CHK_FWRITE(&buflen, sizeof(cmph_uint32), (size_t)1, fd);
 	CHK_FWRITE(buf, (size_t)buflen, (size_t)1, fd);
 	free(buf);
