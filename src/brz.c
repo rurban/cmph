@@ -111,7 +111,7 @@ void brz_config_set_b(cmph_config_t *mph, cmph_uint32 b)
 {
 	brz_config_data_t *brz = (brz_config_data_t *)mph->data;
 	if(b <= 64 || b >= 175)
-		b =  128;
+		b = 128;
 	brz->b = (cmph_uint8)b;
 }
 
@@ -121,6 +121,12 @@ void brz_config_set_algo(cmph_config_t *mph, CMPH_ALGO algo)
 	{
 		brz_config_data_t *brz = (brz_config_data_t *)mph->data;
 		brz->algo = algo;
+	}
+	else {
+	    // should not happen
+	    fprintf(stderr, "Unsupported brz algo %s, only bmz8 or fch.\n",
+		    cmph_names[algo]);
+	    exit(1);
 	}
 }
 

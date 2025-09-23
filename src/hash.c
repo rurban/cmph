@@ -167,7 +167,7 @@ void hash_state_dump(hash_state_t *state, char **buf, cmph_uint32 *buflen)
 	switch (state->hashfunc)
 	{
 		case CMPH_HASH_JENKINS:
-                        DEBUGP("Compile hash jenkins\n");
+                        DEBUGP("Dump hash jenkins\n");
 			jenkins_state_dump(state, &algobuf, buflen);
 			break;
 		case CMPH_HASH_WYHASH:
