@@ -62,6 +62,8 @@ void brz_config_set_hashfuncs(cmph_config_t *mph, CMPH_HASH *hashfuncs)
 	CMPH_HASH *hashptr = hashfuncs;
 	CMPH_HASH def = *hashptr;
 	bool done = false;
+	if (def >= CMPH_HASH_DJB2) // brz fails with weak hashes easily
+	    def = CMPH_HASH_JENKINS;
 	int i = 0;
 	for (; i<3; i++) // set three hash functions
 	{
