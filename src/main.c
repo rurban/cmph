@@ -324,6 +324,10 @@ int main(int argc, char **argv)
 			cmph_config_destroy(config);
 			if (nhashes)
 				free(hashes);
+			if (generate) {
+				fclose(mphf_fd);
+				unlink(mphf_file);
+			}
 			free(mphf_file);
 			free(source);
 			return -1;
