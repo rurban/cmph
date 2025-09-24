@@ -243,6 +243,10 @@ int main(int argc, char **argv)
 				if (!valid)
 				{
 					fprintf(stderr, "Invalid hash function: %s\nValid names are:", optarg);
+					if (hashes)
+						free(hashes);
+					if (c_file)
+						free(c_file);
                                         for (i = 0; i < CMPH_HASH_COUNT; ++i) {
                                                 fprintf(stderr, " %s",cmph_hash_names[i]);
                                         }
@@ -253,6 +257,10 @@ int main(int argc, char **argv)
 				break;
 			default:
 				usage(argv[0]);
+				if (hashes)
+					free(hashes);
+				if (c_file)
+					free(c_file);
 				return 1;
 		}
 	}
@@ -260,6 +268,10 @@ int main(int argc, char **argv)
 	if (optind != argc - 1)
 	{
 		usage(argv[0]);
+		if (hashes)
+			free(hashes);
+		if (c_file)
+			free(c_file);
 		return 1;
 	}
 	keys_file = argv[optind];
@@ -278,6 +290,8 @@ int main(int argc, char **argv)
 		fprintf(stderr, "Unable to open file %s: %s\n", keys_file, strerror(errno));
 		if (nhashes)
 			free(hashes);
+		if (c_file)
+			free(c_file);
 		free(mphf_file);
 		return -1;
 	}
@@ -328,6 +342,8 @@ int main(int argc, char **argv)
 				fclose(mphf_fd);
 				unlink(mphf_file);
 			}
+			if (c_file)
+				free(c_file);
 			free(mphf_file);
 			free(source);
 			return -1;
