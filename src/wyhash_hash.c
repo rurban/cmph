@@ -174,7 +174,9 @@ void wyhash_hash_vector_packed(void *wyhash_packed, const char *k, cmph_uint32 k
 	__wyhash_hash_vector(*((cmph_uint32 *)wyhash_packed), (const unsigned char*)k, keylen, hashes);
 }
 
+/* TODO: optimize without vector */
 void wyhash_prep_compile(bool do_vector, FILE* out) {
+	(void)do_vector;
 	fprintf(out,
 "#include \"wyhash.h\"\n"
 "/* wyhash_hash */\n"
