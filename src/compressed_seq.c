@@ -244,7 +244,7 @@ void compressed_seq_compile(FILE *out, const char *name, compressed_seq_t *cs)
 	cmph_uint32 sel_size = select_packed_size(&(cs->sel));
 	cmph_uint32 length_rems_size = BITS_TABLE_SIZE(cs->n, cs->rem_r);
 	cmph_uint32 store_table_size = ((cs->total_length + 31) >> 5);
-	
+
 	DEBUGP("sel_size = %u\n", sel_size);
 	DEBUGP("length_rems_size = %u\n", length_rems_size);
 	DEBUGP("store_table_size = %u\n", store_table_size);
@@ -279,7 +279,7 @@ void compressed_seq_load(compressed_seq_t * cs, const char * buf)
 	cmph_uint32 buflen_sel = 0;
 	register cmph_uint32 length_rems_size = 0;
 	register cmph_uint32 store_table_size = 0;
-	
+
 	// loading n, rem_r and total_length
 	memcpy(&(cs->n), buf, sizeof(cmph_uint32));
 	pos += (cmph_uint32)sizeof(cmph_uint32);

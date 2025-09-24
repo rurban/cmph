@@ -880,7 +880,7 @@ int chd_ph_compile(cmph_t *mphf, cmph_config_t *mph, FILE *out)
 	       chd_ph->n);
 	fprintf(out, "};\n");
 	fprintf(out, "uint32_t %s_size(void) {\n", mph->c_prefix);
-	fprintf(out, "    return %u;\n}\n", chd_ph->m);
+	fprintf(out, "    return %u;\n}\n", chd_ph->n);
 	fclose(out);
 	return 1;
 }

@@ -253,7 +253,9 @@ void select_compile(FILE* out, const char *name, select_t *sel)
 	cmph_uint32 vec_size = ((nbits + 31) >> 5);
 	cmph_uint32 sel_table_size = ((sel->n >> NBITS_STEP_SELECT_TABLE) + 1);
 
+	fprintf(out, "#define BITS_VEC_SIZE %u\n", vec_size); // in uint32_t
 	uint32_compile(out, "bits_vec", sel->bits_vec, vec_size);
+	fprintf(out, "#define SELECT_VEC_SIZE %u\n", sel_table_size);
 	uint32_compile(out, "select_table", sel->select_table, sel_table_size);
 	fprintf(out, "struct _select_t {\n"
 		"    uint32_t n, m;\n"
@@ -288,11 +290,13 @@ static void _select_query_compile(FILE* out)
       "    vec_byte_idx = vec_bit_idx >> 3; // vec_bit_idx / 8\n"
       "\n"
       "    one_idx &= MASK_STEP_SELECT_TABLE;\n"
+      "    assert(vec_byte_idx < BITS_VEC_SIZE * 4);\n");
+  fprintf(out,
       "    one_idx += rank_lookup_table[bits_table[vec_byte_idx] &\n"
       "                   ((1 << (vec_bit_idx & 0x7)) - 1)];\n"
       "    part_sum = 0;\n"
       "    do {\n"
-      "        old_part_sum = part_sum; \n"
+      "        old_part_sum = part_sum;\n"
       "        part_sum += rank_lookup_table[bits_table[vec_byte_idx]];\n"
       "        vec_byte_idx++;\n"
       "    } while (part_sum <= one_idx);\n"
@@ -324,10 +328,10 @@ static void _select_query_compile(FILE* out)
       "                  ((1U << (vec_bit_idx & 0x7)) - 1U)] + 1U;\n"
       "    part_sum = 0;\n"
       "    do {\n"
-      "    	old_part_sum = part_sum; \n"
+      "    	old_part_sum = part_sum;\n"
       "    	part_sum += rank_lookup_table[bits_table[vec_byte_idx]];\n"
       "    	vec_byte_idx++;\n"
-      "    } while (part_sum <= one_idx);	\n"
+      "    } while (part_sum <= one_idx);\n"
       "\n"
       "    return select_lookup_table[bits_table[(vec_byte_idx - 1)]]\n"
       "               [(one_idx - old_part_sum)] + ((vec_byte_idx - 1) << 3);\n"

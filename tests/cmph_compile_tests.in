@@ -71,7 +71,7 @@ for a in chm bmz fch bdz bdz_ph chd chd_ph; do
             ./compile_run "$base" "$words" "$nwords" && rm "$base.c" "$base.o" || fail=1
             if [ -n "$fail" ]; then
                 case "$a" in
-                    *_ph) echo "_ph compile_run TODO" ;;
+                    # *_ph) echo "_ph compile_run TODO" ;;
                     *) exit 1 ;;
                 esac
             fi

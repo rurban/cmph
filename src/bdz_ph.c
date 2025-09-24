@@ -497,7 +497,7 @@ int bdz_ph_compile(cmph_t *mphf, cmph_config_t *mph, FILE *out)
 	fprintf(out, "    return vertex;\n");
 	fprintf(out, "};\n");
 	fprintf(out, "\nuint32_t %s_size(void) {\n", mph->c_prefix);
-	fprintf(out, "    return %u;\n}\n", bdz->m);
+	fprintf(out, "    return %u;\n}\n", bdz->n);
 	fclose(out);
 	return 1;
 }

@@ -425,10 +425,14 @@ int main(int argc, char **argv)
 				hashtable[h]++;
 
 			if (verbosity) {
+#ifdef DEBUG
+				printf("%s -> %u\n", buf, h);
+#else
 				if (i < 10)
 					printf("%s -> %u\n", buf, h);
 				else if (i == 10)
 					printf("...\n");
+#endif
 			}
 			source->dispose(buf);
 		}

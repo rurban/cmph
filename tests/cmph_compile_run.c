@@ -18,17 +18,15 @@ int main(int argc, char **argv) {
     }
     int is_order_preserving = strcmp(argv[1], "chm") == 0;
     // some funcs over-allocate. we need an exported cmph_c_size()
-    uint32_t nkeys = cmph_c_size();
+    uint32_t size = cmph_c_size();
     char key[128];
     unsigned l = 0;
     unsigned failed = 0;
     uint32_t h;
     uint32_t keys_per_bin = 1;
-    uint32_t *hasharray = (uint32_t*)calloc(nkeys, 4);
-    uint8_t *hashtable;
-    printf("cmph_compile_run %s for %s [%u]\n", argv[1], argv[2], nkeys);
-    hashtable = (uint8_t*)calloc(nkeys, 1);
-    memset(hashtable, 0,(size_t) nkeys);
+    uint32_t *hasharray = (uint32_t*)calloc(size, 4);
+    uint8_t *hashtable = (uint8_t*)calloc(size, 1);
+    printf("cmph_compile_run %s for %s, size=%u\n", argv[1], argv[2], size);
     
     while (fgets(key, sizeof(key), f)) {
         // delete the ending \n
@@ -37,12 +35,12 @@ int main(int argc, char **argv) {
 
         h = cmph_c_search(key, len-1);
 
-        if (h >= nkeys) { // FIXME for _ph variants
+        if (h >= size) {
             fprintf(stderr, "Unknown key %*s, h %u too large\n", len-1, key, h);
             failed++;
-        } else if (hasharray[h]) {
-            fprintf(stderr, "Duplicated or unknown key %*s in the input\n", len-1, key);
-            failed++;
+        //} else if (hasharray[h]) {
+        //    fprintf(stderr, "Duplicated or unknown key %*s in the input\n", len-1, key);
+        //    failed++;
         } else if (hashtable[h] >= keys_per_bin) {
             fprintf(stderr, "More than %u keys were mapped to bin %u\n", keys_per_bin, h);
             fprintf(stderr, "Duplicated or unknown key %*s in the input\n", len-1, key);
@@ -58,8 +56,8 @@ int main(int argc, char **argv) {
             failed++;
         }
         l++;
-        if (l > nkeys) {
-            fprintf(stderr, "Too many keys in the input, cmph_c_size() was %u\n", nkeys);
+        if (l > size) {
+            fprintf(stderr, "Too many keys in the input, cmph_c_size() was %u\n", size);
             failed++;
             break;
         }
