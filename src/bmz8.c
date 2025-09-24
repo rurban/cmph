@@ -503,13 +503,13 @@ int bmz8_dump(cmph_t *mphf, FILE *fd)
 
 	CHK_FWRITE(&two, sizeof(cmph_uint8), (size_t)1, fd);
 
-	hash_state_dump(data->hashes[0], &buf, &buflen);
+	hash_state_dump(data->hashes[0], "bmz8->hashes[0]", &buf, &buflen);
 	DEBUGP("Dumping hash state with %u bytes to disk\n", buflen);
 	CHK_FWRITE(&buflen, sizeof(cmph_uint32), (size_t)1, fd);
 	CHK_FWRITE(buf, (size_t)buflen, (size_t)1, fd);
 	free(buf);
 
-	hash_state_dump(data->hashes[1], &buf, &buflen);
+	hash_state_dump(data->hashes[1], "bmz8->hashes[1]", &buf, &buflen);
 	DEBUGP("Dumping hash state with %u bytes to disk\n", buflen);
 	CHK_FWRITE(&buflen, sizeof(cmph_uint32), (size_t)1, fd);
 	CHK_FWRITE(buf, (size_t)buflen, (size_t)1, fd);
@@ -544,11 +544,13 @@ void bmz8_load(FILE *f, cmph_t *mphf)
 	for (i = 0; i < nhashes; ++i)
 	{
 		hash_state_t *state = NULL;
+		char name[24];
+		snprintf(name, sizeof(name)-1, "bmz8->hashes[%u]", i & 0xff);
 		CHK_FREAD(&buflen, sizeof(cmph_uint32), (size_t)1, f);
 		DEBUGP("Hash state has %u bytes\n", buflen);
 		buf = (char *)malloc((size_t)buflen);
 		CHK_FREAD(buf, (size_t)buflen, (size_t)1, f);
-		state = hash_state_load(buf);
+		state = hash_state_load(buf, name);
 		bmz8->hashes[i] = state;
 		free(buf);
 	}

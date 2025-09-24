@@ -160,34 +160,37 @@ void hash_state_compile(int count, hash_state_t **states, bool do_vector, FILE* 
 	}
 	return;
 }
-void hash_state_dump(hash_state_t *state, char **buf, cmph_uint32 *buflen)
+void hash_state_dump(hash_state_t *state, const char *name, char **buf, cmph_uint32 *buflen)
 {
 	char *algobuf;
 	size_t len;
+#ifndef DEBUG
+	(void)name;
+#endif
 	switch (state->hashfunc)
 	{
 		case CMPH_HASH_JENKINS:
-                        DEBUGP("Dump hash jenkins\n");
+                        DEBUGP("Dump hash state for jenkins %s\n", name);
 			jenkins_state_dump(state, &algobuf, buflen);
 			break;
 		case CMPH_HASH_WYHASH:
-                        DEBUGP("Dump hash wyhash\n");
+                        DEBUGP("Dump hash state for wyhash %s\n", name);
 			wyhash_state_dump(state, &algobuf, buflen);
 			break;
 		case CMPH_HASH_DJB2:
-                        DEBUGP("Dump hash djb2\n");
+                        DEBUGP("Dump hash state for djb2 %s\n", name);
 			djb2_state_dump(state, &algobuf, buflen);
 			break;
 		case CMPH_HASH_FNV:
-                        DEBUGP("Dump hash fnv\n");
+                        DEBUGP("Dump hash state for fnv %s\n", name);
 			fnv_state_dump(state, &algobuf, buflen);
 			break;
 		case CMPH_HASH_SDBM:
-                        DEBUGP("Dump hash sdbm\n");
+                        DEBUGP("Dump hash state for sdbm %s\n", name);
 			sdbm_state_dump(state, &algobuf, buflen);
 			break;
 		case CMPH_HASH_CRC32:
-                        DEBUGP("Dump hash crc32\n");
+                        DEBUGP("Dump hash state for crc32 %s\n", name);
 			crc32_state_dump(state, &algobuf, buflen);
 			break;
 		default:
@@ -237,11 +240,14 @@ cmph_cleanup:
 //	return dest_state;
 //}
 
-hash_state_t *hash_state_load(const char *buf)
+hash_state_t *hash_state_load(const char *buf, const char *name)
 {
 	cmph_uint32 i;
 	cmph_uint32 offset;
 	CMPH_HASH hashfunc = CMPH_HASH_COUNT;
+#ifndef DEBUG
+	(void)name;
+#endif
 	for (i = 0; i < CMPH_HASH_COUNT; ++i)
 	{
 		if (strcmp(buf, cmph_hash_names[i]) == 0)
@@ -255,25 +261,25 @@ hash_state_t *hash_state_load(const char *buf)
 	switch (hashfunc)
 	{
 		case CMPH_HASH_JENKINS:
-                        DEBUGP("Hash is jenkins\n");
+                        DEBUGP("Load hash state for jenkins %s\n", name);
 			return jenkins_state_load(buf + offset);
 		case CMPH_HASH_WYHASH:
-                        DEBUGP("Hash is wyhash\n");
+                        DEBUGP("Load hash state for wyhash %s\n", name);
 			return wyhash_state_load(buf + offset);
 		case CMPH_HASH_DJB2:
-                        DEBUGP("Hash is djb2\n");
+                        DEBUGP("Load hash state for djb2 %s\n", name);
 			return djb2_state_load(buf + offset);
 		case CMPH_HASH_FNV:
-                        DEBUGP("Hash is fnv\n");
+                        DEBUGP("Load hash state for fnv %s\n", name);
 			return fnv_state_load(buf + offset);
 		case CMPH_HASH_SDBM:
-                        DEBUGP("Hash is sdbm\n");
+                        DEBUGP("Load hash state for sdbm %s\n", name);
 			return sdbm_state_load(buf + offset);
 		case CMPH_HASH_CRC32:
 #ifdef HAVE_CRC32_HW
-                        DEBUGP("Hash is HW crc32\n");
+                        DEBUGP("Load hash state for HW crc32 %s\n", name);
 #else
-                        DEBUGP("Hash is SW crc32\n");
+                        DEBUGP("Load hash state for SW crc32 %s\n", name);
 #endif
 			return crc32_state_load(buf + offset);
 		default:

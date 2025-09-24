@@ -510,7 +510,7 @@ int bdz_ph_dump(cmph_t *mphf, FILE *fd)
 
 	__cmph_dump(mphf, fd);
 
-	hash_state_dump(data->hl, &buf, &buflen);
+	hash_state_dump(data->hl, "bdz_ph->hl", &buf, &buflen);
 	DEBUGP("Dumping hash state with %u bytes to disk\n", buflen);
 	CHK_FWRITE(&buflen, sizeof(cmph_uint32), (size_t)1, fd);
 	CHK_FWRITE(buf, (size_t)buflen, (size_t)1, fd);
@@ -546,7 +546,7 @@ void bdz_ph_load(FILE *f, cmph_t *mphf)
 	DEBUGP("Hash state has %u bytes\n", buflen);
 	buf = (char *)malloc((size_t)buflen);
 	CHK_FREAD(buf, (size_t)buflen, (size_t)1, f);
-	bdz_ph->hl = hash_state_load(buf);
+	bdz_ph->hl = hash_state_load(buf, "bdz_ph->hl");
 	free(buf);
 
 	DEBUGP("Reading m and n\n");

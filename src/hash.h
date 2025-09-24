@@ -23,9 +23,9 @@ cmph_uint32 hash(hash_state_t *state, const char *key, cmph_uint32 keylen);
  */
 void hash_vector(hash_state_t *state, const char *key, cmph_uint32 keylen, cmph_uint32 * hashes);
 
-void hash_state_dump(hash_state_t *state, char **buf, cmph_uint32 *buflen);
+void hash_state_dump(hash_state_t *state, const char* name, char **buf, cmph_uint32 *buflen);
 //hash_state_t * hash_state_copy(hash_state_t *src_state);
-hash_state_t *hash_state_load(const char *buf);
+hash_state_t *hash_state_load(const char *buf, const char* name);
 void hash_state_compile(int count, hash_state_t **states, bool do_vector, FILE* out);
 
 void hash_state_destroy(hash_state_t *state);
@@ -53,7 +53,7 @@ cmph_uint32 hash_packed(void *hash_packed, CMPH_HASH hashfunc, const char *k, cm
  *  \brief Return the amount of space needed to pack a hash function.
  *  \param hashfunc function type
  *  \return the size of the packed function or zero for failures
- */ 
+ */
 cmph_uint32 hash_state_packed_size(CMPH_HASH hashfunc);
 
 

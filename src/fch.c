@@ -378,7 +378,7 @@ int fch_dump(cmph_t *mphf, FILE *fd)
 	fch_data_t *data = (fch_data_t *)mphf->data;
 	__cmph_dump(mphf, fd);
 
-	hash_state_dump(data->h1, &buf, &buflen);
+	hash_state_dump(data->h1, "fch->h1", &buf, &buflen);
 	DEBUGP("Dumping hash state with %u bytes to disk:\n", buflen);
 #ifdef DEBUG
 	for (unsigned i=0; i<buflen; i++)
@@ -389,7 +389,7 @@ int fch_dump(cmph_t *mphf, FILE *fd)
 	CHK_FWRITE(buf, (size_t)buflen, (size_t)1, fd);
 	free(buf);
 
-	hash_state_dump(data->h2, &buf, &buflen);
+	hash_state_dump(data->h2, "fch->h2", &buf, &buflen);
 	DEBUGP("Dumping hash state with %u bytes to disk:\n", buflen);
 #ifdef DEBUG
 	for (unsigned i=0; i<buflen; i++)
@@ -429,7 +429,7 @@ void fch_load(FILE *f, cmph_t *mphf)
 	DEBUGP("Hash state of h1 has %u bytes\n", buflen);
 	buf = (char *)malloc((size_t)buflen);
 	CHK_FREAD(buf, (size_t)buflen, (size_t)1, f);
-	fch->h1 = hash_state_load(buf);
+	fch->h1 = hash_state_load(buf, "fch->h1");
 	free(buf);
 
 	mphf->data = fch;
@@ -439,7 +439,7 @@ void fch_load(FILE *f, cmph_t *mphf)
 	DEBUGP("Hash state of h2 has %u bytes\n", buflen);
 	buf = (char *)malloc((size_t)buflen);
 	CHK_FREAD(buf, (size_t)buflen, (size_t)1, f);
-	fch->h2 = hash_state_load(buf);
+	fch->h2 = hash_state_load(buf, "fch->h2");
 	free(buf);
 
 

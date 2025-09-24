@@ -282,7 +282,9 @@ int chm_dump(cmph_t *mphf, FILE *fd)
 	nwrite = fwrite(&nhashes, sizeof(cmph_uint32), (size_t)1, fd);
         CHECK_FWRITE(nwrite, 1);
 	for (cmph_uint32 i = 0; i < nhashes; i++) {
-		hash_state_dump(data->hashes[i], &buf, &buflen);
+		char name[24];
+		snprintf(name, sizeof(name)-1, "chm->hashes[%u]", i & 0xff);
+		hash_state_dump(data->hashes[i], name, &buf, &buflen);
 		DEBUGP("Dumping hash state %d with %u bytes to disk\n", i, buflen);
 		nwrite = fwrite(&buflen, sizeof(cmph_uint32), (size_t)1, fd);
 		CHECK_FWRITE(nwrite, 1);
@@ -331,13 +333,15 @@ void chm_load(FILE *f, cmph_t *mphf)
 	for (i = 0; i < nhashes; ++i)
 	{
 		hash_state_t *state = NULL;
+		char name[24];
+		snprintf(name, sizeof(name)-1, "chm->hashes[%u]", i & 0xff);
 		nread = fread(&buflen, sizeof(cmph_uint32), (size_t)1, f);
                 CHECK_FREAD(nread, 1);
 		DEBUGP("Hash state has %u bytes\n", buflen);
 		buf = (char *)malloc((size_t)buflen);
 		nread = fread(buf, (size_t)buflen, (size_t)1, f);
                 CHECK_FREAD(nread, 1);
-		state = hash_state_load(buf);
+		state = hash_state_load(buf, name);
 		chm->hashes[i] = state;
 		free(buf);
 	}

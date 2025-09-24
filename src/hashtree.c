@@ -202,13 +202,13 @@ int hashtree_dump(cmph_t *mphf, FILE *fd)
 	__cmph_dump(mphf, fd);
 
 	fwrite(&two, sizeof(cmph_uint32), 1, fd);
-	hash_state_dump(data->hashes[0], &buf, &buflen);
+	hash_state_dump(data->hashes[0], "hashes[0]", &buf, &buflen);
 	DEBUGP("Dumping hash state with %u bytes to disk\n", buflen);
 	fwrite(&buflen, sizeof(cmph_uint32), 1, fd);
 	fwrite(buf, buflen, 1, fd);
 	free(buf);
 
-	hash_state_dump(data->hashes[1], &buf, &buflen);
+	hash_state_dump(data->hashes[1], "hashes[1]", &buf, &buflen);
 	DEBUGP("Dumping hash state with %u bytes to disk\n", buflen);
 	fwrite(&buflen, sizeof(cmph_uint32), 1, fd);
 	fwrite(buf, buflen, 1, fd);
@@ -243,11 +243,13 @@ void hashtree_load(FILE *f, cmph_t *mphf)
 	for (i = 0; i < nhashes; ++i)
 	{
 		hash_state_t *state = NULL;
+		char name[32];
+		snprintf(name, sizeof(name)-1, "hashtree->hashes[%u]", i & 0xff);
 		fread(&buflen, sizeof(cmph_uint32), 1, f);
 		DEBUGP("Hash state has %u bytes\n", buflen);
 		buf = (char *)malloc(buflen);
 		fread(buf, buflen, 1, f);
-		state = hash_state_load(buf);
+		state = hash_state_load(buf, name);
 		hashtree->hashes[i] = state;
 		free(buf);
 	}

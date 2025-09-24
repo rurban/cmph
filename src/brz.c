@@ -541,8 +541,8 @@ static char * brz_copy_partial_fch_mphf(fch_data_t * fchf, cmph_uint32 *buflen)
 	char * bufh2 = NULL;
 	char * buf   = NULL;
 	cmph_uint32 n  = fchf->b;//brz->size[index];
-	hash_state_dump(fchf->h1, &bufh1, &buflenh1);
-	hash_state_dump(fchf->h2, &bufh2, &buflenh2);
+	hash_state_dump(fchf->h1, "brz: fch->h1", &bufh1, &buflenh1);
+	hash_state_dump(fchf->h2, "brz: fch->h2", &bufh2, &buflenh2);
 	*buflen = buflenh1 + buflenh2 + n + 2U * (cmph_uint32)sizeof(cmph_uint32);
 	buf = (char *)malloc((size_t)(*buflen));
 	memcpy(buf, &buflenh1, sizeof(cmph_uint32));
@@ -563,8 +563,8 @@ static char * brz_copy_partial_bmz8_mphf(brz_config_data_t *brz, bmz8_data_t * b
 	char * bufh2 = NULL;
 	char * buf   = NULL;
 	cmph_uint32 n = (cmph_uint32)ceil(brz->c * brz->size[index]);
-	hash_state_dump(bmzf->hashes[0], &bufh1, &buflenh1);
-	hash_state_dump(bmzf->hashes[1], &bufh2, &buflenh2);
+	hash_state_dump(bmzf->hashes[0], "brz: bmz8->hashes[0]", &bufh1, &buflenh1);
+	hash_state_dump(bmzf->hashes[1], "brz: bmz8->hashes[1]", &bufh2, &buflenh2);
 	*buflen = buflenh1 + buflenh2 + n + 2U * (cmph_uint32)sizeof(cmph_uint32);
 	buf = (char *)malloc((size_t)(*buflen));
 	memcpy(buf, &buflenh1, sizeof(cmph_uint32));
@@ -602,9 +602,11 @@ int brz_dump(cmph_t *mphf, FILE *fd)
 	char *buf = NULL;
 	cmph_uint32 buflen;
 	DEBUGP("Dumping brz\n");
+	DEBUGP("c = %f   k = %u   algo = %u (%s)\n", data->c, data->k, data->algo,
+	       cmph_names[data->algo]);
 	// The initial part of the MPHF has already been dumped to disk during construction
 	// Dumping h0
-        hash_state_dump(data->h0, &buf, &buflen);
+        hash_state_dump(data->h0, "brz->h0", &buf, &buflen);
         DEBUGP("Dumping hash state with %u bytes to disk\n", buflen);
         CHK_FWRITE(&buflen, sizeof(cmph_uint32), (size_t)1, fd);
         CHK_FWRITE(buf, (size_t)buflen, (size_t)1, fd);
@@ -626,29 +628,34 @@ void brz_load(FILE *f, cmph_t *mphf)
 	mphf->data = brz;
 	CHK_FREAD(&(brz->c), sizeof(double), (size_t)1, f);
 	CHK_FREAD(&(brz->algo), sizeof(brz->algo), (size_t)1, f); // Reading algo.
+	assert(brz->algo < CMPH_COUNT);
 	CHK_FREAD(&(brz->k), sizeof(cmph_uint32), (size_t)1, f);
-	brz->size   = (cmph_uint8 *) malloc(sizeof(cmph_uint8)*brz->k);
+	brz->size = (cmph_uint8 *) malloc(sizeof(cmph_uint8)*brz->k);
 	CHK_FREAD(brz->size, sizeof(cmph_uint8)*(brz->k), (size_t)1, f);
 	brz->h1 = (hash_state_t **)malloc(sizeof(hash_state_t *)*brz->k);
 	brz->h2 = (hash_state_t **)malloc(sizeof(hash_state_t *)*brz->k);
 	brz->g  = (cmph_uint8 **)  calloc((size_t)brz->k, sizeof(cmph_uint8 *));
-	DEBUGP("Reading c = %f   k = %u   algo = %u \n", brz->c, brz->k, brz->algo);
+	DEBUGP("Reading c = %f   k = %u   algo = %u (%s)\n", brz->c, brz->k, brz->algo,
+	       cmph_names[brz->algo]);
 	//loading h_i1, h_i2 and g_i.
 	for(i = 0; i < brz->k; i++)
 	{
+		char name[16];
+		snprintf(name, sizeof(name)-1, "brz->h1[%u]", i & 0xff);
 		// h1
 		CHK_FREAD(&buflen, sizeof(cmph_uint32), (size_t)1, f);
 		DEBUGP("Hash state 1 has %u bytes\n", buflen);
 		buf = (char *)malloc((size_t)buflen);
 		CHK_FREAD(buf, (size_t)buflen, (size_t)1, f);
-		brz->h1[i] = hash_state_load(buf);
+		brz->h1[i] = hash_state_load(buf, name);
 		free(buf);
 		//h2
 		CHK_FREAD(&buflen, sizeof(cmph_uint32), (size_t)1, f);
 		DEBUGP("Hash state 2 has %u bytes\n", buflen);
 		buf = (char *)malloc((size_t)buflen);
 		CHK_FREAD(buf, (size_t)buflen, (size_t)1, f);
-		brz->h2[i] = hash_state_load(buf);
+		snprintf(name, sizeof(name)-1, "brz->h2[%u]", i & 0xff);
+		brz->h2[i] = hash_state_load(buf, name);
 		free(buf);
 		switch(brz->algo)
 		{
@@ -660,7 +667,7 @@ void brz_load(FILE *f, cmph_t *mphf)
 				break;
 			default: assert(0);
 		}
-		DEBUGP("g_i has %u bytes\n", n);
+		DEBUGP("g[] has %u bytes\n", n);
 		brz->g[i] = (cmph_uint8 *)calloc((size_t)n, sizeof(cmph_uint8));
 		CHK_FREAD(brz->g[i], sizeof(cmph_uint8)*n, (size_t)1, f);
 	}
@@ -669,7 +676,7 @@ void brz_load(FILE *f, cmph_t *mphf)
 	DEBUGP("Hash state has %u bytes\n", buflen);
 	buf = (char *)malloc((size_t)buflen);
 	CHK_FREAD(buf, (size_t)buflen, (size_t)1, f);
-	brz->h0 = hash_state_load(buf);
+	brz->h0 = hash_state_load(buf, "brz->h0");
 	free(buf);
 
 	//loading c, m, and the vector offset.
