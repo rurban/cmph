@@ -9,7 +9,33 @@ test -e _words || head -n "$N"     <"$WORDS" >_words
 test -e _words1000 || head -n 1000 <"$WORDS" >_words1000
 test -e _words100 || head -n 100   <"$WORDS" >_words100
 
-for a in bmz chm brz fch bdz bdz_ph bmz8 chd chd_ph; do
+while getopts "a:f:" opt
+do
+    case "$opt" in
+        a)
+            a="$OPTARG"
+            ;;
+        f)
+            f="$OPTARG"
+            ;;
+        :)
+            echo "Error: Option -$OPTARG requires an argument" >&2
+            exit 1
+            ;;
+    esac
+    shift $((OPTIND-1))
+done
+
+algos="bmz chm brz fch bdz bdz_ph bmz8 chd chd_ph"
+if [ -n "$a" ]; then
+    algos="$a"
+fi
+hashes="jenkins wyhash crc32 fnv djb2 sdbm"
+if [ -n "$f" ]; then
+    hashes="$f"
+fi
+
+for a in $algos; do
     if [ "$a" = "bmz8" ]; then
         rm -f _words100.mph
         words=_words100
@@ -19,7 +45,7 @@ for a in bmz chm brz fch bdz bdz_ph bmz8 chd chd_ph; do
     else
         words=_words
     fi
-    for f in jenkins wyhash crc32 fnv djb2 sdbm; do
+    for f in $hashes; do
         fail=
         echo "** cmph -g -a $a -f $f $words"
         # a retry often helps

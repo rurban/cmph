@@ -12,8 +12,34 @@ test -e _cwords || head -n "$N" <"${WORDS}" >_cwords
 test -e _cwords1000 || head -n 1000 <"${WORDS}" >_cwords1000
 test -e _cwords100 || head -n 100 <"${WORDS}" >_cwords100
 
+while getopts "a:f:" opt
+do
+    case "$opt" in
+        a)
+            a="$OPTARG"
+            ;;
+        f)
+            f="$OPTARG"
+            ;;
+        :)
+            echo "Error: Option -$OPTARG requires an argument" >&2
+            exit 1
+            ;;
+    esac
+    shift $((OPTIND-1))
+done
+
 # brz bmz8
-for a in chm bmz fch bdz bdz_ph chd chd_ph; do
+algos="chm bmz fch bdz bdz_ph chd chd_ph"
+if [ -n "$a" ]; then
+    algos="$a"
+fi
+hashes="jenkins wyhash crc32 fnv djb2 sdbm"
+if [ -n "$f" ]; then
+    hashes="$f"
+fi
+
+for a in $algos; do
     if [ "$a" = "bmz8" ]; then
         words=_words100
         nwords=100
@@ -25,7 +51,7 @@ for a in chm bmz fch bdz bdz_ph chd chd_ph; do
         words=_cwords
         nwords="$N"
     fi
-    for f in jenkins wyhash crc32 fnv djb2 sdbm; do
+    for f in $hashes; do
         fail=
         args="$f"
         base="${a}_${f}"
