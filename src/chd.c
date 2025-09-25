@@ -192,6 +192,7 @@ int chd_compile(cmph_t *mphf, cmph_config_t *mph, FILE *out) {
   hash_state_t state = {hashfunc, *seed};
   hash_state_t *states = &state;
   DEBUGP("Compiling chd\n");
+  fprintf(out, "#include <assert.h>\n");
   hash_state_compile(1, (hash_state_t **)&states, true, out);
   uint32_compile(out, "packed_chd_phf", (uint32_t*)data->packed_chd_phf, data->packed_chd_phf_size/4);
   uint32_compile(out, "packed_cr", (uint32_t*)data->packed_cr, data->packed_cr_size/4);

@@ -6,9 +6,9 @@
 
 struct _select_t
 {
-	cmph_uint32 n,m;
-	cmph_uint32 * bits_vec;
-	cmph_uint32 * select_table;
+	cmph_uint32 n, m;
+	cmph_uint32 *bits_vec;
+	cmph_uint32 *select_table;
 };
 
 typedef struct _select_t select_t;
@@ -16,7 +16,7 @@ typedef struct _select_t select_t;
 void select_init(select_t * sel);
 
 void select_destroy(select_t * sel);
- 
+
 void select_generate(select_t * sel, cmph_uint32 * keys_vec, cmph_uint32 n, cmph_uint32 m);
 
 cmph_uint32 select_query(select_t * sel, cmph_uint32 one_idx);

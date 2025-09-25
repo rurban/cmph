@@ -290,13 +290,13 @@ static void _select_query_compile(FILE* out)
       "    vec_byte_idx = vec_bit_idx >> 3; // vec_bit_idx / 8\n"
       "\n"
       "    one_idx &= MASK_STEP_SELECT_TABLE;\n"
-      "    assert(vec_byte_idx < BITS_VEC_SIZE * 4);\n");
-  fprintf(out,
+      "    //assert(vec_byte_idx < bits_table_size);\n"
       "    one_idx += rank_lookup_table[bits_table[vec_byte_idx] &\n"
       "                   ((1 << (vec_bit_idx & 0x7)) - 1)];\n"
       "    part_sum = 0;\n"
       "    do {\n"
       "        old_part_sum = part_sum;\n"
+      "        //assert(vec_byte_idx < bits_table_size);\n"
       "        part_sum += rank_lookup_table[bits_table[vec_byte_idx]];\n"
       "        vec_byte_idx++;\n"
       "    } while (part_sum <= one_idx);\n"
@@ -389,23 +389,19 @@ void select_load(select_t * sel, const char *buf)
 	nbits = sel->n + sel->m;
 	vec_size = ((nbits + 31) >> 5) * (cmph_uint32)sizeof(cmph_uint32); // (nbits + 31) >> 5 = (nbits + 31)/32
 	sel_table_size = ((sel->n >> NBITS_STEP_SELECT_TABLE) + 1) * (cmph_uint32)sizeof(cmph_uint32); // (sel->n >> NBITS_STEP_SELECT_TABLE) = (sel->n/STEP_SELECT_TABLE)
-	
-	if(sel->bits_vec) 
-	{
+
+	if(sel->bits_vec)
 		free(sel->bits_vec);
-	}
 	sel->bits_vec = (cmph_uint32 *)calloc(vec_size/sizeof(cmph_uint32), sizeof(cmph_uint32));
 
-	if(sel->select_table) 
-	{
+	if(sel->select_table)
 		free(sel->select_table);
-	}
 	sel->select_table = (cmph_uint32 *)calloc(sel_table_size/sizeof(cmph_uint32), sizeof(cmph_uint32));
 
 	memcpy(sel->bits_vec, buf + pos, vec_size);
 	pos += vec_size;
 	memcpy(sel->select_table, buf + pos, sel_table_size);
-	
+
 	DEBUGP("Loaded select structure with size %u bytes\n", 2*(cmph_uint32)sizeof(cmph_uint32) + vec_size + sel_table_size);
 }
 

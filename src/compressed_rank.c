@@ -97,7 +97,7 @@ cmph_uint32 compressed_rank_query(compressed_rank_t * cr, cmph_uint32 idx)
 		sel_res = select_query(&cr->sel, val_quot - 1) + 1;
 		rank = sel_res - val_quot;
 	}
-	
+
 	do
 	{
 		if(GETBIT32(cr->sel.bits_vec, sel_res))
@@ -110,8 +110,8 @@ cmph_uint32 compressed_rank_query(compressed_rank_t * cr, cmph_uint32 idx)
 		}
 		sel_res++;
 		rank++;
-	} while(1);	
-	
+	} while(1);
+
 	return rank;
 }
 
@@ -314,8 +314,8 @@ cmph_uint32 compressed_rank_query_packed(void * cr_packed, cmph_uint32 idx)
 		}
 		sel_res++;
 		rank++;
-	} while(1);	
-	
+	} while(1);
+
 	return rank;
 }
 

@@ -872,7 +872,7 @@ int chd_ph_compile(cmph_t *mphf, cmph_config_t *mph, FILE *out)
 	       cmph_hash_names[chd_ph->hashfunc], data->hl->seed);
 	fprintf(out, "    g = hv[0] %% %u;\n", chd_ph->nbuckets);
 	fprintf(out, "    f = hv[1] %% %u;\n", chd_ph->n);
-	fprintf(out, "    h = hv[1] %% %u + 1;\n", chd_ph->n - 1);
+	fprintf(out, "    h = hv[2] %% %u + 1;\n", chd_ph->n - 1);
 	fprintf(out, "    disp = compressed_seq_query(&cs, g);\n");
 	fprintf(out, "    probe0_num = disp %% %u;\n", chd_ph->n);
 	fprintf(out, "    probe1_num = disp / %u;\n", chd_ph->n);
@@ -1038,7 +1038,7 @@ void chd_ph_search_packed_compile(FILE *out, hash_state_t *state)
 	"\n"
 	"    disp = compressed_seq_query_packed(ptr, g);\n"
 	"    probe0_num = disp % n;\n"
-	"    probe1_num = disp/n;\n"
+	"    probe1_num = disp / n;\n"
 	"    position = (uint32_t)((f + ((uint64_t )h)*probe0_num + probe1_num) % n);\n"
 	"    return position;\n"
 	"}\n", out);
