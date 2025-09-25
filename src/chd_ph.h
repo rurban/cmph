@@ -41,6 +41,9 @@ cmph_uint32 chd_ph_search(cmph_t *mphf, const char *key, cmph_uint32 keylen);
  */
 void chd_ph_pack(cmph_t *mphf, void *packed_mphf);
 
+void chd_ph_unpack(const uint32_t *packed_mphf,
+		   chd_ph_data_t *data, void *state, void *cs);
+
 /** \fn cmph_uint32 chd_ph_packed_size(cmph_t *mphf);
  *  \brief Return the amount of space needed to pack mphf.
  *  \param mphf pointer to a mphf

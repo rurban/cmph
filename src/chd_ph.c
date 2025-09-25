@@ -859,7 +859,7 @@ int chd_ph_compile(cmph_t *mphf, cmph_config_t *mph, FILE *out)
 		occup_size  = ((chd_ph->n + 31)/32) * 4;
 	bytes_compile(out, "occup_table", chd_ph->occup_table, occup_size);
 	assert(data->cs);
-	compressed_seq_compile(out, "cs", data->cs); // data->cs
+	compressed_seq_data_compile(out, "cs", data->cs); // data->cs
 	compressed_seq_query_compile(out, data->cs); // the function
 
 	fprintf(out, "\nuint32_t %s_search(const char* key, uint32_t keylen) {\n", mph->c_prefix);
@@ -1005,9 +1005,38 @@ cmph_uint32 chd_ph_search_packed(void *packed_mphf, const char *key, cmph_uint32
 	return position;
 }
 
-void chd_ph_search_packed_compile(FILE *out, hash_state_t *state)
+void chd_ph_unpack(const uint32_t *packed_mphf,
+		   chd_ph_data_t *data, void *vstate, void *vcs)
 {
-    compressed_seq_query_packed_compile(out);
+    hash_state_t *state = (hash_state_t *)vstate;
+    compressed_seq_t *cs = (compressed_seq_t *)vcs;
+    //uint32_t algo = *packed_mphf++;
+    packed_mphf++; // skip algo
+    // hash_vector_packed is just the hashfunc and seed, no name
+    state->hashfunc = (CMPH_HASH)*(uint32_t *)packed_mphf;
+    uint8_t *hl_ptr = (uint8_t *)(packed_mphf) + 4;
+    state->seed = *(uint32_t*)hl_ptr;
+    uint32_t *ptr = (uint32_t *)(hl_ptr + hash_state_packed_size(state->hashfunc));
+
+    data->hl = state;
+    data->n = *ptr++;
+    data->nbuckets = *ptr++;
+    compressed_seq_unpack(ptr, cs);
+    data->cs = cs;
+}
+
+#if 0
+void chd_ph_search_packed_compile(FILE *out, const uint32_t *packed_mphf, hash_state_t *state)
+{
+    chd_ph_unpack(const uint32_t *packed_mphf);
+    uint32_t algo = *packed_mphf++;
+    CMPH_HASH hl_type = (CMPH_HASH)*(uint32_t *)packed_mphf;
+    uint8_t *hl_ptr = (uint8_t *)(packed_mphf) + 4;
+    uint32_t *ptr = (uint32_t *)(hl_ptr + hash_state_packed_size(state->hashfunc));
+    uint32_t n = *ptr++;
+    uint32_t nbuckets = *ptr++;
+    const uint32_t *cs_packed = ptr;
+    //compressed_seq_query_packed_compile(out, cs_packed);
     fputs(
 	"static uint32_t chd_ph_search_packed(const uint32_t *packed_mphf, const char *key, uint32_t keylen) {\n"
 	"    packed_mphf++; // algo\n"
@@ -1043,3 +1072,4 @@ void chd_ph_search_packed_compile(FILE *out, hash_state_t *state)
 	"    return position;\n"
 	"}\n", out);
 }
+#endif

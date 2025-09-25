@@ -56,11 +56,13 @@ cmph_uint32 compressed_seq_query(compressed_seq_t * cs, cmph_uint32 idx);
 cmph_uint32 compressed_seq_get_space_usage(compressed_seq_t * cs);
 
 void compressed_seq_dump(compressed_seq_t * cs, char ** buf, cmph_uint32 * buflen);
-// the cs data
-void compressed_seq_compile(FILE *out, const char *name, compressed_seq_t *cs);
-// the function
-void compressed_seq_query_compile(FILE *out, compressed_seq_t *cs);
-void compressed_seq_query_packed_compile(FILE *out);
+void compressed_seq_data_compile(FILE *out, const char *name, const compressed_seq_t *cs);
+void compressed_seq_query_compile(FILE *out, const compressed_seq_t *cs);
+/** \fn void compressed_seq_unpack(const uint32_t *cs_packed, compressed_seq_t *cs);
+ *  \brief The reverse of compressed_seq_pack.
+ */
+void compressed_seq_unpack(const uint32_t *cs_packed, compressed_seq_t *cs);
+//void compressed_seq_query_packed_compile(FILE *out, const uint32_t *cs_packed);
 
 void compressed_seq_load(compressed_seq_t * cs, const char * buf);
 
@@ -77,12 +79,12 @@ void compressed_seq_pack(compressed_seq_t *cs, void *cs_packed);
  */
 cmph_uint32 compressed_seq_packed_size(compressed_seq_t *cs);
 
-/** \fn cmph_uint32 compressed_seq_query_packed(void * cs_packed, cmph_uint32 idx);
+/** \fn cmph_uint32 compressed_seq_query_packed(const void * cs_packed, const cmph_uint32 idx);
  *  \brief Returns the value stored at index @see idx of the packed compressed sequence structure.
  *  \param cs_packed is a pointer to a contiguous memory area
  *  \param idx is the index to retrieve the value from
  *  \return the value stored at index @see idx of the packed compressed sequence structure
  */
-cmph_uint32 compressed_seq_query_packed(void * cs_packed, cmph_uint32 idx);
+cmph_uint32 compressed_seq_query_packed(const cmph_uint32 * cs_packed, const cmph_uint32 idx);
 
 #endif

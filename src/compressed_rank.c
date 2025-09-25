@@ -76,14 +76,12 @@ void compressed_rank_generate(compressed_rank_t * cr, cmph_uint32 * vals_table, 
 
 cmph_uint32 compressed_rank_query(compressed_rank_t * cr, cmph_uint32 idx)
 {
-	register cmph_uint32 rems_mask;
-	register cmph_uint32 val_quot, val_rem;
-	register cmph_uint32 sel_res, rank;
+	cmph_uint32 rems_mask;
+	cmph_uint32 val_quot, val_rem;
+	cmph_uint32 sel_res, rank;
 	
 	if(idx > cr->max_val)
-	{
 		return cr->n;
-	}
 	
 	val_quot = idx >> cr->rem_r; 	
 	rems_mask = (1U << cr->rem_r) - 1U; 
@@ -117,7 +115,7 @@ cmph_uint32 compressed_rank_query(compressed_rank_t * cr, cmph_uint32 idx)
 
 cmph_uint32 compressed_rank_get_space_usage(compressed_rank_t * cr)
 {
-	register cmph_uint32 space_usage = select_get_space_usage(&cr->sel);
+	cmph_uint32 space_usage = select_get_space_usage(&cr->sel);
 	space_usage += BITS_TABLE_SIZE(cr->n, cr->rem_r)*(cmph_uint32)sizeof(cmph_uint32)*8;
 	space_usage += 3*(cmph_uint32)sizeof(cmph_uint32)*8;
 	return space_usage;
@@ -125,9 +123,9 @@ cmph_uint32 compressed_rank_get_space_usage(compressed_rank_t * cr)
 
 void compressed_rank_dump(compressed_rank_t * cr, char **buf, cmph_uint32 *buflen)
 {
-	register cmph_uint32 sel_size = select_packed_size(&(cr->sel));
-	register cmph_uint32 vals_rems_size = BITS_TABLE_SIZE(cr->n, cr->rem_r) * (cmph_uint32)sizeof(cmph_uint32);
-	register cmph_uint32 pos = 0;
+	cmph_uint32 sel_size = select_packed_size(&(cr->sel));
+	cmph_uint32 vals_rems_size = BITS_TABLE_SIZE(cr->n, cr->rem_r) * (cmph_uint32)sizeof(cmph_uint32);
+	cmph_uint32 pos = 0;
 	char * buf_sel = 0;
 	cmph_uint32 buflen_sel = 0;
 	
@@ -191,9 +189,9 @@ void compressed_rank_dump(compressed_rank_t * cr, char **buf, cmph_uint32 *bufle
 
 void compressed_rank_load(compressed_rank_t * cr, const char *buf)
 {
-	register cmph_uint32 pos = 0;
+	cmph_uint32 pos = 0;
 	cmph_uint32 buflen_sel = 0;
-	register cmph_uint32 vals_rems_size = 0;
+	cmph_uint32 vals_rems_size = 0;
 	
 	// loading max_val, n, and rem_r
 	memcpy(&(cr->max_val), buf, sizeof(cmph_uint32));
@@ -260,34 +258,32 @@ void compressed_rank_pack(compressed_rank_t *cr, void *cr_packed)
 
 cmph_uint32 compressed_rank_packed_size(compressed_rank_t *cr)
 {
-	register cmph_uint32 sel_size = select_packed_size(&cr->sel);
-	register cmph_uint32 vals_rems_size = BITS_TABLE_SIZE(cr->n, cr->rem_r) * (cmph_uint32)sizeof(cmph_uint32);	
+	cmph_uint32 sel_size = select_packed_size(&cr->sel);
+	cmph_uint32 vals_rems_size = BITS_TABLE_SIZE(cr->n, cr->rem_r) * (cmph_uint32)sizeof(cmph_uint32);	
 	return 4 * (cmph_uint32)sizeof(cmph_uint32)  + sel_size +  vals_rems_size;
 }
 
 cmph_uint32 compressed_rank_query_packed(void * cr_packed, cmph_uint32 idx)
 {
 	// unpacking cr_packed
-	register cmph_uint32 *ptr = (cmph_uint32 *)cr_packed;
-	register cmph_uint32 max_val = *ptr++;
-	register cmph_uint32 n = *ptr++;
-	register cmph_uint32 rem_r = *ptr++;
-	register cmph_uint32 buflen_sel = *ptr++;
-	register cmph_uint32 * sel_packed = ptr;
+	cmph_uint32 *ptr = (cmph_uint32 *)cr_packed;
+	cmph_uint32 max_val = *ptr++;
+	cmph_uint32 n = *ptr++;
+	cmph_uint32 rem_r = *ptr++;
+	cmph_uint32 buflen_sel = *ptr++;
+	cmph_uint32 * sel_packed = ptr;
 	
-	register cmph_uint32 * bits_vec = sel_packed + 2; // skipping n and m
+	cmph_uint32 * bits_vec = sel_packed + 2; // skipping n and m
 
-	register cmph_uint32 * vals_rems = (ptr += (buflen_sel >> 2)); 
+	cmph_uint32 * vals_rems = (ptr += (buflen_sel >> 2)); 
 
 	// compressed sequence query computation
-	register cmph_uint32 rems_mask;
-	register cmph_uint32 val_quot, val_rem;
-	register cmph_uint32 sel_res, rank;
+	cmph_uint32 rems_mask;
+	cmph_uint32 val_quot, val_rem;
+	cmph_uint32 sel_res, rank;
 	
 	if(idx > max_val)
-	{
 		return n;
-	}
 	
 	val_quot = idx >> rem_r; 	
 	rems_mask = (1U << rem_r) - 1U; 
@@ -319,6 +315,86 @@ cmph_uint32 compressed_rank_query_packed(void * cr_packed, cmph_uint32 idx)
 	return rank;
 }
 
+void compressed_rank_unpack(const uint8_t *cr_packed, compressed_rank_t *cr,
+			    select_t *sel)
+{
+    // unpacking cr_packed
+    uint32_t *ptr = (uint32_t *)cr_packed;
+    cr->max_val = *ptr++;
+    cr->n = *ptr++;
+    cr->rem_r = *ptr++;
+    uint32_t buflen_sel = *ptr++;
+    const uint32_t *sel_packed = ptr;
+    //const uint32_t *bits_vec = sel_packed + 2; // skipping n and m
+    select_unpack(sel_packed, sel);
+    cr->sel = *sel;
+    cr->vals_rems = (ptr += (buflen_sel >> 2));
+}
+
+void compressed_rank_data_compile(FILE *out, const char *name, const compressed_rank_t *cr)
+{
+    const cmph_uint32 vals_rems_size = BITS_TABLE_SIZE(cr->n, cr->rem_r);
+    select_data_compile(out, "rsel", &cr->sel);
+    uint32_compile(out, "vals_rems", cr->vals_rems, vals_rems_size);
+    fprintf(out, "struct _compressed_rank_t {\n"
+	    "    const uint32_t max_val;\n"
+	    "    const uint32_t n;\n"
+	    "    const uint32_t rem_r;\n"
+	    "    const select_t sel;\n"
+	    "    const uint32_t *vals_rems;\n"
+	    "};\n"
+	    "typedef struct _compressed_rank_t compressed_rank_t;\n");
+    fprintf(out, "const compressed_rank_t %s = {\n", name);
+    fprintf(out, "    .max_val = %u,\n", cr->max_val);
+    fprintf(out, "    .n = %u,\n", cr->n);
+    fprintf(out, "    .rem_r = %u,\n", cr->rem_r);
+    fprintf(out, "    .sel = rsel,\n");
+    fprintf(out, "    .vals_rems = vals_rems};\n");
+}
+
+void compressed_rank_query_compile(FILE *out, const compressed_rank_t *cr)
+{
+    uint32_compile(out, "bitmask32", bitmask32, 32);
+    fprintf(out,
+	    "#define GETBIT32(array, i) (array[i >> 5] & bitmask32[i & 0x0000001f])\n"
+	    "static uint32_t compressed_rank_query(const compressed_rank_t *cr, const uint32_t idx) {\n"
+	    "    // compressed sequence query computation\n"
+	    "    uint32_t sel_res, rank;\n"
+	    "\n"
+	    "    if(idx > %uU)\n", cr->max_val);
+    fprintf(out,
+	    "    	return %u;\n", cr->n);
+    fprintf(out,
+	    "\n"
+	    "    const uint32_t val_quot = idx >> %uU;\n", cr->rem_r);
+    uint32_t rems_mask = (1U << cr->rem_r) - 1U;
+    //fprintf(out,
+    //	    "    const uint32_t rems_mask = (1U << %uU) - 1U;\n", cr->rem_r);
+    fprintf(out,
+	    "    const uint32_t val_rem = idx & %uU;\n", rems_mask);
+    fprintf(out,
+	    "    if(val_quot == 0) {\n"
+	    "    	rank = sel_res = 0;\n"
+	    "    }\n"
+	    "    else {\n"
+	    "    	sel_res = select_query(&rsel, val_quot - 1) + 1;\n"
+	    "    	rank = sel_res - val_quot;\n"
+	    "    }\n"
+	    "\n"
+	    "    do {\n"
+	    "    	if(GETBIT32(rsel_bits_vec, sel_res))\n"
+	    "    	    break;\n"
+	    "    	if(get_bits_value(cr->vals_rems, rank, %uU, %uU) >= val_rem)\n", cr->rem_r, rems_mask);
+    fprintf(out,
+	    "   	    break;\n"
+	    "   	sel_res++;\n"
+	    "   	rank++;\n"
+	    "     } while (1);\n"
+	    "     return rank;\n"
+	    "}\n");
+}
+
+#if 0
 void compressed_rank_query_packed_compile(FILE *out) {
     uint32_compile(out, "bitmask32", bitmask32, 32);
     fprintf(out,
@@ -358,7 +434,7 @@ void compressed_rank_query_packed_compile(FILE *out) {
       "    do {\n"
       "    	if(GETBIT32(bits_vec, sel_res))\n"
       "    	    break;\n"
-      "    	if(get_bits_value(vals_rems, rank, rem_r, rems_mask) >= val_rem)\n"
+      "    	if(get_bits_value(vals_rems, rank, cr->rem_r, rems_mask) >= val_rem)\n"
       "   	    break;\n"
       "   	sel_res++;\n"
       "   	rank++;\n"
@@ -366,3 +442,4 @@ void compressed_rank_query_packed_compile(FILE *out) {
       "     return rank;\n"
       "}\n");
 }
+#endif

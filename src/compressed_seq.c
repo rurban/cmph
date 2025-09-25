@@ -15,7 +15,7 @@
 
 static inline cmph_uint32 compressed_seq_i_log2(cmph_uint32 x)
 {
-	register cmph_uint32 res = 0;
+	cmph_uint32 res = 0;
 	
 	while(x > 1)
 	{
@@ -47,11 +47,11 @@ void compressed_seq_destroy(compressed_seq_t * cs)
 
 void compressed_seq_generate(compressed_seq_t * cs, cmph_uint32 * vals_table, cmph_uint32 n)
 {
-	register cmph_uint32 i;
+	cmph_uint32 i;
 	// lengths: represents lengths of encoded values	
-	register cmph_uint32 * lengths = (cmph_uint32 *)calloc(n, sizeof(cmph_uint32));
-	register cmph_uint32 rems_mask;
-	register cmph_uint32 stored_value;
+	cmph_uint32 * lengths = (cmph_uint32 *)calloc(n, sizeof(cmph_uint32));
+	cmph_uint32 rems_mask;
+	cmph_uint32 stored_value;
 	
 	cs->n = n;
 	cs->total_length = 0;
@@ -120,7 +120,7 @@ void compressed_seq_generate(compressed_seq_t * cs, cmph_uint32 * vals_table, cm
 
 cmph_uint32 compressed_seq_get_space_usage(compressed_seq_t * cs)
 {
-	register cmph_uint32 space_usage = select_get_space_usage(&cs->sel);
+	cmph_uint32 space_usage = select_get_space_usage(&cs->sel);
 	space_usage += ((cs->total_length + 31) >> 5) * (cmph_uint32)sizeof(cmph_uint32) * 8;
 	space_usage += BITS_TABLE_SIZE(cs->n, cs->rem_r) * (cmph_uint32)sizeof(cmph_uint32) * 8;
 	return  4 * (cmph_uint32)sizeof(cmph_uint32) * 8 + space_usage;
@@ -164,10 +164,10 @@ cmph_uint32 compressed_seq_query(compressed_seq_t * cs, cmph_uint32 idx)
 
 void compressed_seq_dump(compressed_seq_t * cs, char ** buf, cmph_uint32 * buflen)
 {
-	register cmph_uint32 sel_size = select_packed_size(&(cs->sel));
-	register cmph_uint32 length_rems_size = BITS_TABLE_SIZE(cs->n, cs->rem_r) * 4;
-	register cmph_uint32 store_table_size = ((cs->total_length + 31) >> 5) * 4;
-	register cmph_uint32 pos = 0;
+	cmph_uint32 sel_size = select_packed_size(&(cs->sel));
+	cmph_uint32 length_rems_size = BITS_TABLE_SIZE(cs->n, cs->rem_r) * 4;
+	cmph_uint32 store_table_size = ((cs->total_length + 31) >> 5) * 4;
+	cmph_uint32 pos = 0;
 	char * buf_sel = 0;
 	cmph_uint32 buflen_sel = 0;
 	
@@ -239,25 +239,21 @@ void compressed_seq_dump(compressed_seq_t * cs, char ** buf, cmph_uint32 * bufle
 }
 
 // the data
-void compressed_seq_compile(FILE *out, const char *name, compressed_seq_t *cs)
+void compressed_seq_data_compile(FILE *out, const char *name, const compressed_seq_t *cs)
 {
 	cmph_uint32 length_rems_size = BITS_TABLE_SIZE(cs->n, cs->rem_r);
 	cmph_uint32 store_table_size = ((cs->total_length + 31) >> 5);
 
 	DEBUGP("sel_size = %u\n", select_packed_size(&(cs->sel)));
-	// dumping sel
-	select_compile(out, "sel", &cs->sel);
-	// dumping struct with n, rem_r and total_length
+	select_data_compile(out, "sel", &cs->sel);
 	fprintf(out, "/* Compressed sequence structure dump */\n");
-	fprintf(out, "#define LENGTH_REMS_SIZE %u\n", length_rems_size);
 	uint32_compile(out, "length_rems", cs->length_rems, length_rems_size);
-	fprintf(out, "#define STORE_TABLE_SIZE %u\n", store_table_size);
 	uint32_compile(out, "store_table", cs->store_table, store_table_size);
 	fprintf(out, "struct _compressed_seq_t {\n"
-		"    uint32_t n;\n"
-		"    uint32_t rem_r;\n"
-		"    uint32_t total_length;\n"
-		"    select_t sel;\n"
+		"    const uint32_t n;\n"
+		"    const uint32_t rem_r;\n"
+		"    const uint32_t total_length;\n"
+		"    const select_t sel;\n"
 		"    const uint32_t *length_rems;\n"
 		"    const uint32_t *store_table;\n"
 		"};\n"
@@ -273,10 +269,10 @@ void compressed_seq_compile(FILE *out, const char *name, compressed_seq_t *cs)
 
 void compressed_seq_load(compressed_seq_t * cs, const char * buf)
 {
-	register cmph_uint32 pos = 0;
+	cmph_uint32 pos = 0;
 	cmph_uint32 buflen_sel = 0;
-	register cmph_uint32 length_rems_size = 0;
-	register cmph_uint32 store_table_size = 0;
+	cmph_uint32 length_rems_size = 0;
+	cmph_uint32 store_table_size = 0;
 
 	// loading n, rem_r and total_length
 	memcpy(&(cs->n), buf, sizeof(cmph_uint32));
@@ -358,32 +354,31 @@ void compressed_seq_pack(compressed_seq_t *cs, void *cs_packed)
 
 cmph_uint32 compressed_seq_packed_size(compressed_seq_t *cs)
 {
-	register cmph_uint32 sel_size = select_packed_size(&cs->sel);
-	register cmph_uint32 store_table_size = ((cs->total_length + 31) >> 5) * (cmph_uint32)sizeof(cmph_uint32);
-	register cmph_uint32 length_rems_size = BITS_TABLE_SIZE(cs->n, cs->rem_r) * (cmph_uint32)sizeof(cmph_uint32);
+	cmph_uint32 sel_size = select_packed_size(&cs->sel);
+	cmph_uint32 store_table_size = ((cs->total_length + 31) >> 5) * (cmph_uint32)sizeof(cmph_uint32);
+	cmph_uint32 length_rems_size = BITS_TABLE_SIZE(cs->n, cs->rem_r) * (cmph_uint32)sizeof(cmph_uint32);
 	return 4 * (cmph_uint32)sizeof(cmph_uint32) + sel_size + store_table_size + length_rems_size;
 }
 
-
-cmph_uint32 compressed_seq_query_packed(void * cs_packed, cmph_uint32 idx)
+cmph_uint32 compressed_seq_query_packed(const cmph_uint32 *cs_packed, const cmph_uint32 idx)
 {
 	// unpacking cs_packed
-	register cmph_uint32 *ptr = (cmph_uint32 *)cs_packed;
-	register cmph_uint32 n = *ptr++;
-	register cmph_uint32 rem_r = *ptr++;
+        cmph_uint32 *ptr = (cmph_uint32 *)cs_packed;
+	cmph_uint32 n = *ptr++;
+	cmph_uint32 rem_r = *ptr++;
 	ptr++; // skipping total_length 
-// 	register cmph_uint32 total_length = *ptr++;
-	register cmph_uint32 buflen_sel = *ptr++;
-	register cmph_uint32 * sel_packed = ptr;
-	register cmph_uint32 * length_rems = (ptr += (buflen_sel >> 2)); 
-	register cmph_uint32 length_rems_size = BITS_TABLE_SIZE(n, rem_r);
-	register cmph_uint32 * store_table = (ptr += length_rems_size);
+// 	cmph_uint32 total_length = *ptr++;
+	cmph_uint32 buflen_sel = *ptr++;
+	cmph_uint32 * sel_packed = ptr;
+	cmph_uint32 * length_rems = (ptr += (buflen_sel >> 2)); 
+	cmph_uint32 length_rems_size = BITS_TABLE_SIZE(n, rem_r);
+	cmph_uint32 * store_table = (ptr += length_rems_size);
 
 	// compressed sequence query computation
-	register cmph_uint32 enc_idx, enc_length;
-	register cmph_uint32 rems_mask;
-	register cmph_uint32 stored_value;
-	register cmph_uint32 sel_res;
+	cmph_uint32 enc_idx, enc_length;
+	cmph_uint32 rems_mask;
+	cmph_uint32 stored_value;
+	cmph_uint32 sel_res;
 
 	rems_mask = (1U << rem_r) - 1U;
 	
@@ -397,7 +392,7 @@ cmph_uint32 compressed_seq_query_packed(void * cs_packed, cmph_uint32 idx)
 		sel_res = select_query_packed(sel_packed, idx - 1);
 		
 		enc_idx = (sel_res - (idx - 1)) << rem_r;
-		enc_idx += get_bits_value(length_rems, idx-1, rem_r, rems_mask);
+		enc_idx += get_bits_value(length_rems, idx - 1, rem_r, rems_mask);
 		
 		sel_res = select_next_query_packed(sel_packed, sel_res);
 	};
@@ -420,9 +415,9 @@ static void get_bits_at_pos_compile(FILE *out)
 	"    uint32_t shift1 = pos & 0x0000001f;\n"
 	"    uint32_t shift2 = 32 - shift1;\n"
 	"    uint32_t string_mask = (1U << string_length) - 1;\n"
-	"    //assert(word_idx < STORE_TABLE_SIZE);\n"
+	"    //assert(word_idx < store_table_size);\n"
 	"    uint32_t bits_string = (bits_table[word_idx] >> shift1) & string_mask;\n"
-	"    if(shift2 < string_length/* && word_idx+1 < STORE_TABLE_SIZE*/)\n"
+	"    if(shift2 < string_length/* && word_idx+1 < store_table_size*/)\n"
 	"        bits_string |= (bits_table[word_idx+1] << shift2) & string_mask;\n"
 	"\n"
 	"    return bits_string;\n"
@@ -430,7 +425,7 @@ static void get_bits_at_pos_compile(FILE *out)
 }
 
 // the function
-void compressed_seq_query_compile(FILE *out, compressed_seq_t *cs)
+void compressed_seq_query_compile(FILE *out, const compressed_seq_t *cs)
 {
   select_query_compile(out);
   get_bits_at_pos_compile(out);
@@ -438,13 +433,14 @@ void compressed_seq_query_compile(FILE *out, compressed_seq_t *cs)
 	  "static uint32_t compressed_seq_query(const compressed_seq_t *cs, const uint32_t idx) {\n"
 	  "    // compressed sequence query computation\n"
 	  "    uint32_t enc_idx, enc_length;\n"
-	  "    uint32_t rems_mask;\n"
+	  //"    uint32_t rems_mask;\n"
 	  "    uint32_t stored_value;\n"
 	  "    uint32_t sel_res;\n"
 	  "\n"
 	  "    assert(idx < %uU);\n", cs->n);
-  fprintf(out,
-	  "    rems_mask = (1U << %uU) - 1U;\n", cs->rem_r);
+  cmph_uint32 rems_mask = (1U << cs->rem_r) - 1U;
+  //fprintf(out,
+  //	  "    rems_mask = (1U << %uU) - 1U;\n", cs->rem_r);
   fprintf(out,
 	  "    if(idx == 0) {\n"
 	  "        enc_idx = 0;\n"
@@ -455,7 +451,7 @@ void compressed_seq_query_compile(FILE *out, compressed_seq_t *cs)
   fprintf(out,
 	  "        enc_idx = (sel_res - (idx - 1)) << %uU;\n", cs->rem_r);
   fprintf(out,
-	  "        enc_idx += get_bits_value(length_rems, idx-1, %uU, rems_mask);\n", cs->rem_r);
+	  "        enc_idx += get_bits_value(length_rems, idx-1, %uU, %uU);\n", cs->rem_r, rems_mask);
   fprintf(out,
 	  "        sel_res = select_next_query(&cs->sel, sel_res);\n"
 	  "    };\n"
@@ -463,7 +459,7 @@ void compressed_seq_query_compile(FILE *out, compressed_seq_t *cs)
   fprintf(out,
 	  "    enc_length = (sel_res - idx) << %uU;\n", cs->rem_r);
   fprintf(out,
-	  "    enc_length += get_bits_value(length_rems, idx, %uU, rems_mask);\n", cs->rem_r);
+	  "    enc_length += get_bits_value(length_rems, idx, %uU, %uU);\n", cs->rem_r, rems_mask);
   fprintf(out,
 	  "    enc_length -= enc_idx;\n"
 	  "    if(enc_length == 0)\n"
@@ -474,12 +470,29 @@ void compressed_seq_query_compile(FILE *out, compressed_seq_t *cs)
 	  "}\n");
 }
 
-void compressed_seq_query_packed_compile(FILE *out)
+void compressed_seq_unpack(const uint32_t *cs_packed, compressed_seq_t *cs)
 {
-  //struct __chd_data_t *data = (struct __chd_data_t *)data;
-  select_query_packed_compile(out);
-  get_bits_at_pos_compile(out);
-  fprintf(out,
+    uint32_t *ptr = (uint32_t *)cs_packed;
+    cs->n = *ptr++;
+    cs->rem_r = *ptr++;
+    cs->total_length = *ptr++;
+    uint32_t buflen_sel = *ptr++;
+    const uint32_t *sel_packed = ptr;
+    select_unpack(sel_packed, &cs->sel);
+    cs->length_rems = (ptr += (buflen_sel >> 2));
+    uint32_t length_rems_size = BITS_TABLE_SIZE(cs->n, cs->rem_r);
+    cs->store_table = (ptr += length_rems_size);
+}
+
+/*
+void compressed_seq_query_packed_compile(FILE *out, const uint32_t *cs_packed)
+{
+    const compressed_seq_t cs;
+    compressed_seq_unpack(cs_packed, &cs);
+    //struct __chd_data_t *data = (struct __chd_data_t *)data;
+    select_query_packed_compile(out, &cs->sel);
+    get_bits_at_pos_compile(out);
+    fprintf(out,
       "static uint32_t compressed_seq_query_packed(const uint32_t *cs_packed, const uint32_t idx) {\n"
       "    // unpacking cs_packed\n"
       "    uint32_t *ptr = (uint32_t *)cs_packed;\n"
@@ -518,3 +531,4 @@ void compressed_seq_query_packed_compile(FILE *out)
       "    return stored_value + ((1U << enc_length) - 1U);\n"
       "}\n");
 }
+*/

@@ -51,7 +51,13 @@ cmph_uint32 compressed_rank_packed_size(compressed_rank_t *cr);
  */
 cmph_uint32 compressed_rank_query_packed(void * cr_packed, cmph_uint32 idx);
 
+void compressed_rank_unpack(const uint8_t *cr_packed, compressed_rank_t *cr,
+			    select_t *sel);
+
 /* compile to C support */
+void compressed_rank_data_compile(FILE *out, const char *name,
+				  const compressed_rank_t *cr);
+void compressed_rank_query_compile(FILE *out, const compressed_rank_t *cr);
 void compressed_rank_query_packed_compile(FILE *out);
 
 #endif

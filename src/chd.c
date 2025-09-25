@@ -180,37 +180,59 @@ void chd_load(FILE *fd, cmph_t *mphf) {
   CHK_FREAD(chd->packed_cr, chd->packed_cr_size, (size_t)1, fd);
 }
 
-void chd_ph_search_packed_compile(FILE *out, hash_state_t *state);
+//void chd_ph_search_packed_compile(FILE *out, hash_state_t *state);
 
 int chd_compile(cmph_t *mphf, cmph_config_t *mph, FILE *out) {
-  chd_data_t *data = (chd_data_t *)mphf->data;
-  chd_config_data_t *config = (chd_config_data_t *)mph->data;
-  chd_ph_config_data_t *chd_ph = (chd_ph_config_data_t *)config->chd_ph->data;
-  // hash_vector_packed is just the hashfunc and seed
-  CMPH_HASH hashfunc  = (CMPH_HASH)*(uint32_t *)(data->packed_chd_phf + 4);
-  uint32_t *seed = (uint32_t*)&data->packed_chd_phf[8];
-  hash_state_t state = {hashfunc, *seed};
-  hash_state_t *states = &state;
-  DEBUGP("Compiling chd\n");
-  fprintf(out, "#include <assert.h>\n");
-  hash_state_compile(1, (hash_state_t **)&states, true, out);
-  uint32_compile(out, "packed_chd_phf", (uint32_t*)data->packed_chd_phf, data->packed_chd_phf_size/4);
-  uint32_compile(out, "packed_cr", (uint32_t*)data->packed_cr, data->packed_cr_size/4);
-  chd_ph_search_packed_compile(out, &state);
-  compressed_rank_query_packed_compile(out);
-  fprintf(out, "\nuint32_t %s_search(const char* key, uint32_t keylen) {\n",
-          mph->c_prefix);
-  fprintf(out, "    /* n: %u */\n", chd_ph->n);
-  fprintf(out, "    /* m: %u */\n", chd_ph->m);
-  fprintf(out, "    uint32_t bin_idx = chd_ph_search_packed((const uint32_t*)packed_chd_phf, key, keylen);\n");
-  fprintf(out, "    uint32_t rank = compressed_rank_query_packed((const uint32_t*)packed_cr, bin_idx);\n");
-  fprintf(out, "    return bin_idx - rank;\n");
-  fprintf(out, "};\n");
-  fprintf(out, "uint32_t %s_size(void) {\n", mph->c_prefix);
-  fprintf(out, "    return %u;\n}\n", chd_ph->m);
-  fclose(out);
-  return 1;
+    chd_data_t *data = (chd_data_t *)mphf->data;
+    chd_config_data_t *config = (chd_config_data_t *)mph->data;
+    chd_ph_config_data_t *chd_ph = (chd_ph_config_data_t *)config->chd_ph->data;
+
+    chd_ph_data_t chd_ph_data = {0};
+    hash_state_t state = {0};
+    compressed_seq_t cs = {0};
+    compressed_rank_t cr = {0};
+    select_t sel = {0};
+    chd_ph_unpack((uint32_t *)data->packed_chd_phf, &chd_ph_data, &state, &cs);
+    compressed_rank_unpack(data->packed_cr, &cr, &sel);
+
+    hash_state_t *states = &state;
+    DEBUGP("Compiling chd\n");
+    fprintf(out, "#include <assert.h>\n");
+    hash_state_compile(1, (hash_state_t **)&states, true, out);
+
+    //const uint32_t *cs_packed = (const uint32_t*)&data->packed_chd_phf[9];
+    compressed_seq_data_compile(out, "cs", &cs);
+    compressed_seq_query_compile(out, &cs);
+    //select_data_compile(out, "sel", &sel);
+    compressed_rank_data_compile(out, "cr", &cr);
+    compressed_rank_query_compile(out, &cr);
+
+    fprintf(out, "\nuint32_t %s_search(const char* key, uint32_t keylen) {\n", mph->c_prefix);
+    fprintf(out, "    /* n: %u */\n", chd_ph->n);
+    fprintf(out, "    /* m: %u */\n", chd_ph->m);
+    fprintf(out, "    /* nbuckets: %u */\n", chd_ph->nbuckets);
+    fprintf(out, "    uint32_t disp, p0, p1, f, g, h;\n");
+    fprintf(out, "    uint32_t bin_idx, rank;\n");
+    fprintf(out, "    uint32_t hv[3];\n");
+    fprintf(out, "    %s_hash_vector(%u, (const unsigned char*)key, keylen, hv);\n",
+            cmph_hash_names[states[0].hashfunc], states[0].seed);
+    fprintf(out, "    g = hv[0] %% %u;\n", chd_ph->nbuckets);
+    fprintf(out, "    f = hv[1] %% %u;\n", chd_ph->n);
+    fprintf(out, "    h = hv[2] %% %u + 1;\n", chd_ph->n - 1);
+    fprintf(out, "    disp = compressed_seq_query(&cs, g);\n");
+    fprintf(out, "    p0 = disp %% %u;\n", chd_ph->n);
+    fprintf(out, "    p1 = disp / %u;\n", chd_ph->n);
+    fprintf(out, "    bin_idx = (uint32_t)((f + ((uint64_t)h)*p0 + p1) %% %u);\n",
+            chd_ph->n);
+    fprintf(out, "    rank = compressed_rank_query(&cr, bin_idx);\n");
+    fprintf(out, "    return bin_idx - rank;\n");
+    fprintf(out, "};\n");
+    fprintf(out, "uint32_t %s_size(void) {\n", mph->c_prefix);
+    fprintf(out, "    return %u;\n}\n", chd_ph->m);
+    fclose(out);
+    return 1;
 }
+
 int chd_dump(cmph_t *mphf, FILE *fd) {
   chd_data_t *data = (chd_data_t *)mphf->data;
 

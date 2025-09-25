@@ -5,6 +5,7 @@
 #include <limits.h>
 #include "select_lookup_tables.h"
 #include "select.h"
+#include "hash.h"
 #include "compile.h"
 
 //#define DEBUG
@@ -43,10 +44,10 @@ void select_init(select_t * sel)
 
 cmph_uint32 select_get_space_usage(select_t * sel)
 {
-	register cmph_uint32 nbits;
-	register cmph_uint32 vec_size;
-	register cmph_uint32 sel_table_size;
-	register cmph_uint32 space_usage;
+	cmph_uint32 nbits;
+	cmph_uint32 vec_size;
+	cmph_uint32 sel_table_size;
+	cmph_uint32 space_usage;
 	
 	nbits = sel->n + sel->m;
 	vec_size = (nbits + 31) >> 5;
@@ -68,9 +69,9 @@ void select_destroy(select_t * sel)
 
 static inline void select_generate_sel_table(select_t * sel)
 {
-	register cmph_uint8 * bits_table = (cmph_uint8 *)sel->bits_vec;
-	register cmph_uint32 part_sum, old_part_sum;
-	register cmph_uint32 vec_idx, one_idx, sel_table_idx;
+	cmph_uint8 * bits_table = (cmph_uint8 *)sel->bits_vec;
+	cmph_uint32 part_sum, old_part_sum;
+	cmph_uint32 vec_idx, one_idx, sel_table_idx;
 	
 	part_sum = vec_idx = one_idx = sel_table_idx = 0;
 	
@@ -94,12 +95,12 @@ static inline void select_generate_sel_table(select_t * sel)
 
 void select_generate(select_t * sel, cmph_uint32 * keys_vec, cmph_uint32 n, cmph_uint32 m)
 {
-	register cmph_uint32 i, j, idx;
+	cmph_uint32 i, j, idx;
 	cmph_uint32 buffer = 0;
 	
-	register cmph_uint32 nbits;
-	register cmph_uint32 vec_size;
-	register cmph_uint32 sel_table_size;
+	cmph_uint32 nbits;
+	cmph_uint32 vec_size;
+	cmph_uint32 sel_table_size;
 	sel->n = n;
 	sel->m = m; // n values in the range [0,m-1]
 	
@@ -167,8 +168,8 @@ void select_generate(select_t * sel, cmph_uint32 * keys_vec, cmph_uint32 n, cmph
 
 static inline cmph_uint32 _select_query(cmph_uint8 * bits_table, cmph_uint32 * select_table, cmph_uint32 one_idx)
 {
-	register cmph_uint32 vec_bit_idx ,vec_byte_idx;
-	register cmph_uint32 part_sum, old_part_sum;
+	cmph_uint32 vec_bit_idx ,vec_byte_idx;
+	cmph_uint32 part_sum, old_part_sum;
 	
 	vec_bit_idx = select_table[one_idx >> NBITS_STEP_SELECT_TABLE]; // one_idx >> NBITS_STEP_SELECT_TABLE = one_idx/STEP_SELECT_TABLE
 	vec_byte_idx = vec_bit_idx >> 3; // vec_bit_idx / 8
@@ -181,8 +182,7 @@ static inline cmph_uint32 _select_query(cmph_uint8 * bits_table, cmph_uint32 * s
 	{
 		old_part_sum = part_sum; 
 		part_sum += rank_lookup_table[bits_table[vec_byte_idx]];
-		vec_byte_idx++;
-		
+		vec_byte_idx++;		
 	}while (part_sum <= one_idx);
 	
 	return select_lookup_table[bits_table[vec_byte_idx - 1]][one_idx - old_part_sum] + ((vec_byte_idx-1) << 3);
@@ -195,8 +195,8 @@ cmph_uint32 select_query(select_t * sel, cmph_uint32 one_idx)
 
 static inline cmph_uint32 _select_next_query(cmph_uint8 * bits_table, cmph_uint32 vec_bit_idx)
 {
-	register cmph_uint32 vec_byte_idx, one_idx;
-	register cmph_uint32 part_sum, old_part_sum;
+	cmph_uint32 vec_byte_idx, one_idx;
+	cmph_uint32 part_sum, old_part_sum;
 	
 	vec_byte_idx = vec_bit_idx >> 3;
 	
@@ -221,10 +221,10 @@ cmph_uint32 select_next_query(select_t * sel, cmph_uint32 vec_bit_idx)
 
 void select_dump(select_t *sel, char **buf, cmph_uint32 *buflen)
 {
-        register cmph_uint32 nbits = sel->n + sel->m;
-	register cmph_uint32 vec_size = ((nbits + 31) >> 5) * (cmph_uint32)sizeof(cmph_uint32); // (nbits + 31) >> 5 = (nbits + 31)/32
-	register cmph_uint32 sel_table_size = ((sel->n >> NBITS_STEP_SELECT_TABLE) + 1) * (cmph_uint32)sizeof(cmph_uint32); // (sel->n >> NBITS_STEP_SELECT_TABLE) = (sel->n/STEP_SELECT_TABLE)
-	register cmph_uint32 pos = 0;
+        cmph_uint32 nbits = sel->n + sel->m;
+	cmph_uint32 vec_size = ((nbits + 31) >> 5) * (cmph_uint32)sizeof(cmph_uint32); // (nbits + 31) >> 5 = (nbits + 31)/32
+	cmph_uint32 sel_table_size = ((sel->n >> NBITS_STEP_SELECT_TABLE) + 1) * (cmph_uint32)sizeof(cmph_uint32); // (sel->n >> NBITS_STEP_SELECT_TABLE) = (sel->n/STEP_SELECT_TABLE)
+	cmph_uint32 pos = 0;
 	
 	*buflen = 2*(cmph_uint32)sizeof(cmph_uint32) + vec_size + sel_table_size;
 	
@@ -247,35 +247,40 @@ void select_dump(select_t *sel, char **buf, cmph_uint32 *buflen)
 	DEBUGP("Dumped select structure with size %u bytes\n", *buflen);
 }
 
-void select_compile(FILE* out, const char *name, select_t *sel)
+void select_data_compile(FILE* out, const char *name, const select_t *sel)
 {
         cmph_uint32 nbits = sel->n + sel->m;
 	cmph_uint32 vec_size = ((nbits + 31) >> 5);
 	cmph_uint32 sel_table_size = ((sel->n >> NBITS_STEP_SELECT_TABLE) + 1);
+	char field[24];
 
-	fprintf(out, "#define BITS_VEC_SIZE %u\n", vec_size); // in uint32_t
-	uint32_compile(out, "bits_vec", sel->bits_vec, vec_size);
-	fprintf(out, "#define SELECT_VEC_SIZE %u\n", sel_table_size);
-	uint32_compile(out, "select_table", sel->select_table, sel_table_size);
-	fprintf(out, "struct _select_t {\n"
-		"    uint32_t n, m;\n"
-		"    const uint32_t *bits_vec;\n"
-		"    const uint32_t *select_table;\n"
-		"};\n"
-		"typedef struct _select_t select_t;\n");
+	if (strcmp(name, "sel") == 0) // skip for 2x rsel decl
+	    fprintf(out, "struct _select_t {\n"
+		    "    const uint32_t n, m;\n"
+		    "    const uint32_t *bits_vec;\n"
+		    "    const uint32_t *select_table;\n"
+		    "};\n"
+		    "typedef struct _select_t select_t;\n");
+	snprintf(field, sizeof(field)-1, "%s_bits_vec", name);
+	uint32_compile(out, field, sel->bits_vec, vec_size);
+	snprintf(field, sizeof(field)-1, "%s_select_table", name);
+	uint32_compile(out, field, sel->select_table, sel_table_size);
 	fprintf(out, "const select_t %s = {\n", name);
 	fprintf(out, "    %u, /* n */\n", sel->n);
 	fprintf(out, "    %u, /* m */\n", sel->m);
-	fprintf(out, "    bits_vec,\n");
-	fprintf(out, "    select_table};\n");
+	fprintf(out, "    %s_bits_vec,\n", name);
+	fprintf(out, "    %s_select_table};\n", name);
 }
 
-static void _select_query_compile(FILE* out)
+// needed by both, chd_ph and chd (packed)
+static void _select_query_compile(FILE* out, const bool packed)
 {
   bytes_compile(out, "rank_lookup_table", rank_lookup_table, 256);
   bytes_2_compile(out, "select_lookup_table", (uint8_t *)select_lookup_table, 256, 8);
-  fprintf(out, "\n"
-	  "#define BITS_TABLE_SIZE(n, bits_length) ((n * bits_length + 31) >> 5)\n"
+  if (packed)
+      fprintf(out,
+          "\n#define BITS_TABLE_SIZE(n, bits_length) ((n * bits_length + 31) >> 5)\n");
+  fprintf(out,
 	  "#define NBITS_STEP_SELECT_TABLE %u\n", NBITS_STEP_SELECT_TABLE);
   fprintf(out, "#define MASK_STEP_SELECT_TABLE 0x%x // 0x7f = 127\n\n", MASK_STEP_SELECT_TABLE);
   fprintf(out,
@@ -304,8 +309,8 @@ static void _select_query_compile(FILE* out)
       "    return select_lookup_table[bits_table[vec_byte_idx - 1]]\n"
       "               [one_idx - old_part_sum] + ((vec_byte_idx-1) << 3);\n"
       "}\n"
-      "static inline uint32_t get_bits_value(const uint32_t *bits_table, uint32_t index,\n"
-      "                                      uint32_t string_length, uint32_t string_mask)\n"
+      "static inline uint32_t get_bits_value(const uint32_t *bits_table, const uint32_t index,\n"
+      "                                      const uint32_t string_length, const uint32_t string_mask)\n"
       "{\n"
       "    uint32_t bit_idx = index * string_length;\n"
       "    uint32_t word_idx = bit_idx >> 5;\n"
@@ -340,8 +345,8 @@ static void _select_query_compile(FILE* out)
 
 void select_query_compile(FILE* out)
 {
-  _select_query_compile(out);
-  fprintf(out,
+    _select_query_compile(out, false);
+    fprintf(out,
       "static inline uint32_t select_query(const select_t *sel, uint32_t one_idx) {\n"
       "    return _select_query((uint8_t *)sel->bits_vec, sel->select_table, one_idx);\n"
       "};\n"
@@ -350,36 +355,55 @@ void select_query_compile(FILE* out)
       "};\n");
 }
 
-void select_query_packed_compile(FILE* out)
+void select_unpack(const uint32_t *sel_packed, select_t *sel)
 {
-  _select_query_compile(out);
-  fprintf(out,
-      "static uint32_t select_query_packed(const uint32_t *sel_packed, uint32_t one_idx)\n"
-      "{\n"
-      "    uint32_t *ptr = (uint32_t *)sel_packed;\n"
-      "    uint32_t n = *ptr++;\n"
-      "    uint32_t m = *ptr++;\n"
-      "    uint32_t nbits = n + m;\n"
-      "    uint32_t vec_size = (nbits + 31) >> 5;\n"
-      "    const uint8_t *bits_vec = (uint8_t *)ptr;\n"
-      "    const uint32_t *select_table = ptr + vec_size;\n"
-      "\n"
-      "    return _select_query(bits_vec, select_table, one_idx);\n"
-      "}\n"
-      "static uint32_t select_next_query_packed(const void *sel_packed, uint32_t vec_bit_idx)\n"
+    cmph_uint32 *ptr = (cmph_uint32 *)sel_packed;
+    sel->n = *ptr++;
+    sel->m = *ptr++;
+    const cmph_uint32 nbits = sel->n + sel->m;
+    const cmph_uint32 vec_size = (nbits + 31) >> 5;
+    sel->bits_vec = ptr;
+    sel->select_table = ptr + vec_size;
+}	
+
+void select_unpack_compile(FILE *out, const uint32_t *sel_packed)
+{
+    select_t sel;
+    //static int _num = 0;
+    //char name[6] = "sel0";
+    //name[3] = '0' + _num++;
+    select_unpack(sel_packed, &sel);
+    select_data_compile(out, "sel", &sel);
+}
+
+#if 0
+void select_query_packed_compile(FILE* out, const uint32_t *packed_chd_phf)
+{
+    // unpack chd_phf
+    // algo, hash, n, nbuckets
+    uint32_t algo = packed_chd_phf[0];
+    uint32_t n = packed_chd_phf[0];
+    uint32_t offset = 4 + hash_state_packed_size(state->hashfunc);
+    const uint32_t *sel_packed = &packed_chd_phf[2];
+
+    select_unpack_compile(out, sel_packed);
+    _select_query_compile(out, true);
+    fprintf(out,
+      "static uint32_t select_next_query_packed(const void *sel_packed, const uint32_t vec_bit_idx)\n"
       "{\n"
       "    const uint8_t *bits_vec = (const uint8_t *)sel_packed;\n"
       "    bits_vec += 8; // skipping n and m\n"
       "    return _select_next_query(bits_vec, vec_bit_idx);\n"
       "}\n");
 }
+#endif
 
 void select_load(select_t * sel, const char *buf)
 {
-	register cmph_uint32 pos = 0;
-        register cmph_uint32 nbits = 0;
-	register cmph_uint32 vec_size = 0;
-	register cmph_uint32 sel_table_size = 0;
+	cmph_uint32 pos = 0;
+        cmph_uint32 nbits = 0;
+	cmph_uint32 vec_size = 0;
+	cmph_uint32 sel_table_size = 0;
 	
 	memcpy(&(sel->n), buf, sizeof(cmph_uint32));
 	pos += (cmph_uint32)sizeof(cmph_uint32);
@@ -428,33 +452,30 @@ void select_pack(select_t *sel, void *sel_packed)
  *  \brief Return the amount of space needed to pack a select structure.
  *  \return the size of the packed select structure or zero for failures
  */ 
-cmph_uint32 select_packed_size(select_t *sel)
+cmph_uint32 select_packed_size(const select_t *sel)
 {
-        register cmph_uint32 nbits = sel->n + sel->m;
-	register cmph_uint32 vec_size = ((nbits + 31) >> 5) * (cmph_uint32)sizeof(cmph_uint32); // (nbits + 31) >> 5 = (nbits + 31)/32
-	register cmph_uint32 sel_table_size = ((sel->n >> NBITS_STEP_SELECT_TABLE) + 1) * (cmph_uint32)sizeof(cmph_uint32); // (sel->n >> NBITS_STEP_SELECT_TABLE) = (sel->n/STEP_SELECT_TABLE)
+        cmph_uint32 nbits = sel->n + sel->m;
+	cmph_uint32 vec_size = ((nbits + 31) >> 5) * (cmph_uint32)sizeof(cmph_uint32); // (nbits + 31) >> 5 = (nbits + 31)/32
+	cmph_uint32 sel_table_size = ((sel->n >> NBITS_STEP_SELECT_TABLE) + 1) * (cmph_uint32)sizeof(cmph_uint32); // (sel->n >> NBITS_STEP_SELECT_TABLE) = (sel->n/STEP_SELECT_TABLE)
 	return 2*(cmph_uint32)sizeof(cmph_uint32) + vec_size + sel_table_size;
 }
 
-
-
 cmph_uint32 select_query_packed(void * sel_packed, cmph_uint32 one_idx)
 {
-	register cmph_uint32 *ptr = (cmph_uint32 *)sel_packed;
-	register cmph_uint32 n = *ptr++;
-	register cmph_uint32 m = *ptr++;
-        register cmph_uint32 nbits = n + m;
-	register cmph_uint32 vec_size = (nbits + 31) >> 5; // (nbits + 31) >> 5 = (nbits + 31)/32
-	register cmph_uint8 * bits_vec = (cmph_uint8 *)ptr;
-	register cmph_uint32 * select_table = ptr + vec_size;
+	cmph_uint32 *ptr = (cmph_uint32 *)sel_packed;
+	cmph_uint32 n = *ptr++;
+	cmph_uint32 m = *ptr++;
+        cmph_uint32 nbits = n + m;
+	cmph_uint32 vec_size = (nbits + 31) >> 5; // (nbits + 31) >> 5 = (nbits + 31)/32
+	cmph_uint8 *bits_vec = (cmph_uint8 *)ptr;
+	cmph_uint32 *select_table = ptr + vec_size;
 	
 	return _select_query(bits_vec, select_table, one_idx);
 }
 
-
 cmph_uint32 select_next_query_packed(void * sel_packed, cmph_uint32 vec_bit_idx)
 {
-	register cmph_uint8 * bits_vec = (cmph_uint8 *)sel_packed;
+	cmph_uint8 * bits_vec = (cmph_uint8 *)sel_packed;
 	bits_vec += 8; // skipping n and m
 	return _select_next_query(bits_vec, vec_bit_idx);
 }

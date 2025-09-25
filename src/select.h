@@ -26,9 +26,11 @@ cmph_uint32 select_next_query(select_t * sel, cmph_uint32 vec_bit_idx);
 cmph_uint32 select_get_space_usage(select_t * sel);
 
 void select_dump(select_t *sel, char **buf, cmph_uint32 *buflen);
-void select_compile(FILE* out, const char *name, select_t *sel);
+void select_data_compile(FILE* out, const char *name, const select_t *sel);
 void select_query_compile(FILE* out);
-void select_query_packed_compile(FILE* out);
+void select_unpack(const uint32_t *sel_packed, select_t *sel);
+void select_unpack_compile(FILE *out, const uint32_t *sel_packed);
+void select_query_packed_compile(FILE* out, const uint32_t *sel_packed);
 
 void select_load(select_t * sel, const char *buf);
 
@@ -44,7 +46,7 @@ void select_pack(select_t *sel, void *sel_packed);
  *  \brief Return the amount of space needed to pack a select structure.
  *  \return the size of the packed select structure or zero for failures
  */ 
-cmph_uint32 select_packed_size(select_t *sel);
+cmph_uint32 select_packed_size(const select_t *sel);
 
 
 /** \fn cmph_uint32 select_query_packed(void * sel_packed, cmph_uint32 one_idx);
