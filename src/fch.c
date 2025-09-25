@@ -19,7 +19,7 @@ static fch_buckets_t * mapping(cmph_config_t *mph);
 static cmph_uint32 * ordering(fch_buckets_t * buckets);
 static cmph_uint8 check_for_collisions_h2(fch_config_data_t *fch, fch_buckets_t * buckets, cmph_uint32 *sorted_indexes);
 static void permut(cmph_uint32 * vector, cmph_uint32 n);
-static cmph_uint8 searching(cmph_config_t *mph, fch_buckets_t *buckets, cmph_uint32 *sorted_indexes);
+static cmph_uint8 searching(cmph_config_t *mph, fch_buckets_t *buckets, cmph_uint32 *sorted_indexes, cmph_uint32 *ordering_table);
 
 fch_config_data_t *fch_config_new()
 {
@@ -122,8 +122,6 @@ static fch_buckets_t * mapping(cmph_config_t *mph)
 		h1 = hash(fch->h1, key, keylen) % fch->m;
 		h1 = mixh10h11h12 (fch->b, fch->p1, fch->p2, h1);
 		fch_buckets_insert(buckets, h1, key, keylen);
-		key = NULL; // transger memory ownership
-
 	}
 	return buckets;
 }
@@ -132,7 +130,7 @@ static fch_buckets_t * mapping(cmph_config_t *mph)
 // returns the buckets indexes sorted by their sizes.
 static cmph_uint32 * ordering(fch_buckets_t * buckets)
 {
-  return fch_buckets_get_indexes_sorted_by_size(buckets);
+    return fch_buckets_get_indexes_sorted_by_size(buckets);
 }
 
 /* Check whether function h2 causes collisions among the keys of each bucket */
@@ -146,7 +144,7 @@ static cmph_uint8 check_for_collisions_h2(fch_config_data_t *fch, fch_buckets_t 
 	{
 		cmph_uint32 nkeys = fch_buckets_get_size(buckets, sorted_indexes[i]);
 		memset(hashtable, 0, (size_t)fch->m);
-		//DEBUGP("bucket %u -- nkeys: %u\n", i, nkeys);
+		DEBUGP("bucket %u -- nkeys: %u\n", i, nkeys);
 		for (j = 0; j < nkeys; j++)
 		{
 			char * key = fch_buckets_get_key(buckets, sorted_indexes[i], j);
@@ -156,6 +154,7 @@ static cmph_uint8 check_for_collisions_h2(fch_config_data_t *fch, fch_buckets_t 
 				free(hashtable);
 				return 1;
 			}
+			DEBUGP("%u: key \"%.*s\" index: %u\n", sorted_indexes[i], (int)keylen, key, index);
 			hashtable[index] = 1;
 		}
 	}
@@ -165,20 +164,20 @@ static cmph_uint8 check_for_collisions_h2(fch_config_data_t *fch, fch_buckets_t 
 
 static void permut(cmph_uint32 * vector, cmph_uint32 n)
 {
-  cmph_uint32 i, j, b;
-  for (i = 0; i < n; i++) {
-    j = (cmph_uint32) rand() % n;
-    b = vector[i];
-    vector[i] = vector[j];
-    vector[j] = b;
-  }
+    cmph_uint32 i, j, b;
+    for (i = 0; i < n; i++) {
+	j = (cmph_uint32) rand() % n;
+	b = vector[i];
+	vector[i] = vector[j];
+	vector[j] = b;
+    }
 }
 
-static cmph_uint8 searching(cmph_config_t *mph, fch_buckets_t *buckets, cmph_uint32 *sorted_indexes)
+static cmph_uint8 searching(cmph_config_t *mph, fch_buckets_t *buckets, cmph_uint32 *sorted_indexes, cmph_uint32 *ordering_table)
 {
 	fch_config_data_t *fch = (fch_config_data_t *)mph->data;
-	cmph_uint32 * random_table = (cmph_uint32 *) calloc((size_t)fch->m, sizeof(cmph_uint32));
-	cmph_uint32 * map_table    = (cmph_uint32 *) calloc((size_t)fch->m, sizeof(cmph_uint32));
+	cmph_uint32 *random_table = (cmph_uint32 *) calloc((size_t)fch->m, sizeof(cmph_uint32));
+	cmph_uint32 *map_table    = (cmph_uint32 *) calloc((size_t)fch->m, sizeof(cmph_uint32));
 	cmph_uint32 iteration_to_generate_h2 = 0;
 	cmph_uint32 searching_iterations     = 0;
 	cmph_uint8 restart                   = 0;
@@ -187,7 +186,7 @@ static cmph_uint8 searching(cmph_config_t *mph, fch_buckets_t *buckets, cmph_uin
 	if (fch->g) free (fch->g);
 	fch->g = (cmph_uint32 *) calloc((size_t)fch->b, sizeof(cmph_uint32));
 
-	//DEBUGP("max bucket size: %u\n", fch_buckets_get_max_size(buckets));
+	DEBUGP("max bucket size: %u, nbuckets: %u\n", fch_buckets_get_max_size(buckets), nbuckets);
 
 	for(i = 0; i < fch->m; i++)
 		random_table[i] = i;
@@ -201,7 +200,8 @@ static cmph_uint8 searching(cmph_config_t *mph, fch_buckets_t *buckets, cmph_uin
 		filled_count = 0;
 		if (!restart)
 		{
-			searching_iterations++; iteration_to_generate_h2 = 0;
+			searching_iterations++;
+			iteration_to_generate_h2 = 0;
 			//DEBUGP("searching_iterations: %u\n", searching_iterations);
 		}
 		else {
@@ -231,7 +231,7 @@ static cmph_uint8 searching(cmph_config_t *mph, fch_buckets_t *buckets, cmph_uin
 					keylen = fch_buckets_get_keylength(buckets, sorted_indexes[i], j);
 					h2 = hash(fch->h2, key, keylen) % fch->m;
 					index = (h2 + fch->g[sorted_indexes[i]]) % fch->m;
-					DEBUGP("key:%.*s  keylen:%u  index: %u  h2:%u  bucketsize:%u\n",
+					DEBUGP("key:\"%.*s\"  \tkeylen:%u index: %u  h2:%u  bucketsize:%u\n",
                                                (int)keylen, key, keylen, index, h2, bucketsize);
 					if (map_table[index] >= filled_count) {
 						cmph_uint32 y  = map_table[index];
@@ -250,11 +250,25 @@ static cmph_uint8 searching(cmph_config_t *mph, fch_buckets_t *buckets, cmph_uin
 						break;
 					}
 					j = (j + 1) % bucketsize;
-				} while(j % bucketsize != INDEX);
+				} while (j % bucketsize != INDEX);
 			}
-			//getchar();
 		}
-	} while(restart  && (searching_iterations < 10) && (iteration_to_generate_h2 < 1000));
+	} while (restart && (searching_iterations < 10) && (iteration_to_generate_h2 < 1000));
+
+	if (!restart && ordering_table) {
+	    mph->key_source->rewind(mph->key_source->data);
+	    for (i = 0; i < fch->m; i++) {
+		cmph_uint32 h, h1, h2, keylen;
+		char *key = NULL;
+		mph->key_source->read(mph->key_source->data, &key, &keylen);
+		h1 = hash(fch->h1, key, keylen) % fch->m;
+		h2 = hash(fch->h2, key, keylen) % fch->m;
+		h1 = mixh10h11h12 (fch->b, fch->p1, fch->p2, h1);
+		h = (fch->g[h1] + h2) % fch->m;
+		ordering_table[h] = i;
+		mph->key_source->dispose(key);
+	    }
+	}
 	free(map_table);
 	free(random_table);
 	return restart;
@@ -268,22 +282,31 @@ cmph_t *fch_new(cmph_config_t *mph, double c)
 	fch_data_t *fchf = NULL;
 	cmph_uint32 iterations = 100;
 	cmph_uint8 restart_mapping = 0;
-	fch_buckets_t * buckets = NULL;
-	cmph_uint32 * sorted_indexes = NULL;
+	fch_buckets_t *buckets = NULL;
+	cmph_uint32 *sorted_indexes = NULL;
+	cmph_uint32 *ordering_table = NULL;
 	fch_config_data_t *fch = (fch_config_data_t *)mph->data;
+
 	fch->m = mph->key_source->nkeys;
 	DEBUGP("m: %u\n", fch->m);
-	if (c <= 2) c = 2.6; // validating restrictions over parameter c.
+	if (c <= 2)
+	    c = 2.6; // validating restrictions over parameter c.
 	fch->c = c;
 	DEBUGP("c: %f\n", fch->c);
 	fch->h1 = NULL;
 	fch->h2 = NULL;
 	fch->g = NULL;
+	if (mph->do_ordering_table)
+	    ordering_table = (cmph_uint32 *) calloc(fch->m, sizeof(cmph_uint32));
+
 	do
 	{
 		if (mph->verbosity)
 			fprintf(stderr, "Entering mapping step for mph creation of %u keys\n", fch->m);
-		if (buckets) fch_buckets_destroy(buckets, mph);
+		if (buckets)
+			fch_buckets_destroy(buckets, mph);
+		//if (ordering_table)
+		//    memset(ordering_table, 0, sizeof(cmph_uint32)*fch->m);
 		buckets = mapping(mph);
 		if (mph->verbosity)
 			fprintf(stderr, "Starting ordering step\n");
@@ -291,20 +314,26 @@ cmph_t *fch_new(cmph_config_t *mph, double c)
 		sorted_indexes = ordering(buckets);
 		if (mph->verbosity)
 			fprintf(stderr, "Starting searching step.\n");
-		restart_mapping = searching(mph, buckets, sorted_indexes);
+		restart_mapping = searching(mph, buckets, sorted_indexes, ordering_table);
 		iterations--;
 
         } while(restart_mapping && iterations > 0);
+
 	if (buckets) fch_buckets_destroy(buckets, mph);
 	if (sorted_indexes) free (sorted_indexes);
 	if (iterations == 0) {
 	    free (fch->g);
+	    if (ordering_table)
+		free(ordering_table);
+	    free(mphf);
 	    hash_state_destroy(fch->h1);
 	    hash_state_destroy(fch->h2);
 	    return NULL;
 	}
-	mphf = (cmph_t *)malloc(sizeof(cmph_t));
+	mphf = (cmph_t *)calloc(1, sizeof(cmph_t));
 	mphf->algo = mph->algo;
+	mphf->o = ordering_table;
+	mphf->size = fch->m;
 	fchf = (fch_data_t *)malloc(sizeof(fch_data_t));
 	fchf->g = fch->g;
 	fch->g = NULL; //transfer memory ownership
@@ -319,7 +348,7 @@ cmph_t *fch_new(cmph_config_t *mph, double c)
 	fchf->m = fch->m;
 	mphf->data = fchf;
 	mphf->size = fch->m;
-	DEBUGP("Successfully generated minimal perfect hash\n");
+	DEBUGP("Successfully generated minimal perfect fch hash\n");
 	if (mph->verbosity)
 		fprintf(stderr, "Successfully generated minimal perfect hash function\n");
 	return mphf;
@@ -332,6 +361,7 @@ int fch_compile(cmph_t *mphf, cmph_config_t *mph, FILE *out)
 	/*char do_vector = mph->nhashfuncs == 1 ||
 	  mph->hashfuncs[0] == mph->hashfuncs[1];*/
 	hash_state_t *hl[2] = { data->h1, data->h2 };
+	(void)mph;
 	DEBUGP("Compiling fch\n");
 	hash_state_compile(2, (hash_state_t**)hl, false, out);
 	fprintf(out, "#include <assert.h>\n");
@@ -364,7 +394,13 @@ int fch_compile(cmph_t *mphf, cmph_config_t *mph, FILE *out)
 	//fprintf(out, "    DEBUGP(\"key: %%s h1: %%u h2: %%u  _%s_g[h1]: %%u\\n\", key, h1, h2, g[h1]);\n", mph->c_prefix);
 	fprintf(out, "    return (h2 + %s[h1]) %% %u;\n", g_name, data->m);
 	fprintf(out, "}\n");
-
+	if (mphf->o) {
+		uint32_compile(out, "ordering_table", mphf->o, data->m);
+		fprintf(out, "uint32_t %s_order(uint32_t id) {\n", mph->c_prefix);
+		fprintf(out, "    assert(id < %u);\n", data->m);
+		fprintf(out, "    return ordering_table[id];\n");
+		fprintf(out, "}\n");
+	}
 	fprintf(out, "uint32_t %s_size(void) {\n", mph->c_prefix);
 	fprintf(out, "    return %u;\n}\n", data->m);
 	fclose(out);
@@ -412,6 +448,15 @@ int fch_dump(cmph_t *mphf, FILE *fd)
 	for (i = 0; i < data->b; ++i) fprintf(stderr, "%u ", data->g[i]);
 	fprintf(stderr, "\n");
 #endif
+	if (mphf->o) {
+		DEBUGP("Dumping ordering_table\n");
+		CHK_FWRITE(mphf->o, (size_t)data->m, sizeof(cmph_uint32), fd);
+#ifdef DEBUG
+		fprintf(stderr, "O: ");
+		for (cmph_uint32 i = 0; i < data->m; ++i) fprintf(stderr, "%u ", mphf->o[i]);
+		fprintf(stderr, "\n");
+#endif
+	}
 	return 1;
 }
 
@@ -442,7 +487,6 @@ void fch_load(FILE *f, cmph_t *mphf)
 	fch->h2 = hash_state_load(buf, "fch->h2");
 	free(buf);
 
-
 	DEBUGP("Reading m and n\n");
 	CHK_FREAD(&(fch->m), sizeof(cmph_uint32), (size_t)1, f);
 	CHK_FREAD(&(fch->c), sizeof(double), (size_t)1, f);
@@ -452,11 +496,23 @@ void fch_load(FILE *f, cmph_t *mphf)
 
 	fch->g = (cmph_uint32 *)malloc(sizeof(cmph_uint32)*fch->b);
 	CHK_FREAD(fch->g, fch->b*sizeof(cmph_uint32), (size_t)1, f);
+	// if more room in f than current position, TODO use fstat and ftell instead
+	mphf->o = (cmph_uint32 *)malloc(sizeof(cmph_uint32)*fch->m);
+	cmph_uint32 nread = fread(mphf->o, sizeof(cmph_uint32), (size_t)fch->m, f);
+	if (nread != mphf->size) {
+		free(mphf->o);
+		mphf->o = NULL;
+	}
 #ifdef DEBUG
 	cmph_uint32 i;
 	fprintf(stderr, "G: ");
 	for (i = 0; i < fch->b; ++i) fprintf(stderr, "%u ", fch->g[i]);
 	fprintf(stderr, "\n");
+	if (mphf->o) {
+		fprintf(stderr, "O: ");
+		for (cmph_uint32 i = 0; i < fch->m; ++i) fprintf(stderr, "%u ", mphf->o[i]);
+		fprintf(stderr, "\n");
+	}
 #endif
 	return;
 }
@@ -467,8 +523,9 @@ cmph_uint32 fch_search(cmph_t *mphf, const char *key, cmph_uint32 keylen)
 	cmph_uint32 h1 = hash(fch->h1, key, keylen) % fch->m;
 	cmph_uint32 h2 = hash(fch->h2, key, keylen) % fch->m;
 	h1 = mixh10h11h12 (fch->b, fch->p1, fch->p2, h1);
-	DEBUGP("key: %s h1: %u h2: %u  g[h1]: %u\n", key, h1, h2, fch->g[h1]);
-	return (h2 + fch->g[h1]) % fch->m;
+	cmph_uint32 index = (fch->g[h1] + h2) % fch->m;
+	DEBUGP("key:%.*s   g[h1]:%u h2:%u\t=> %u\n", (int)keylen, key, fch->g[h1], h2, index);
+	return index;
 }
 void fch_destroy(cmph_t *mphf)
 {
@@ -477,6 +534,7 @@ void fch_destroy(cmph_t *mphf)
 	hash_state_destroy(data->h1);
 	hash_state_destroy(data->h2);
 	free(data);
+	if (mphf->o) free(mphf->o);
 	free(mphf);
 }
 

@@ -140,9 +140,9 @@ cmph_t *brz_new(cmph_config_t *mph, double c)
 	brz_data_t *brzf = NULL;
 	cmph_uint32 i;
 	cmph_uint32 iterations = 20;
-
-	DEBUGP("c: %f\n", c);
+	cmph_uint32 *ordering_table = NULL;
 	brz_config_data_t *brz = (brz_config_data_t *)mph->data;
+	DEBUGP("c: %f\n", c);
 
         // Since we keep dumping partial pieces of the MPHF as it gets created
         // the caller must set the file to store the resulting MPHF before calling
@@ -153,10 +153,12 @@ cmph_t *brz_new(cmph_config_t *mph, double c)
 	switch(brz->algo) // validating restrictions over parameter c.
 	{
 		case CMPH_BMZ8:
-			if (c == 0 || c >= 2.0) c = 1;
+			if (c == 0 || c >= 2.0)
+			    c = 1;
 			break;
 		case CMPH_FCH:
-			if (c <= 2.0) c = 2.6;
+			if (c <= 2.0)
+			    c = 2.6;
 			break;
 		default:
 			assert(0);
@@ -208,12 +210,15 @@ cmph_t *brz_new(cmph_config_t *mph, double c)
 	brz->offset = (cmph_uint32 *)calloc((size_t)brz->k, sizeof(cmph_uint32));
 	for (i = 1; i < brz->k; ++i)
 		brz->offset[i] = brz->size[i-1] + brz->offset[i-1];
+
 	// Generating a mphf
 	mphf = (cmph_t *)malloc(sizeof(cmph_t));
 	mphf->algo = mph->algo;
+	mphf->o = ordering_table;
 	brzf = (brz_data_t *)malloc(sizeof(brz_data_t));
 	brzf->g = brz->g;
 	brz->g = NULL; //transfer memory ownership
+	// FIXME h1 and h2 are empty, just dumped to disc. need to fill them
 	brzf->h1 = brz->h1;
 	brz->h1 = NULL; //transfer memory ownership
 	brzf->h2 = brz->h2;
@@ -230,6 +235,23 @@ cmph_t *brz_new(cmph_config_t *mph, double c)
 	brzf->algo = brz->algo;
 	mphf->data = brzf;
 	mphf->size = brz->m;
+
+	if (mph->do_ordering_table) {
+	    ordering_table = (cmph_uint32 *)calloc((size_t)mphf->size, sizeof(cmph_uint32));
+	    assert(ordering_table);
+	    if (mph->verbosity)
+		fprintf(stderr, "Create ordering table\n");
+	    mph->key_source->rewind(mph->key_source->data);
+	    for (cmph_uint32 i = 0; i < mphf->size; i++) {
+		cmph_uint32 h, keylen;
+		char *key = NULL;
+		mph->key_source->read(mph->key_source->data, &key, &keylen);
+		h = brz_search(mphf, key, keylen);
+		ordering_table[h] = i;
+		mph->key_source->dispose(key);
+	    }
+	}
+
 	DEBUGP("Successfully generated minimal perfect hash\n");
 	if (mph->verbosity)
 		fprintf(stderr, "Successfully generated minimal perfect hash function\n");
@@ -249,7 +271,7 @@ static int brz_gen_mphf(cmph_config_t *mph)
 	cmph_uint32 *buffer_h0 = NULL;
 	cmph_uint32 nflushes = 0;
 	cmph_uint32 h0 = 0;
-	FILE *  tmp_fd = NULL;
+	FILE *tmp_fd = NULL;
 	buffer_manager_t * buff_manager = NULL;
 	char *filename = NULL;
 	char *key = NULL;
@@ -355,7 +377,7 @@ static int brz_gen_mphf(cmph_config_t *mph)
 			h0 = hash(brz->h0, (char *)(buffer + memory_usage + sizeof(keylen1)), keylen1) % brz->k;
 			keys_index[buckets_size[h0]] = memory_usage;
 			buckets_size[h0]++;
-			memory_usage +=  keylen1 + (cmph_uint32)sizeof(keylen1);
+			memory_usage += keylen1 + (cmph_uint32)sizeof(keylen1);
 		}
 		filename = (char *)calloc(strlen((char *)(brz->tmp_dir)) + 11, sizeof(char));
 		sprintf(filename, "%s%u.cmph", brz->tmp_dir, nflushes);
@@ -398,7 +420,7 @@ static int brz_gen_mphf(cmph_config_t *mph)
 	for(i = 0; i < nflushes; i++)
 	{
 		filename = (char *)calloc(strlen((char *)(brz->tmp_dir)) + 11, sizeof(char));
-		sprintf(filename, "%s%u.cmph",brz->tmp_dir, i);
+		sprintf(filename, "%s%u.cmph", brz->tmp_dir, i);
 		buffer_manager_open(buff_manager, i, filename);
 		free(filename);
 		filename = NULL;
@@ -523,7 +545,8 @@ static cmph_uint32 brz_min_index(cmph_uint32 * vector, cmph_uint32 n)
 	cmph_uint32 i, min_index = 0;
 	for(i = 1; i < n; i++)
 	{
-		if(vector[i] < vector[min_index]) min_index = i;
+		if(vector[i] < vector[min_index])
+			min_index = i;
 	}
 	return min_index;
 }
@@ -542,7 +565,7 @@ static char * brz_copy_partial_fch_mphf(fch_data_t * fchf, cmph_uint32 *buflen)
 	char * bufh1 = NULL;
 	char * bufh2 = NULL;
 	char * buf   = NULL;
-	cmph_uint32 n  = fchf->b;//brz->size[index];
+	cmph_uint32 n = fchf->b;//brz->size[index];
 	hash_state_dump(fchf->h1, "brz: fch->h1", &bufh1, &buflenh1);
 	hash_state_dump(fchf->h2, "brz: fch->h2", &bufh2, &buflenh2);
 	*buflen = buflenh1 + buflenh2 + n + 2U * (cmph_uint32)sizeof(cmph_uint32);
@@ -593,6 +616,13 @@ int brz_compile(cmph_t *mphf, cmph_config_t *mph, FILE *out)
 	hashes[2] = data->h0;
 	hash_state_compile(3, hashes, do_vector, out);
 	fprintf(out, "// NYI\n");
+	if (mphf->o) {
+		uint32_compile(out, "ordering_table", mphf->o, data->m);
+		fprintf(out, "uint32_t %s_order(uint32_t id) {\n", mph->c_prefix);
+		fprintf(out, "    assert(id < %u);\n", data->m);
+		fprintf(out, "    return ordering_table[id];\n");
+		fprintf(out, "}\n");
+	}
 	fprintf(out, "uint32_t %s_size(void) {\n", mph->c_prefix);
 	fprintf(out, "    return %u;\n}\n", data->m);
 	return 0;
@@ -616,6 +646,15 @@ int brz_dump(cmph_t *mphf, FILE *fd)
 	// Dumping m and the vector offset.
 	CHK_FWRITE(&(data->m), sizeof(cmph_uint32), (size_t)1, fd);
 	CHK_FWRITE(data->offset, sizeof(cmph_uint32)*(data->k), (size_t)1, fd);
+	if (mphf->o) {
+	    DEBUGP("Dumping ordering table with %u entries\n", data->m);
+	    CHK_FWRITE(mphf->o, sizeof(cmph_uint32) * (data->m), (size_t)1, fd);
+#ifdef DEBUG
+	    fprintf(stderr, "O: ");
+	    for (cmph_uint32 i = 0; i < data->m; ++i) fprintf(stderr, "%u ", mphf->o[i]);
+	    fprintf(stderr, "\n");
+#endif
+	}
 	return 1;
 }
 
@@ -685,6 +724,22 @@ void brz_load(FILE *f, cmph_t *mphf)
 	CHK_FREAD(&(brz->m), sizeof(cmph_uint32), (size_t)1, f);
 	brz->offset = (cmph_uint32 *)malloc(sizeof(cmph_uint32)*brz->k);
 	CHK_FREAD(brz->offset, sizeof(cmph_uint32)*(brz->k), (size_t)1, f);
+	//loading the optional ordering table.
+	mphf->o = (cmph_uint32 *)malloc(sizeof(cmph_uint32) * brz->m);
+	cmph_uint32 nread =
+	    fread(mphf->o, sizeof(cmph_uint32), (size_t)brz->m, f);
+	if (nread != brz->m) {
+	    free(mphf->o);
+	    mphf->o = NULL;
+	}
+#ifdef DEBUG
+	if (mphf->o) {
+	    fprintf(stderr, "O: ");
+	    for (cmph_uint32 i = 0; i < brz->m; ++i)
+		fprintf(stderr, "%u ", mphf->o[i]);
+	    fprintf(stderr, "\n");
+	}
+#endif
 	return;
 }
 
@@ -776,13 +831,12 @@ void brz_pack(cmph_t *mphf, void *packed_mphf)
 	brz_data_t *data = (brz_data_t *)mphf->data;
 	cmph_uint8 * ptr = (cmph_uint8 *)packed_mphf;
 	cmph_uint32 i,n;
- 
+
         // This assumes that if one function pointer is NULL,
         // all the others will be as well.
         if (data->h1 == NULL)
-        {
 		return;
-        }
+
 	// packing internal algo type
 	memcpy(ptr, &(data->algo), sizeof(data->algo));
 	ptr += sizeof(data->algo);
@@ -877,12 +931,10 @@ cmph_uint32 brz_packed_size(cmph_t *mphf)
 	CMPH_HASH h1_type;
 	CMPH_HASH h2_type;
 
-    // This assumes that if one function pointer is NULL, 
-    // all the others will be as well.
-    if (data->h1 == NULL) 
-    {
-        return 0U;
-    }
+	// This assumes that if one function pointer is NULL,
+	// all the others will be as well.
+	if (data->h1 == NULL)
+	    return 0U;
 
 	h0_type = hash_get_type(data->h0);
 	h1_type = hash_get_type(data->h1[0]);

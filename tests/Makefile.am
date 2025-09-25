@@ -1,6 +1,6 @@
 TESTS = $(check_PROGRAMS) cmph_tests cmph_compile_tests cmph_benchmark_tests
 check_PROGRAMS = graph_tests select_tests compressed_seq_tests compressed_rank_tests cmph_benchmark_test
-noinst_PROGRAMS = packed_mphf_tests mphf_tests
+noinst_PROGRAMS = packed_mphf_tests mphf_tests mphf_ordering
 EXTRA_DIST = cmph_tests.in cmph_compile_tests.in cmph_compile_run.c compile_run.in
 
 AM_CPPFLAGS = -I$(top_srcdir)/src
@@ -14,6 +14,9 @@ packed_mphf_tests_LDADD = ../src/libcmph.la
 
 mphf_tests_SOURCES = mphf_tests.c
 mphf_tests_LDADD = ../src/libcmph.la
+
+mphf_ordering_SOURCES = mphf_ordering.c
+mphf_ordering_LDADD = ../src/libcmph.la
 
 select_tests_SOURCES = select_tests.c
 select_tests_LDADD = ../src/libcmph.la

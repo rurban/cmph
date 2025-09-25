@@ -51,6 +51,7 @@ void cmph_config_set_seed(cmph_config_t *mph, cmph_uint32 seed);
 void cmph_config_set_hashfuncs(cmph_config_t *mph, CMPH_HASH *hashfuncs);
 CMPH_HASH* cmph_config_hashfuncs(cmph_config_t *mph, cmph_uint32 *nhashfuncs);
 void cmph_config_set_verbosity(cmph_config_t *mph, cmph_uint32 verbosity);
+void cmph_config_set_ordering_table(cmph_config_t *mph);
 void cmph_config_set_graphsize(cmph_config_t *mph, double c);
 void cmph_config_set_algo(cmph_config_t *mph, CMPH_ALGO algo);
 void cmph_config_set_tmp_dir(cmph_config_t *mph, cmph_uint8 *tmp_dir);
@@ -87,6 +88,8 @@ int cmph_compile(cmph_t *mphf, cmph_config_t *config, const char *c_file, const 
  *  \return 0 or 1
  */
 int cmph_is_order_preserving(cmph_t *mphf);
+
+cmph_uint32 *cmph_ordering_table(cmph_t *mphf);
 
 /** \fn void cmph_pack(cmph_t *mphf, void *packed_mphf);
  *  \brief Support the ability to pack a perfect hash function into a preallocated contiguous memory space pointed by packed_mphf.

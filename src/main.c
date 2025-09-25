@@ -25,10 +25,9 @@
 #include "config.h"
 #endif
 
-
 void usage(const char *prg)
 {
-	fprintf(stderr, "usage: %s [-v] [-h] [-V] [-k nkeys] [-f hash_function] [-g [-c algorithm_dependent_value][-s seed] ] [-a algorithm] [-M memory_in_MB] [-b algorithm_dependent_value] [-t keys_per_bin] [-d tmp_dir] [-m file.mph] [-o c_file] [-p c_func_prefix] keysfile\n", prg);
+	fprintf(stderr, "usage: %s [-vVhrR] [-k nkeys] [-f hash_function] [-g [-c algorithm_dependent_value][-s seed] ] [-a algorithm] [-M memory_in_MB] [-b algorithm_dependent_value] [-t keys_per_bin] [-d tmp_dir] [-m file.mph] [-o c_file] [-p c_func_prefix] keysfile\n", prg);
 }
 void usage_long(const char *prg)
 {
@@ -51,6 +50,8 @@ void usage_long(const char *prg)
 	fprintf(stderr, "  -C\t generate a C file\n");
 	fprintf(stderr, "  -o\t name of C file (default: stdout)\n");
 	fprintf(stderr, "  -p\t name of C functions prefix (default: cmph_c_)\n");
+	fprintf(stderr, "  -r\t create an ordering table for the key indices\n");
+	fprintf(stderr, "  -R\t create an ordered keyfile\n");
 	fprintf(stderr, "  -s\t random seed\n");
 	fprintf(stderr, "  -m\t minimum perfect hash function file \n");
 	fprintf(stderr, "  -M\t main memory availability (in MB) used in BRZ algorithm \n");
@@ -73,15 +74,55 @@ void usage_long(const char *prg)
 	fprintf(stderr, "  keysfile\t line separated file with keys\n");
 }
 
+cmph_uint32 reorder_keyfile(cmph_io_adapter_t *source, cmph_uint32 *o, FILE *reordered_fd)
+{
+	cmph_uint32 i, err = 0;
+	if (o == NULL) {
+		fprintf(stderr, "Missing ordering table\n");
+		return 1;
+	}
+	DEBUGP("reorder_keyfile for the %u keys\n", source->nkeys);
+	for (cmph_uint32 j = 0; j < source->nkeys; ++j) { // index
+		for (i = 0; i < source->nkeys; ++i) {  // line
+			cmph_uint32 buflen = 0;
+			if (j == o[i]) {
+				char *buf;
+				int len = source->read(source->data, &buf, &buflen);
+				if (len >= 0) {
+					DEBUGP("found \"%.*s\" [%u] at line %u\n", (int)buflen, buf, j, i);
+				} else {
+					DEBUGP("error with \"%.*s\" [%u] at line %u\n", (int)buflen, buf, j, i);
+				}
+				fprintf(reordered_fd, "%.*s\n", (int)buflen, buf);
+				free(buf);
+				break;
+			} else { // optim: skip allocating buf. just fgets and continue
+				source->read(source->data, NULL, &buflen);
+			}
+		}
+		// check progress or abort
+		if (i == source->nkeys - 1) {
+			fprintf(stderr, "Reordering: Did not find key %u at line %u in keys file\n",
+				j, o[j]);
+			fprintf(reordered_fd, "\n");
+			err++;
+			//break;
+		}
+		source->rewind(source->data);
+	}
+	source->rewind(source->data);
+	return err;
+}
+
 int main(int argc, char **argv)
 {
 	cmph_uint32 verbosity = 0;
-	char generate = 0;
-	char compile = 0;
 	char *mphf_file = NULL;
 	FILE *mphf_fd = stdout;
 	const char *keys_file = NULL;
+	char *reordered_keyfile = NULL;
 	FILE *keys_fd;
+	FILE *reordered_fd = NULL;
 	unsigned int nkeys = UINT_MAX;
 	unsigned int seed = UINT_MAX;
 	CMPH_HASH *hashes = NULL;
@@ -98,12 +139,29 @@ int main(int argc, char **argv)
 	cmph_uint32 memory_availability = 0;
 	cmph_uint32 b = 0;
 	cmph_uint32 keys_per_bin = 1;
+	cmph_uint32 *ordering_table = NULL;
 	unsigned errs = 0;
+	char generate = 0;
+	char compile = 0;
+	char do_ordering_table = 0;
+	char do_reorder_keyfile = 0;
 	char is_minimal = 1;
+
+#define FREE_STRDUP_ARGS			\
+	if (hashes)				\
+		free(hashes);			\
+	if (c_file)				\
+		free(c_file);			\
+	if (mphf_file)				\
+		free(mphf_file);		\
+	if (c_prefix)				\
+		free(c_prefix);			\
+	if (tmp_dir)				\
+		free(tmp_dir)
 
 	while (1)
 	{
-		char ch = (char)getopt(argc, argv, "hVvgCc:k:a:M:b:t:f:m:d:s:o:p:");
+		char ch = (char)getopt(argc, argv, "hVvgCrRc:k:a:M:b:t:f:m:d:s:o:p:");
 		if (ch == -1) break;
 		switch (ch)
 		{
@@ -113,6 +171,7 @@ int main(int argc, char **argv)
 					seed = (unsigned)strtoul(optarg, &cptr, 10);
 					if(*cptr != 0) {
 						fprintf(stderr, "Invalid seed %s\n", optarg);
+						FREE_STRDUP_ARGS;
 						exit(1);
 					}
 				}
@@ -123,6 +182,7 @@ int main(int argc, char **argv)
 					c = strtod(optarg, &endptr);
 					if(*endptr != 0) {
 						fprintf(stderr, "Invalid c value %s\n", optarg);
+						FREE_STRDUP_ARGS;
 						exit(1);
 					}
 				}
@@ -133,12 +193,19 @@ int main(int argc, char **argv)
 			case 'g':
 				generate = 1;
 				break;
+			case 'r':
+				do_ordering_table = 1;
+				break;
+			case 'R':
+				do_reorder_keyfile = 1;
+				break;
 			case 'k':
 			        {
 					char *endptr;
 					nkeys = (cmph_uint32)strtoul(optarg, &endptr, 10);
 					if(*endptr != 0) {
 						fprintf(stderr, "Invalid number of keys %s\n", optarg);
+						FREE_STRDUP_ARGS;
 						exit(1);
 					}
 				}
@@ -161,6 +228,7 @@ int main(int argc, char **argv)
 					memory_availability = (cmph_uint32)strtoul(optarg, &cptr, 10);
 					if(*cptr != 0) {
 						fprintf(stderr, "Invalid memory availability %s\n", optarg);
+						FREE_STRDUP_ARGS;
 						exit(1);
 					}
 				}
@@ -171,6 +239,7 @@ int main(int argc, char **argv)
 					b =  (cmph_uint32)strtoul(optarg, &cptr, 10);
 					if(*cptr != 0) {
 						fprintf(stderr, "Parameter b was not found: %s\n", optarg);
+						FREE_STRDUP_ARGS;
 						exit(1);
 					}
 				}
@@ -181,6 +250,7 @@ int main(int argc, char **argv)
 					keys_per_bin = (cmph_uint32)strtoul(optarg, &cptr, 10);
 					if(*cptr != 0) {
 						fprintf(stderr, "Parameter t was not found: %s\n", optarg);
+						FREE_STRDUP_ARGS;
 						exit(1);
 					}
 				}
@@ -212,6 +282,7 @@ int main(int argc, char **argv)
                                         for (i = 0; i < CMPH_COUNT; ++i)
                                                 fprintf(stderr, " %s", cmph_names[i]);
                                         fprintf(stderr, "\n");
+					FREE_STRDUP_ARGS;
 					return -1;
 				}
 				if (mph_algo == CMPH_BDZ_PH || mph_algo == CMPH_CHD_PH)
@@ -247,12 +318,9 @@ int main(int argc, char **argv)
 				if (!valid)
 				{
 					fprintf(stderr, "Invalid hash function: %s\nValid names are:", optarg);
-					if (hashes)
-						free(hashes);
-					if (c_file)
-						free(c_file);
+					FREE_STRDUP_ARGS;
                                         for (i = 0; i < CMPH_HASH_COUNT; ++i) {
-                                                fprintf(stderr, " %s",cmph_hash_names[i]);
+                                                fprintf(stderr, " %s", cmph_hash_names[i]);
                                         }
                                         fprintf(stderr, "\n");
 					return -1;
@@ -261,10 +329,7 @@ int main(int argc, char **argv)
 				break;
 			default:
 				usage(argv[0]);
-				if (hashes)
-					free(hashes);
-				if (c_file)
-					free(c_file);
+				FREE_STRDUP_ARGS;
 				return 1;
 		}
 	}
@@ -272,10 +337,7 @@ int main(int argc, char **argv)
 	if (optind != argc - 1)
 	{
 		usage(argv[0]);
-		if (hashes)
-			free(hashes);
-		if (c_file)
-			free(c_file);
+		FREE_STRDUP_ARGS;
 		return 1;
 	}
 	keys_file = argv[optind];
@@ -286,17 +348,25 @@ int main(int argc, char **argv)
 		memcpy(mphf_file, keys_file, strlen(keys_file));
 		memcpy(mphf_file + strlen(keys_file), ".mph\0", (size_t)5);
 	}
+	if (do_reorder_keyfile)
+	{
+		size_t sz = strlen(keys_file) + strlen(cmph_names[mph_algo]) + 6;
+		reordered_keyfile = (char *)malloc(sz+1);
+		if (snprintf(reordered_keyfile, sz, "%s_%s.ord", keys_file, cmph_names[mph_algo]) <= 0) {
+			perror("snprintf");
+			FREE_STRDUP_ARGS;
+			exit(1);
+		}
+	}
 
 	keys_fd = fopen(keys_file, "r");
 
 	if (keys_fd == NULL)
 	{
 		fprintf(stderr, "Unable to open file %s: %s\n", keys_file, strerror(errno));
-		if (nhashes)
-			free(hashes);
-		if (c_file)
-			free(c_file);
-		free(mphf_file);
+		FREE_STRDUP_ARGS;
+		if (do_reorder_keyfile)
+			free(reordered_keyfile);
 		return -1;
 	}
 
@@ -314,8 +384,10 @@ int main(int argc, char **argv)
 	}
 	if (verbosity)
 		printf("Using seed %u\n", seed);
-	if (nkeys == UINT_MAX) source = cmph_io_nlfile_adapter(keys_fd);
-	else source = cmph_io_nlnkfile_adapter(keys_fd, nkeys);
+	if (nkeys == UINT_MAX)
+		source = cmph_io_nlfile_adapter(keys_fd);
+	else
+		source = cmph_io_nlnkfile_adapter(keys_fd, nkeys);
 	if (generate || compile)
 	{
 		//Create mphf
@@ -324,8 +396,13 @@ int main(int argc, char **argv)
 		config = cmph_config_new(source);
 		cmph_config_set_seed(config, seed);
 		cmph_config_set_algo(config, mph_algo);
-		if (nhashes) cmph_config_set_hashfuncs(config, hashes);
-		if (c_prefix) cmph_config_set_c_prefix(config, c_prefix);
+		if (nhashes)
+			cmph_config_set_hashfuncs(config, hashes);
+		if (c_prefix)
+			cmph_config_set_c_prefix(config, c_prefix);
+		cmph_config_set_verbosity(config, verbosity);
+		if (do_ordering_table || do_reorder_keyfile)
+			cmph_config_set_ordering_table(config);
 		cmph_config_set_verbosity(config, verbosity);
 		cmph_config_set_tmp_dir(config, (cmph_uint8 *) tmp_dir);
 		cmph_config_set_mphf_fd(config, mphf_fd);
@@ -334,43 +411,68 @@ int main(int argc, char **argv)
 		cmph_config_set_keys_per_bin(config, keys_per_bin);
 
 		//if((mph_algo == CMPH_BMZ || mph_algo == CMPH_BRZ) && c >= 2.0) c=1.15;
-		if(mph_algo == CMPH_BMZ  && c >= 2.0) c=1.15;
-		if (c != 0) cmph_config_set_graphsize(config, c);
+		if(mph_algo == CMPH_BMZ && c >= 2.0)
+			c = 1.15;
+		if (c != 0)
+			cmph_config_set_graphsize(config, c);
 		mphf = cmph_new(config);
 
 		if (mphf == NULL)
 		{
 			fprintf(stderr, "Unable to create %sperfect hashing function with seed %u\n", is_minimal ? "minimal " : "", seed);
 			cmph_config_destroy(config);
-			if (nhashes)
-				free(hashes);
 			if (generate) {
 				fclose(mphf_fd);
 				unlink(mphf_file);
 			}
-			if (c_file)
-				free(c_file);
-			free(mphf_file);
+			FREE_STRDUP_ARGS;
+			if (do_reorder_keyfile)
+				free(reordered_keyfile);
 			free(source);
 			return -1;
 		}
+		if (do_ordering_table || do_reorder_keyfile)
+			ordering_table = cmph_ordering_table(mphf);
 
 		if (generate && mphf_fd == NULL)
 		{
 			fprintf(stderr, "Unable to open output file %s: %s\n", mphf_file, strerror(errno));
 			cmph_config_destroy(config);
-			if (nhashes)
-				free(hashes);
-			free(mphf_file);
+			FREE_STRDUP_ARGS;
+			if (do_reorder_keyfile)
+				free(reordered_keyfile);
 			free(source);
 			return -1;
 		}
 		if (compile)
 			cmph_compile(mphf, config, c_file, keys_file);
-		if (c_file)
-			free(c_file);
 		if (generate)
 			cmph_dump(mphf, mphf_fd);
+		if (do_reorder_keyfile) {
+			reordered_fd = fopen(reordered_keyfile, "wb");
+			if (reordered_fd == NULL || ordering_table == NULL)
+			{
+				if (!reordered_fd)
+					fprintf(stderr, "Unable to open output file %s: %s\n", reordered_keyfile,
+						strerror(errno));
+				if (!ordering_table || ordering_table[0] == ordering_table[1])
+					fprintf(stderr, "Unable to create ordering table\n");
+				FREE_STRDUP_ARGS;
+				if (do_reorder_keyfile)
+					free(reordered_keyfile);
+				cmph_io_nlfile_adapter_destroy(source);
+				return -1;
+			}
+			int errs = reorder_keyfile(source, ordering_table, reordered_fd);
+			if (verbosity) {
+				if (!errs)
+					printf("Wrote %s\n", reordered_keyfile);
+				else
+					printf("Wrote %s with %u errors\n", reordered_keyfile, errs);
+			}
+			fclose(reordered_fd);
+			free(reordered_keyfile);
+		}
 		cmph_config_destroy(config);
 		cmph_destroy(mphf);
 		if (generate)
@@ -378,7 +480,7 @@ int main(int argc, char **argv)
 	}
 	else
 	{
-		cmph_uint8 * hashtable = NULL;
+		cmph_uint8 *hashtable = NULL;
 		if (c_file)
 			free(c_file);
 		mphf_fd = fopen(mphf_file, "rb");
@@ -386,34 +488,51 @@ int main(int argc, char **argv)
 		{
 			fprintf(stderr, "Unable to open input file %s: %s\n", mphf_file, strerror(errno));
 			cmph_config_destroy(config);
-			if (nhashes)
-				free(hashes);
-			free(mphf_file);
+			FREE_STRDUP_ARGS;
+			if (do_reorder_keyfile)
+				free(reordered_keyfile);
 			cmph_io_nlfile_adapter_destroy(source);
 			return -1;
 		}
 		mphf = cmph_load(mphf_fd);
+		if (do_reorder_keyfile) {
+			reordered_fd = fopen(reordered_keyfile, "wb");
+			if (reordered_fd == NULL)
+			{
+				fprintf(stderr, "Unable to open output file %s: %s\n", reordered_keyfile,
+					strerror(errno));
+				FREE_STRDUP_ARGS;
+				free(reordered_keyfile);
+				cmph_io_nlfile_adapter_destroy(source);
+				return -1;
+			}
+			ordering_table = cmph_ordering_table(mphf);
+			int err = reorder_keyfile(source, ordering_table, reordered_fd);
+			if (verbosity && !err)
+				printf("Wrote %s\n", reordered_keyfile);
+			fclose(reordered_fd);
+			free(reordered_keyfile);
+		}
 		fclose(mphf_fd);
 		if (!mphf)
 		{
 			fprintf(stderr, "Unable to parse input file %s\n", mphf_file);
 			cmph_config_destroy(config);
-			if (nhashes)
-				free(hashes);
-			free(mphf_file);
-			free(source);
+			FREE_STRDUP_ARGS;
+			cmph_io_nlfile_adapter_destroy(source);
+			//free(source);
 			return -1;
 		}
 		cmph_uint32 siz = cmph_size(mphf);
 		hashtable = (cmph_uint8*)calloc(siz, sizeof(cmph_uint8));
-		memset(hashtable, 0,(size_t) siz);
-		//check all keys
+		// check all keys
 		for (i = 0; i < source->nkeys; ++i)
 		{
 			cmph_uint32 h;
 			char *buf;
 			cmph_uint32 buflen = 0;
 			source->read(source->data, &buf, &buflen);
+			// TODO what? we need to write them ordered.
 			h = cmph_search(mphf, buf, buflen);
 			if (!(h < siz))
 			{
@@ -429,7 +548,6 @@ int main(int argc, char **argv)
 				errs++;
 			} else
 				hashtable[h]++;
-
 			if (verbosity) {
 #ifdef DEBUG
 				printf("%s -> %u\n", buf, h);
@@ -448,10 +566,8 @@ int main(int argc, char **argv)
 		cmph_destroy(mphf);
 		free(hashtable);
 	}
+	FREE_STRDUP_ARGS;
 	fclose(keys_fd);
-	free(mphf_file);
-	free(tmp_dir);
-        free(hashes);
 	free(source);
 	return errs ? 1 : 0;
 }

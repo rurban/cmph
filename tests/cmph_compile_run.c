@@ -5,18 +5,19 @@
 
 uint32_t cmph_c_search(const char* key, uint32_t keylen);
 uint32_t cmph_c_size(void);
+uint32_t cmph_c_order(uint32_t index);
 
 int main(int argc, char **argv) {
     if (argc < 3) {
-        fprintf(stderr, "Usage: ./cmph_compile_run algo words [nkeys]\n");
+        fprintf(stderr, "Usage: ./cmph_compile_run algo_base words [have_ordering_table]\n");
         exit(1);
     }
     FILE *f = fopen(argv[2], "r");
     if (!f) {
         perror("fopen");
+        fprintf(stderr, "Usage: ./cmph_compile_run algo_base words [have_ordering_table]\n");
         exit(1);
     }
-    int is_order_preserving = strcmp(argv[1], "chm") == 0;
     // some funcs over-allocate. we need an exported cmph_c_size()
     uint32_t size = cmph_c_size();
     char key[128];
@@ -26,7 +27,19 @@ int main(int argc, char **argv) {
     uint32_t keys_per_bin = 1;
     uint32_t *hasharray = (uint32_t*)calloc(size, 4);
     uint8_t *hashtable = (uint8_t*)calloc(size, 1);
-    printf("cmph_compile_run %s for %s, size=%u\n", argv[1], argv[2], size);
+    char *algo = strdup(argv[1]);
+    char *p;
+    char is_order_preserving;
+#ifdef ORDERING
+    char has_ordering_table;
+#endif
+
+    if ((p = strchr(algo, '_')))
+        *p = '\0';
+    is_order_preserving = strcmp(algo, "chm") == 0;
+#ifdef ORDERING
+    has_ordering_table = argc == 4 && !is_order_preserving;
+#endif
 
     while (fgets(key, sizeof(key), f)) {
         // delete the ending \n
@@ -55,6 +68,16 @@ int main(int argc, char **argv) {
                 printf("%*s => %u: FAIL should be at index %u\n", len-1, key, h, l);
             failed++;
         }
+#ifdef ORDERING
+        else if (has_ordering_table) {
+            uint32_t o = cmph_c_order(h);
+            if (o != l) {
+                if (failed < 10)
+                    printf("%*s => %u: FAIL should be at index %u\n", len-1, key, o, l);
+                failed++;
+            }
+        }
+#endif
         l++;
         if (l > size) {
             fprintf(stderr, "Too many keys in the input, cmph_c_size() was %u\n", size);
@@ -66,6 +89,7 @@ int main(int argc, char **argv) {
     }
     free(hasharray);
     free(hashtable);
+    free(algo);
     fclose(f);
     if (failed)
         return 1;

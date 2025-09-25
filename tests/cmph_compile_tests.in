@@ -93,14 +93,29 @@ for a in $algos; do
         then
             echo "** cc -O2 -Wall -Wextra -c -I@top_srcdir@/src $base.c"
             cc -O2 -Wall -Wextra -c -I"@top_srcdir@/src" "$base.c"
-            echo "** compile_run $base $words $nwords"
-            ./compile_run "$base" "$words" "$nwords" && rm "$base.c" "$base.o" || fail=1
-            if [ -n "$fail" ]; then
-                case "$a" in
-                    # *_ph) echo "_ph compile_run TODO" ;;
-                    *) exit 1 ;;
-                esac
-            fi
+            echo "** compile_run $base $words"
+            ./compile_run "$base" "$words" && rm "$base.c" "$base.o" || fail=1
+            [ -n "$fail" ] && exit 1
+
+            case "$a" in
+                chd|bdz|bmz|fch|chd_ph|bdz_ph|bmz8)
+                    echo "Test ordering table"
+                    echo "** cmph -Cr -a $a -f $f -o $base.c $words"
+                    ../src/cmph -Cr -a "$a" -f $f -o "$base.c" "$words" || \
+                        ../src/cmph -Cr -a "$a" -f $f -o "$base.c" "$words" || fail=1
+                    if [ -z "$fail" ]
+                    then
+                        echo "** cc -O2 -Wall -Wextra -c -I@top_srcdir@/src $base.c"
+                        cc -O2 -Wall -Wextra -DORDERING -c -I"@top_srcdir@/src" "$base.c"
+                        echo "** compile_run $base $words $nwords"
+                        ./compile_run "$base" "$words" "$nwords" && rm "$base.c" "$base.o" || fail=1
+                        [ -n "$fail" ] && exit 1
+                    fi
+                    ;;
+                chm) echo "Skip ordering table test for $a" ;;
+                # TODO brz
+                *) echo "TODO Skip ordering table test for $a NYI" ;;
+            esac
         fi
 
         if [ "$a" = "brz" ]; then # TODO brz cannot compile yet, but prepare
@@ -113,8 +128,8 @@ for a in $algos; do
             then
                 echo "** cc -O2 -Wall -Wextra -c -I@top_srcdir@/src ${base}_fch.c"
                 cc -O2 -Wall -Wextra -c -I"@top_srcdir@/src" "${base}_fch.c"
-                echo "** compile_run ${base}_fch $words $N"
-                ./compile_run "${base}_fch" "$words" "$nwords" && rm "${base}_fch.c" "${base}_fch.o" || exit 1
+                echo "** compile_run ${base}_fch $words"
+                ./compile_run "${base}_fch" "$words" && rm "${base}_fch.c" "${base}_fch.o" || exit 1
             fi
         fi
 

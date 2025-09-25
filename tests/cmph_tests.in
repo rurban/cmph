@@ -81,6 +81,19 @@ for a in $algos; do
             echo "** mphf_tests -a $a -f $f $words"
             # shellcheck disable=SC2086
             ./mphf_tests -a "$a" -f $f "$words"
+
+            case "$a" in
+                chd|bdz|bmz|fch|chd_ph|bdz_ph|bmz8)
+                    echo "Test ordering table for $a"
+                    echo "** cmph -gr -a $a -f $f $words"
+                    ../src/cmph -gr -a $a -f $f "$words" && \
+                        ( echo "** mphf_tests -a $a -f $f $words";  \
+                          ./mphf_tests -a $a -f $f "$words" )
+                    ;;
+                chm) echo "Skip ordering table test for $a" ;;
+                # TODO brz
+                *) echo "TODO Skip ordering table test for $a NYI" ;;
+            esac
         fi
 
         if [ "$a" = "brz" ]; then
@@ -96,6 +109,12 @@ for a in $algos; do
                 echo "** mphf_tests -a $a -f $f $words"
                 # shellcheck disable=SC2086
                 ./mphf_tests -a brz -f $f "$words"
+
+                #echo "Test ordering table for $a with fch"
+                #echo "** cmph -c 3 -gr -a brz -f $f $words"
+                #../src/cmph -c 3 -gr -a brz -f $f "$words"
+                #echo "** mphf_tests -a $a -f $f $words"
+                #./mphf_tests -a brz -f $f "$words"
             fi
         fi
 

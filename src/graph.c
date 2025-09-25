@@ -198,7 +198,6 @@ static cmph_uint8 find_degree1_edge(graph_t *g, cmph_uint32 v, cmph_uint8 *delet
 
 static void cyclic_del_edge(graph_t *g, cmph_uint32 v, cmph_uint8 *deleted)
 {
-
 	cmph_uint32 e = 0;
 	cmph_uint8 degree1;
 	cmph_uint32 v1 = v;
@@ -253,7 +252,7 @@ int graph_is_cyclic(graph_t *g)
 
 cmph_uint8 graph_node_is_critical(graph_t * g, cmph_uint32 v) /* included -- Fabiano */
 {
-        return (cmph_uint8)GETBIT(g->critical_nodes,v);
+        return (cmph_uint8)GETBIT(g->critical_nodes, v);
 }
 
 void graph_obtain_critical_nodes(graph_t *g) /* included -- Fabiano*/
@@ -278,15 +277,15 @@ void graph_obtain_critical_nodes(graph_t *g) /* included -- Fabiano*/
 		if (!(GETBIT(deleted,i)))
 		{
 			DEBUGP("Edge %u %u->%u belongs to the 2-core\n", i, g->edges[i], g->edges[i + g->nedges]);
-			if(!(GETBIT(g->critical_nodes,g->edges[i])))
+			if(!(GETBIT(g->critical_nodes, g->edges[i])))
 			{
-			  g->ncritical_nodes ++;
-			  SETBIT(g->critical_nodes,g->edges[i]);
+			    g->ncritical_nodes ++;
+			    SETBIT(g->critical_nodes, g->edges[i]);
 			}
-			if(!(GETBIT(g->critical_nodes,g->edges[i + g->nedges])))
+			if(!(GETBIT(g->critical_nodes, g->edges[i + g->nedges])))
 			{
-			  g->ncritical_nodes ++;
-			  SETBIT(g->critical_nodes,g->edges[i + g->nedges]);
+			    g->ncritical_nodes ++;
+			    SETBIT(g->critical_nodes, g->edges[i + g->nedges]);
 			}
 		}
 	}

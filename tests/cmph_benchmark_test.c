@@ -10,7 +10,8 @@ int bm_sleep(int iters) {
 }
 
 int bm_increment(int iters) {
-  int i, v = 0;
+  unsigned long v = 0;
+  int i = 0;
   (void)iters;
   for (i = 0; i < INT_MAX; ++i) {
     v += i;

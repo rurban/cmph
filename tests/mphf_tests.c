@@ -209,6 +209,11 @@ int main(int argc, char **argv)
 	}
 	cmph_uint32 siz = cmph_size(mphf);
 	cmph_uint32 *hasharray = (cmph_uint32*)calloc(siz, sizeof(cmph_uint32));
+	cmph_uint32 *o = cmph_ordering_table(mphf);
+	if (o && !o[0] && !o[1]) {
+		fprintf(stderr, "TODO empty ordering table with %s\n", cmph_names[mph_algo]);
+		o = NULL;
+	}
 	//check all keys
 	for (i = 0; i < source->nkeys; ++i)
 	{
@@ -219,24 +224,31 @@ int main(int argc, char **argv)
 		h = cmph_search(mphf, buf, buflen);
 		if (!(h < siz))
 		{
-			fprintf(stderr, "Unknown key %*s in the input.\n", buflen, buf);
+			fprintf(stderr, "Unknown key %.*s in the input.\n", buflen, buf);
 			ret = 1;
 		} else if(hasharray[h])
 		{
-			fprintf(stderr, "Duplicated or unknown key %*s in the input\n", buflen, buf);
+			fprintf(stderr, "Duplicated or unknown key %.*s in the input\n", buflen, buf);
 			ret = 1;
-		} else hasharray[h] = 1;
-		// with the order-preserving algo CHM, check h against the key index also.
-		if (mph_algo == CMPH_CHM && i != h)
-		{
-			fprintf(stderr, "Keys are not in the right order: %u, expected %u\n", h, i);
-			ret = 1;
+		} else
+			hasharray[h] = 1;
+		// with the order-preserving algo CHM or the optional ordering_table,
+		// check h against the key index also.
+		if (mph_algo == CMPH_CHM) {
+			if (i != h) {
+				fprintf(stderr, "Keys are not in the right order: %u, expected %u\n", h, i);
+				ret = 1;
+			}
+		} else {
+			if (o && o[h] != i) {
+				fprintf(stderr, "Keys are not in the right order: %d for %u, "
+					"expected %u\n", (int32_t)o[h], h, i);
+				ret = 1;
+			}
 		}
 
 		if (verbosity)
-		{
 			printf("%s -> %u\n", buf, h);
-		}
 		source->dispose(buf);
 	}
 

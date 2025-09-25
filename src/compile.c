@@ -36,12 +36,12 @@ void bytes_2_compile(FILE *out, const char *name, const uint8_t *buf,
   for (unsigned i = 0; i < len1; i++) {
     fprintf(out, "{");
     for (unsigned j = 0; j < len2 - 1; j++) {
-      fprintf(out, "%3u, ", *buf++);
+      fprintf(out, "%u, ", *buf++);
     }
     if (i == len1 - 1)
-      fprintf(out, "%3u}\t/* %u */", *buf++, i);
+      fprintf(out, "%u}\t/* %u */", *buf++, i);
     else
-      fprintf(out, "%3u},\t/* %u */\n    ", *buf++, i);
+      fprintf(out, "%u},\t/* %u */\n    ", *buf++, i);
   }
   fprintf(out, "\n};\n");
 }

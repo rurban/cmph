@@ -4,14 +4,14 @@
 #include "cmph.h"
 
 /*
- * The BRZ algorithm has been built so to consume the bare minimum 
+ * The BRZ algorithm has been built so to consume the bare minimum
  * amount of memory to generate the MPHFs. Thereby we decided
  * to dump the resulting MPHFs to disk while creating them. Thus,
  * to use the BRZ algorithm, one has to call brz_config_set_mphf_fd
- * before calling brz_new. Otherwise we will fail the MPHF creation. 
- * One side effect of this design decision is that the resulting 
- * MPHF cannot be used until its dumping process is finalized 
- * by calling brz_dump and the caller must use brz_load before 
+ * before calling brz_new. Otherwise we will fail the MPHF creation.
+ * One side effect of this design decision is that the resulting
+ * MPHF cannot be used until its dumping process is finalized
+ * by calling brz_dump and the caller must use brz_load before
  * any call to  either one of the following functions is made:
  *      brz_search
  *      brz_pack
@@ -40,7 +40,7 @@ cmph_uint32 brz_search(cmph_t *mphf, const char *key, cmph_uint32 keylen);
 /** \fn void brz_pack(cmph_t *mphf, void *packed_mphf);
  *  \brief Support the ability to pack a perfect hash function into a preallocated contiguous memory space pointed by packed_mphf.
  *  \param mphf pointer to the resulting mphf
- *  \param packed_mphf pointer to the contiguous memory area used to store the resulting mphf. The size of packed_mphf must be at least cmph_packed_size() 
+ *  \param packed_mphf pointer to the contiguous memory area used to store the resulting mphf. The size of packed_mphf must be at least cmph_packed_size()
  */
 void brz_pack(cmph_t *mphf, void *packed_mphf);
 
@@ -48,11 +48,11 @@ void brz_pack(cmph_t *mphf, void *packed_mphf);
  *  \brief Return the amount of space needed to pack mphf.
  *  \param mphf pointer to a mphf
  *  \return the size of the packed function or zero for failures
- */ 
+ */
 cmph_uint32 brz_packed_size(cmph_t *mphf);
 
 /** cmph_uint32 brz_search(void *packed_mphf, const char *key, cmph_uint32 keylen);
- *  \brief Use the packed mphf to do a search. 
+ *  \brief Use the packed mphf to do a search.
  *  \param  packed_mphf pointer to the packed mphf
  *  \param key key to be hashed
  *  \param keylen key legth in bytes

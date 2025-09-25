@@ -1,5 +1,10 @@
 #!/bin/sh
 set -e
 echo "** cc @CFLAGS@ -I@abs_top_srcdir@/src @srcdir@/cmph_compile_run.c $1.c -o cmph_compile_run"
-@CC@ @CFLAGS@ -I"@abs_top_srcdir@/src" "@abs_srcdir@"/cmph_compile_run.c "$1.c" -o cmph_compile_run
+if [ -n "$3" ]
+then
+    @CC@ @CFLAGS@ -DORDERING -I"@abs_top_srcdir@/src" "@abs_srcdir@"/cmph_compile_run.c "$1.c" -o cmph_compile_run
+else
+    @CC@ @CFLAGS@ -I"@abs_top_srcdir@/src" "@abs_srcdir@"/cmph_compile_run.c "$1.c" -o cmph_compile_run
+fi
 ./cmph_compile_run "$@"

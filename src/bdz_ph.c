@@ -4,6 +4,7 @@
 #include "cmph_structs.h"
 #include "bdz_structs_ph.h"
 #include "hash.h"
+#include "graph.h"
 #include "bitbool.h"
 #include "compile.h"
 
@@ -84,13 +85,13 @@ static void bdz_ph_partial_free_graph3(bdz_ph_graph3_t *graph3)
 
 static void bdz_ph_add_edge(bdz_ph_graph3_t * graph3, cmph_uint32 v0, cmph_uint32 v1, cmph_uint32 v2)
 {
-	graph3->edges[graph3->nedges].vertices[0]=v0;
-	graph3->edges[graph3->nedges].vertices[1]=v1;
-	graph3->edges[graph3->nedges].vertices[2]=v2;
-	graph3->edges[graph3->nedges].next_edges[0]=graph3->first_edge[v0];
-	graph3->edges[graph3->nedges].next_edges[1]=graph3->first_edge[v1];
-	graph3->edges[graph3->nedges].next_edges[2]=graph3->first_edge[v2];
-	graph3->first_edge[v0]=graph3->first_edge[v1]=graph3->first_edge[v2]=graph3->nedges;
+	graph3->edges[graph3->nedges].vertices[0] = v0;
+	graph3->edges[graph3->nedges].vertices[1] = v1;
+	graph3->edges[graph3->nedges].vertices[2] = v2;
+	graph3->edges[graph3->nedges].next_edges[0] = graph3->first_edge[v0];
+	graph3->edges[graph3->nedges].next_edges[1] = graph3->first_edge[v1];
+	graph3->edges[graph3->nedges].next_edges[2] = graph3->first_edge[v2];
+	graph3->first_edge[v0] = graph3->first_edge[v1] = graph3->first_edge[v2] = graph3->nedges;
 	graph3->vert_degree[v0]++;
 	graph3->vert_degree[v1]++;
 	graph3->vert_degree[v2]++;
@@ -154,46 +155,46 @@ static int bdz_ph_generate_queue(cmph_uint32 nedges, bdz_ph_queue_t queue, bdz_p
 	cmph_uint32 tmp_edge;
 	cmph_uint8 * marked_edge =(cmph_uint8 *)calloc((size_t)(nedges >> 3) + 1, 1);
 
-	for(i=0;i<nedges;i++){
-		v0=graph3->edges[i].vertices[0];
-		v1=graph3->edges[i].vertices[1];
-		v2=graph3->edges[i].vertices[2];
-		if(graph3->vert_degree[v0]==1 ||
-				graph3->vert_degree[v1]==1 ||
-				graph3->vert_degree[v2]==1){
+	for(i = 0; i < nedges; i++){
+		v0 = graph3->edges[i].vertices[0];
+		v1 = graph3->edges[i].vertices[1];
+		v2 = graph3->edges[i].vertices[2];
+		if(graph3->vert_degree[v0] == 1 ||
+		   graph3->vert_degree[v1] == 1 ||
+		   graph3->vert_degree[v2] == 1) {
 			if(!GETBIT(marked_edge,i)) {
-				queue[queue_head++]=i;
-				SETBIT(marked_edge,i);
+				queue[queue_head++] = i;
+				SETBIT(marked_edge, i);
 			}
 		};
 	};
-	while(queue_tail!=queue_head){
-		curr_edge=queue[queue_tail++];
-		bdz_ph_remove_edge(graph3,curr_edge);
-		v0=graph3->edges[curr_edge].vertices[0];
-		v1=graph3->edges[curr_edge].vertices[1];
-		v2=graph3->edges[curr_edge].vertices[2];
-		if(graph3->vert_degree[v0]==1 ) {
-			tmp_edge=graph3->first_edge[v0];
-			if(!GETBIT(marked_edge,tmp_edge)) {
-				queue[queue_head++]=tmp_edge;
-				SETBIT(marked_edge,tmp_edge);
+	while(queue_tail != queue_head){
+		curr_edge = queue[queue_tail++];
+		bdz_ph_remove_edge(graph3, curr_edge);
+		v0 = graph3->edges[curr_edge].vertices[0];
+		v1 = graph3->edges[curr_edge].vertices[1];
+		v2 = graph3->edges[curr_edge].vertices[2];
+		if(graph3->vert_degree[v0] == 1 ) {
+			tmp_edge = graph3->first_edge[v0];
+			if(!GETBIT(marked_edge, tmp_edge)) {
+				queue[queue_head++] = tmp_edge;
+				SETBIT(marked_edge, tmp_edge);
 			};
 
 		};
-		if(graph3->vert_degree[v1]==1) {
-			tmp_edge=graph3->first_edge[v1];
-			if(!GETBIT(marked_edge,tmp_edge)){
-				queue[queue_head++]=tmp_edge;
-				SETBIT(marked_edge,tmp_edge);
+		if(graph3->vert_degree[v1] == 1) {
+			tmp_edge = graph3->first_edge[v1];
+			if(!GETBIT(marked_edge, tmp_edge)){
+				queue[queue_head++] = tmp_edge;
+				SETBIT(marked_edge, tmp_edge);
 			};
 
 		};
-		if(graph3->vert_degree[v2]==1){
-			tmp_edge=graph3->first_edge[v2];
-			if(!GETBIT(marked_edge,tmp_edge)){
-				queue[queue_head++]=tmp_edge;
-				SETBIT(marked_edge,tmp_edge);
+		if(graph3->vert_degree[v2] == 1){
+			tmp_edge = graph3->first_edge[v2];
+			if(!GETBIT(marked_edge, tmp_edge)){
+				queue[queue_head++] = tmp_edge;
+				SETBIT(marked_edge, tmp_edge);
 			};
 		};
 	};
@@ -245,6 +246,7 @@ cmph_t *bdz_ph_new(cmph_config_t *mph, double c)
 	cmph_t *mphf = NULL;
 	bdz_ph_data_t *bdz_phf = NULL;
 	cmph_uint32 iterations;
+	cmph_uint32 *ordering_table = NULL;
 	bdz_ph_queue_t edges;
 	bdz_ph_graph3_t graph3;
 	bdz_ph_config_data_t *bdz_ph = (bdz_ph_config_data_t *)mph->data;
@@ -254,20 +256,20 @@ cmph_t *bdz_ph_new(cmph_config_t *mph, double c)
 	ELAPSED_TIME_IN_SECONDS(&construction_time_begin);
 #endif
 
-	if (c == 0) c = 1.23; // validating restrictions over parameter c.
+	if (c == 0)
+	    c = 1.23; // validating restrictions over parameter c.
 	DEBUGP("c: %f\n", c);
 	bdz_ph->m = mph->key_source->nkeys;
 	bdz_ph->r = (cmph_uint32)ceil((c * mph->key_source->nkeys)/3);
 	if ((bdz_ph->r % 2) == 0) bdz_ph->r += 1;
 
-        if (bdz_ph->r == 1) { // workaround for small key sets
+        if (bdz_ph->r == 1) // workaround for small key sets
         	bdz_ph->r = 3;
-        }
 
 	bdz_ph->n = 3*bdz_ph->r;
 
 	bdz_ph_alloc_graph3(&graph3, bdz_ph->m, bdz_ph->n);
-	bdz_ph_alloc_queue(&edges,bdz_ph->m);
+	bdz_ph_alloc_queue(&edges, bdz_ph->m);
 	DEBUGP("Created hypergraph\n");
 
 	DEBUGP("m (edges): %u n (vertices): %u  r: %u c: %f \n", bdz_ph->m, bdz_ph->n, bdz_ph->r, c);
@@ -275,9 +277,7 @@ cmph_t *bdz_ph_new(cmph_config_t *mph, double c)
 	// Mapping step
 	iterations = 100;
 	if (mph->verbosity)
-	{
 		fprintf(stderr, "Entering mapping step for mph creation of %u keys with graph sized %u\n", bdz_ph->m, bdz_ph->n);
-	}
 	while(1)
 	{
 		int ok;
@@ -292,17 +292,16 @@ cmph_t *bdz_ph_new(cmph_config_t *mph, double c)
 			bdz_ph->hl = NULL;
 			DEBUGP("%u iterations remaining\n", iterations);
 			if (mph->verbosity)
-			{
 				fprintf(stderr, "acyclic graph creation failure - %u iterations remaining\n", iterations);
-			}
-			if (iterations == 0) break;
+			if (iterations == 0)
+			    break;
 		}
 		else break;
 	}
 
 	if (iterations == 0)
 	{
-//		free(bdz_ph->g);
+		free(bdz_ph->g);
 		bdz_ph_free_queue(&edges);
 		bdz_ph_free_graph3(&graph3);
 		return NULL;
@@ -310,26 +309,57 @@ cmph_t *bdz_ph_new(cmph_config_t *mph, double c)
 	bdz_ph_partial_free_graph3(&graph3);
 	// Assigning step
 	if (mph->verbosity)
-	{
 		fprintf(stderr, "Entering assigning step for mph creation of %u keys with graph sized %u\n", bdz_ph->m, bdz_ph->n);
-	}
 	assigning(bdz_ph, &graph3, edges);
 
 	bdz_ph_free_queue(&edges);
 	bdz_ph_free_graph3(&graph3);
 
 	if (mph->verbosity)
-	{
 		fprintf(stderr, "Starting optimization step\n");
-	}
-
 	bdz_ph_optimization(bdz_ph);
+
+	if (mph->do_ordering_table) {
+	    // nvertices
+	    ordering_table = (cmph_uint32 *)malloc(bdz_ph->n * sizeof(cmph_uint32));
+	    assert(ordering_table);
+	    memset(ordering_table, 0xFF, bdz_ph->n * sizeof(cmph_uint32));
+	    DEBUGP("Create ordering table\n");
+	    mph->key_source->rewind(mph->key_source->data);
+
+	    for(cmph_uint32 i = 0; i < mph->key_source->nkeys; i++) {
+		cmph_uint32 hl[3];
+		cmph_uint8 byte0, byte1, byte2;
+		cmph_uint32 h, keylen;
+		char *key = NULL;
+		mph->key_source->read(mph->key_source->data, &key, &keylen);
+
+		hash_vector(bdz_ph->hl, key, keylen, hl);
+		hl[0] = hl[0] % bdz_ph->r;
+		hl[1] = hl[1] % bdz_ph->r + bdz_ph->r;
+		hl[2] = hl[2] % bdz_ph->r + (bdz_ph->r << 1);
+
+		byte0 = bdz_ph->g[hl[0] / 5];
+		byte1 = bdz_ph->g[hl[1] / 5];
+		byte2 = bdz_ph->g[hl[2] / 5];
+
+		byte0 = lookup_table[hl[0] % 5][byte0];
+		byte1 = lookup_table[hl[1] % 5][byte1];
+		byte2 = lookup_table[hl[2] % 5][byte2];
+		h = hl[(byte0 + byte1 + byte2)%3];
+
+		ordering_table[h] = i;
+		mph->key_source->dispose(key);
+		//DEBUGP("O: %u => %i\n", h, i);
+	    }
+	}
 
 #ifdef CMPH_TIMING
 	ELAPSED_TIME_IN_SECONDS(&construction_time);
 #endif
 	mphf = (cmph_t *)malloc(sizeof(cmph_t));
 	mphf->algo = mph->algo;
+	mphf->o = ordering_table;
 	bdz_phf = (bdz_ph_data_t *)malloc(sizeof(bdz_ph_data_t));
 	bdz_phf->g = bdz_ph->g;
 	bdz_ph->g = NULL; //transfer memory ownership
@@ -355,7 +385,6 @@ cmph_t *bdz_ph_new(cmph_config_t *mph, double c)
 	return mphf;
 }
 
-
 static int bdz_ph_mapping(cmph_config_t *mph, bdz_ph_graph3_t* graph3, bdz_ph_queue_t queue)
 {
 	cmph_uint32 e;
@@ -376,7 +405,7 @@ static int bdz_ph_mapping(cmph_config_t *mph, bdz_ph_graph3_t* graph3, bdz_ph_qu
 		h1 = hl[1] % bdz_ph->r + bdz_ph->r;
 		h2 = hl[2] % bdz_ph->r + (bdz_ph->r << 1);
 		mph->key_source->dispose(key);
-		bdz_ph_add_edge(graph3,h0,h1,h2);
+		bdz_ph_add_edge(graph3, h0, h1, h2);
 	}
 	cycles = bdz_ph_generate_queue(bdz_ph->m, queue, graph3);
 	return (cycles == 0);
@@ -385,33 +414,35 @@ static int bdz_ph_mapping(cmph_config_t *mph, bdz_ph_graph3_t* graph3, bdz_ph_qu
 static void assigning(bdz_ph_config_data_t *bdz_ph, bdz_ph_graph3_t* graph3, bdz_ph_queue_t queue)
 {
 	cmph_uint32 i;
-	cmph_uint32 nedges=graph3->nedges;
+	cmph_uint32 nedges = graph3->nedges;
 	cmph_uint32 curr_edge;
-	cmph_uint32 v0,v1,v2;
-	cmph_uint8 * marked_vertices = (cmph_uint8 *)malloc((size_t)(bdz_ph->n >> 3) + 1);
+	cmph_uint32 v0, v1, v2;
+	const size_t n_sz = (bdz_ph->n >> 3) + 1;
+	cmph_uint8 * marked_vertices = (cmph_uint8 *)malloc(n_sz);
 	cmph_uint32 sizeg = (cmph_uint32)ceil(bdz_ph->n/4.0);
 	bdz_ph->g = (cmph_uint8 *)calloc((size_t)sizeg, sizeof(cmph_uint8));
-	memset(marked_vertices, 0, (size_t)(bdz_ph->n >> 3) + 1);
+	memset(marked_vertices, 0, n_sz);
 	//memset(bdz_ph->g, 0xff, sizeg);
 
-	for(i=nedges-1;i+1>=1;i--){
-		curr_edge=queue[i];
-		v0=graph3->edges[curr_edge].vertices[0];
-		v1=graph3->edges[curr_edge].vertices[1];
-		v2=graph3->edges[curr_edge].vertices[2];
-		DEBUGP("B:%u %u %u -- %u %u %u\n", v0, v1, v2, GETVALUE(bdz_ph->g, v0), GETVALUE(bdz_ph->g, v1), GETVALUE(bdz_ph->g, v2));
+	for(i = nedges-1; i+1 >= 1; i--){
+		curr_edge = queue[i];
+		v0 = graph3->edges[curr_edge].vertices[0];
+		v1 = graph3->edges[curr_edge].vertices[1];
+		v2 = graph3->edges[curr_edge].vertices[2];
+		DEBUGP("%u: (%u %u %u) \t-- %u %u %u ", curr_edge, v0, v1, v2, GETVALUE(bdz_ph->g, v0), GETVALUE(bdz_ph->g, v1), GETVALUE(bdz_ph->g, v2));
 		if(!GETBIT(marked_vertices, v0)){
-			if(!GETBIT(marked_vertices,v1))
+			if(!GETBIT(marked_vertices, v1))
 			{
 				//SETVALUE(bdz_ph->g, v1, UNASSIGNED);
 				SETBIT(marked_vertices, v1);
 			}
-			if(!GETBIT(marked_vertices,v2))
+			if(!GETBIT(marked_vertices, v2))
 			{
 				//SETVALUE(bdz_ph->g, v2, UNASSIGNED);
 				SETBIT(marked_vertices, v2);
 			}
-			SETVALUE0(bdz_ph->g, v0, (6-(GETVALUE(bdz_ph->g, v1) + GETVALUE(bdz_ph->g,v2)))%3);
+			SETVALUE0(bdz_ph->g, v0,
+				  (6 - (GETVALUE(bdz_ph->g, v1) + GETVALUE(bdz_ph->g, v2))) % 3);
 			SETBIT(marked_vertices, v0);
 		} else if(!GETBIT(marked_vertices, v1)) {
 			if(!GETBIT(marked_vertices, v2))
@@ -419,14 +450,19 @@ static void assigning(bdz_ph_config_data_t *bdz_ph, bdz_ph_graph3_t* graph3, bdz
 				//SETVALUE(bdz_ph->g, v2, UNASSIGNED);
 				SETBIT(marked_vertices, v2);
 			}
-			SETVALUE0(bdz_ph->g, v1, (7 - (GETVALUE(bdz_ph->g, v0)+GETVALUE(bdz_ph->g, v2)))%3);
+			SETVALUE0(bdz_ph->g, v1,
+				  (7 - (GETVALUE(bdz_ph->g, v0) + GETVALUE(bdz_ph->g, v2))) % 3);
 			SETBIT(marked_vertices, v1);
 		}else {
-			SETVALUE0(bdz_ph->g, v2, (8-(GETVALUE(bdz_ph->g,v0)+GETVALUE(bdz_ph->g, v1)))%3);
+			SETVALUE0(bdz_ph->g, v2,
+				  (8 - (GETVALUE(bdz_ph->g, v0) + GETVALUE(bdz_ph->g, v1))) % 3);
 			SETBIT(marked_vertices, v2);
 		}
-		DEBUGP("A:%u %u %u -- %u %u %u\n", v0, v1, v2, GETVALUE(bdz_ph->g, v0), GETVALUE(bdz_ph->g, v1), GETVALUE(bdz_ph->g, v2));
-	};
+#ifdef DEBUG
+		fprintf(stderr, "-> %u %u %u\n", GETVALUE(bdz_ph->g, v0),
+		       GETVALUE(bdz_ph->g, v1), GETVALUE(bdz_ph->g, v2));
+#endif
+	}
 	free(marked_vertices);
 }
 
@@ -444,7 +480,7 @@ static void bdz_ph_optimization(bdz_ph_config_data_t *bdz_ph)
             idx = i/5;
             byte = new_g[idx];
             value = GETVALUE(bdz_ph->g, i);
-            byte = (cmph_uint8) (byte + value*pow3_table[i%5U]);
+            byte = (cmph_uint8) (byte + value * pow3_table[i % 5]);
             new_g[idx] = byte;
         }
 	free(bdz_ph->g);
@@ -496,7 +532,14 @@ int bdz_ph_compile(cmph_t *mphf, cmph_config_t *mph, FILE *out)
 #endif
 	fprintf(out, "    return vertex;\n");
 	fprintf(out, "};\n");
-	fprintf(out, "\nuint32_t %s_size(void) {\n", mph->c_prefix);
+	if (mphf->o) {
+		uint32_compile(out, "ordering_table", mphf->o, bdz->n);
+		fprintf(out, "uint32_t %s_order(uint32_t id) {\n", mph->c_prefix);
+		fprintf(out, "    assert(id < %u);\n", bdz->n);
+		fprintf(out, "    return ordering_table[id];\n");
+		fprintf(out, "}\n");
+	}
+	fprintf(out, "uint32_t %s_size(void) {\n", mph->c_prefix);
 	fprintf(out, "    return %u;\n}\n", bdz->n);
 	fclose(out);
 	return 1;
@@ -521,14 +564,23 @@ int bdz_ph_dump(cmph_t *mphf, FILE *fd)
 	CHK_FWRITE(&(data->r), sizeof(cmph_uint32), (size_t)1, fd);
 	sizeg = (cmph_uint32)ceil(data->n/5.0);
 	CHK_FWRITE(data->g, sizeof(cmph_uint8)*sizeg, (size_t)1, fd);
-
-#if defined DEBUG && 0
+#ifdef DEBUG
 	cmph_uint32 i;
 	fprintf(stderr, "G: ");
-	for (i = 0; i < data->n; ++i)
+	for (i = 0; i < sizeg; ++i)
 	    fprintf(stderr, "%u ", GETVALUE(data->g, i));
 	fprintf(stderr, "\n");
 #endif
+	if (mphf->o) {
+		DEBUGP("Dumping ordering_table\n");
+		CHK_FWRITE(mphf->o, sizeof(cmph_uint32), data->n, fd);
+#ifdef DEBUG
+		fprintf(stderr, "O: ");
+		for (cmph_uint32 i = 0; i < data->n; ++i) fprintf(stderr, "%d ", mphf->o[i]);
+		fprintf(stderr, "\n");
+#endif
+	}
+
 	return 1;
 }
 
@@ -553,9 +605,26 @@ void bdz_ph_load(FILE *f, cmph_t *mphf)
 	CHK_FREAD(&(bdz_ph->n), sizeof(cmph_uint32), (size_t)1, f);
 	CHK_FREAD(&(bdz_ph->m), sizeof(cmph_uint32), (size_t)1, f);
 	CHK_FREAD(&(bdz_ph->r), sizeof(cmph_uint32), (size_t)1, f);
-	sizeg = (cmph_uint32)ceil(bdz_ph->n/5.0);
+	sizeg = (cmph_uint32)ceil(bdz_ph->n / 5.0);
 	bdz_ph->g = (cmph_uint8 *)calloc((size_t)sizeg, sizeof(cmph_uint8));
 	CHK_FREAD(bdz_ph->g, sizeg*sizeof(cmph_uint8), (size_t)1, f);
+
+	//loading the optional ordering table.
+	mphf->o = (cmph_uint32 *)malloc(sizeof(cmph_uint32) * bdz_ph->n);
+	cmph_uint32 nread =
+	    fread(mphf->o, sizeof(cmph_uint32), (size_t)bdz_ph->n, f);
+	if (nread != bdz_ph->n) {
+	    free(mphf->o);
+	    mphf->o = NULL;
+	}
+#ifdef DEBUG
+	if (mphf->o) {
+	    fprintf(stderr, "O: ");
+	    for (cmph_uint32 i = 0; i < bdz_ph->n; ++i)
+		fprintf(stderr, "%d ", mphf->o[i]);
+	    fprintf(stderr, "\n");
+	}
+#endif
 
 	return;
 }
@@ -573,13 +642,13 @@ cmph_uint32 bdz_ph_search(cmph_t *mphf, const char *key, cmph_uint32 keylen)
 	hl[1] = hl[1] % bdz_ph->r + bdz_ph->r;
 	hl[2] = hl[2] % bdz_ph->r + (bdz_ph->r << 1);
 
-	byte0 = bdz_ph->g[hl[0]/5];
-	byte1 = bdz_ph->g[hl[1]/5];
-	byte2 = bdz_ph->g[hl[2]/5];
+	byte0 = bdz_ph->g[hl[0] / 5];
+	byte1 = bdz_ph->g[hl[1] / 5];
+	byte2 = bdz_ph->g[hl[2] / 5];
 
-	byte0 = lookup_table[hl[0]%5U][byte0];
-	byte1 = lookup_table[hl[1]%5U][byte1];
-	byte2 = lookup_table[hl[2]%5U][byte2];
+	byte0 = lookup_table[hl[0] % 5][byte0];
+	byte1 = lookup_table[hl[1] % 5][byte1];
+	byte2 = lookup_table[hl[2] % 5][byte2];
 	vertex = hl[(byte0 + byte1 + byte2)%3];
 
 	return vertex;
@@ -592,13 +661,15 @@ void bdz_ph_destroy(cmph_t *mphf)
 	free(data->g);
 	hash_state_destroy(data->hl);
 	free(data);
+	if (mphf->o)
+	    free(mphf->o);
 	free(mphf);
 }
 
 /** \fn void bdz_ph_pack(cmph_t *mphf, void *packed_mphf);
  *  \brief Support the ability to pack a perfect hash function into a preallocated contiguous memory space pointed by packed_mphf.
  *  \param mphf pointer to the resulting mphf
- *  \param packed_mphf pointer to the contiguous memory area used to store the resulting mphf. The size of packed_mphf must be at least cmph_packed_size() 
+ *  \param packed_mphf pointer to the contiguous memory area used to store the resulting mphf. The size of packed_mphf must be at least cmph_packed_size()
  */
 void bdz_ph_pack(cmph_t *mphf, void *packed_mphf)
 {

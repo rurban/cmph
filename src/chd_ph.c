@@ -109,10 +109,10 @@ void chd_ph_bucket_destroy(chd_ph_bucket_t * buckets)
     free(buckets);
 }
 
-static inline cmph_uint8 chd_ph_mapping(cmph_config_t *mph, chd_ph_bucket_t * buckets, chd_ph_item_t * items,
-					cmph_uint32 *max_bucket_size);
+static inline cmph_uint8 chd_ph_mapping(cmph_config_t *mph, chd_ph_bucket_t *buckets,
+					chd_ph_item_t *items, cmph_uint32 *max_bucket_size);
 
-static chd_ph_sorted_list_t * chd_ph_ordering(chd_ph_bucket_t ** _buckets,chd_ph_item_t ** items,
+static chd_ph_sorted_list_t * chd_ph_ordering(chd_ph_bucket_t **_buckets,chd_ph_item_t **items,
 				cmph_uint32 nbuckets,cmph_uint32 nitems, cmph_uint32 max_bucket_size);
 
 static cmph_uint8 chd_ph_searching(chd_ph_config_data_t *chd_ph, chd_ph_bucket_t *buckets, chd_ph_item_t *items ,
@@ -147,7 +147,8 @@ chd_ph_config_data_t *chd_ph_config_new(void)
 {
 	chd_ph_config_data_t *chd_ph;
 	chd_ph = (chd_ph_config_data_t *)malloc(sizeof(chd_ph_config_data_t));
-        if (!chd_ph) return NULL;
+        if (!chd_ph)
+	    return NULL;
 	memset(chd_ph, 0, sizeof(chd_ph_config_data_t));
 
 	chd_ph->hashfunc = CMPH_HASH_JENKINS;
@@ -233,7 +234,6 @@ cmph_uint8 chd_ph_mapping(cmph_config_t *mph, chd_ph_bucket_t * buckets, chd_ph_
 		chd_ph_bucket_clean(buckets, chd_ph->nbuckets);
 
 		mph->key_source->rewind(mph->key_source->data);
-
 		for(i = 0; i < chd_ph->m; i++)
 		{
 			mph->key_source->read(mph->key_source->data, &key, &keylen);
@@ -244,7 +244,7 @@ cmph_uint8 chd_ph_mapping(cmph_config_t *mph, chd_ph_bucket_t * buckets, chd_ph_
 			g = hl[0] % chd_ph->nbuckets;
 			map_item->f = hl[1] % chd_ph->n;
 			map_item->h = hl[2] % (chd_ph->n - 1) + 1;
-			map_item->bucket_num=g;
+			map_item->bucket_num = g;
 			mph->key_source->dispose(key);
 // 			if(buckets[g].size == (chd_ph->keys_per_bucket << 2))
 // 			{
@@ -253,9 +253,7 @@ cmph_uint8 chd_ph_mapping(cmph_config_t *mph, chd_ph_bucket_t * buckets, chd_ph_
 // 			}
 			buckets[g].size++;
 			if(buckets[g].size > *max_bucket_size)
-			{
 				  *max_bucket_size = buckets[g].size;
-			}
 		}
 		buckets[0].items_list = 0;
 		for(i = 1; i < chd_ph->nbuckets; i++)
@@ -342,7 +340,6 @@ chd_ph_sorted_list_t * chd_ph_ordering(chd_ph_bucket_t ** _buckets, chd_ph_item_
 	free(input_buckets);
 	(*_buckets) = output_buckets;
 
-
 	// Store the items according to the new order of buckets.
 	output_items = (chd_ph_item_t*)calloc(nitems, sizeof(chd_ph_item_t));
 	position = 0;
@@ -411,9 +408,7 @@ static inline cmph_uint8 place_bucket_probe(chd_ph_config_data_t *chd_ph, chd_ph
 			while(1)
 			{
 				if(i == 0)
-				{
 					break;
-				}
 				position = (cmph_uint32)((item->f + ((cmph_uint64 )item->h) * probe0_num + probe1_num) % chd_ph->n);
 				(chd_ph->occup_table[position])--;
 				item++;
@@ -424,9 +419,7 @@ static inline cmph_uint8 place_bucket_probe(chd_ph_config_data_t *chd_ph, chd_ph
 			while(1)
 			{
 				if(i == 0)
-				{
 					break;
-				}
 				position = (cmph_uint32)((item->f + ((cmph_uint64 )item->h) * probe0_num + probe1_num) % chd_ph->n);
 				UNSETBIT32(((cmph_uint32*)chd_ph->occup_table), position);
 
@@ -440,8 +433,9 @@ static inline cmph_uint8 place_bucket_probe(chd_ph_config_data_t *chd_ph, chd_ph
 	return 1;
 };
 
-static inline cmph_uint8 place_bucket(chd_ph_config_data_t *chd_ph, chd_ph_bucket_t *buckets, chd_ph_item_t * items, cmph_uint32 max_probes,
-                                      cmph_uint32 * disp_table, cmph_uint32 bucket_num, cmph_uint32 size)
+static inline cmph_uint8 place_bucket(chd_ph_config_data_t *chd_ph, chd_ph_bucket_t *buckets,
+				      chd_ph_item_t *items, cmph_uint32 max_probes,
+                                      cmph_uint32 *disp_table, cmph_uint32 bucket_num, cmph_uint32 size)
 
 {
 	cmph_uint32 probe0_num, probe1_num, probe_num;
@@ -471,9 +465,10 @@ static inline cmph_uint8 place_bucket(chd_ph_config_data_t *chd_ph, chd_ph_bucke
 	return 0;
 };
 
-static inline cmph_uint8 place_buckets1(chd_ph_config_data_t *chd_ph, chd_ph_bucket_t * buckets, chd_ph_item_t *items,
-					cmph_uint32 max_bucket_size, chd_ph_sorted_list_t *sorted_lists, cmph_uint32 max_probes,
-					cmph_uint32 * disp_table)
+static inline cmph_uint8 place_buckets1(chd_ph_config_data_t *chd_ph, chd_ph_bucket_t * buckets,
+					chd_ph_item_t *items, cmph_uint32 max_bucket_size,
+					chd_ph_sorted_list_t *sorted_lists, cmph_uint32 max_probes,
+					cmph_uint32 *disp_table)
 {
 	cmph_uint32 i = 0;
 	cmph_uint32 curr_bucket = 0;
@@ -484,17 +479,16 @@ static inline cmph_uint8 place_buckets1(chd_ph_config_data_t *chd_ph, chd_ph_buc
 		while(curr_bucket < sorted_lists[i].size + sorted_lists[i].buckets_list)
 		{
 			if(!place_bucket(chd_ph, buckets, items, max_probes, disp_table, curr_bucket, i))
-			{
 				return 0;
-			}
 			curr_bucket++;
 		};
 	};
 	return 1;
 };
 
-static inline cmph_uint8 place_buckets2(chd_ph_config_data_t *chd_ph, chd_ph_bucket_t *buckets, chd_ph_item_t * items,
-					cmph_uint32 max_bucket_size, chd_ph_sorted_list_t *sorted_lists, cmph_uint32 max_probes,
+static inline cmph_uint8 place_buckets2(chd_ph_config_data_t *chd_ph, chd_ph_bucket_t *buckets,
+					chd_ph_item_t * items, cmph_uint32 max_bucket_size,
+					chd_ph_sorted_list_t *sorted_lists, cmph_uint32 max_probes,
 					cmph_uint32 * disp_table)
 {
 	cmph_uint32 i,j, non_placed_bucket;
@@ -505,7 +499,7 @@ static inline cmph_uint8 place_buckets2(chd_ph_config_data_t *chd_ph, chd_ph_buc
 	cmph_uint32 items_list;
 	cmph_uint32 bucket_id;
 #endif
-	DEBUGP("USING HEURISTIC TO PLACE BUCKETS\n");
+	DEBUGP("Using heuristics to place buckets\n");
 	for(i = max_bucket_size; i > 0; i--)
 	{
 		probe_num = 0;
@@ -560,22 +554,21 @@ static inline cmph_uint8 place_buckets2(chd_ph_config_data_t *chd_ph, chd_ph_buc
 };
 
 cmph_uint8 chd_ph_searching(chd_ph_config_data_t *chd_ph, chd_ph_bucket_t *buckets, chd_ph_item_t *items ,
-			    cmph_uint32 max_bucket_size, chd_ph_sorted_list_t *sorted_lists, cmph_uint32 max_probes,
-			    cmph_uint32 * disp_table)
+			    cmph_uint32 max_bucket_size, chd_ph_sorted_list_t *sorted_lists,
+			    cmph_uint32 max_probes, cmph_uint32 *disp_table)
 {
-	if(chd_ph->use_h)
-	{
-		return place_buckets2(chd_ph, buckets, items, max_bucket_size, sorted_lists, max_probes, disp_table);
-	}
+	if(chd_ph->use_h) // use heuristics
+	    return place_buckets2(chd_ph, buckets, items, max_bucket_size, sorted_lists, max_probes,
+				  disp_table);
 	else
-	{
-		return place_buckets1(chd_ph, buckets, items, max_bucket_size, sorted_lists, max_probes, disp_table);
-	}
-
+	    return place_buckets1(chd_ph, buckets, items, max_bucket_size, sorted_lists, max_probes,
+				  disp_table);
 }
 
-static inline cmph_uint8 chd_ph_check_bin_hashing(chd_ph_config_data_t *chd_ph, chd_ph_bucket_t *buckets, chd_ph_item_t *items,
-                                                  cmph_uint32 * disp_table, chd_ph_sorted_list_t * sorted_lists,cmph_uint32 max_bucket_size)
+static inline cmph_uint8 chd_ph_check_bin_hashing(
+			     chd_ph_config_data_t *chd_ph, chd_ph_bucket_t *buckets,
+			     chd_ph_item_t *items, cmph_uint32 *disp_table,
+			     chd_ph_sorted_list_t *sorted_lists, cmph_uint32 max_bucket_size)
 {
 	cmph_uint32 bucket_size, i, j;
 	cmph_uint32 position, probe0_num, probe1_num;
@@ -601,17 +594,13 @@ static inline cmph_uint8 chd_ph_check_bin_hashing(chd_ph_config_data_t *chd_ph, 
 				if(chd_ph->keys_per_bin > 1)
 				{
 					if(chd_ph->occup_table[position] >= chd_ph->keys_per_bin)
-					{
 						return 0;
-					}
-					(chd_ph->occup_table[position])++;
+					chd_ph->occup_table[position]++;
 				}
 				else
 				{
 					if(GETBIT32(((cmph_uint32*)chd_ph->occup_table), position))
-					{
 						return 0;
-					}
 					SETBIT32(((cmph_uint32*)chd_ph->occup_table), position);
 				};
 				item++;
@@ -631,14 +620,15 @@ cmph_t *chd_ph_new(cmph_config_t *mph, double c)
 	double load_factor = c;
 	cmph_uint8 searching_success = 0;
 	cmph_uint32 max_probes_default = 1 << 20; // default value for max_probes
-	cmph_uint32 max_probes; 
+	cmph_uint32 max_probes;
 	cmph_uint32 iterations = 100;
 	chd_ph_bucket_t * buckets = NULL;
 	chd_ph_item_t * items = NULL;
 	cmph_uint8 failure = 0;
 	cmph_uint32 max_bucket_size = 0;
-	chd_ph_sorted_list_t * sorted_lists = NULL;
-	cmph_uint32 * disp_table = NULL;
+	chd_ph_sorted_list_t *sorted_lists = NULL;
+	cmph_uint32 *disp_table = NULL;
+	cmph_uint32 *ordering = NULL;
 	double space_lower_bound = 0;
 #ifdef CMPH_TIMING
 	double construction_time_begin = 0.0;
@@ -685,11 +675,10 @@ cmph_t *chd_ph_new(cmph_config_t *mph, double c)
 
 	max_probes = (cmph_uint32)((log(chd_ph->m)/log(2))/20);
 
-    if (max_probes == 0) {
-        max_probes = max_probes_default;
-    } else {
-        max_probes = max_probes * max_probes_default;
-    }
+	if (max_probes == 0)
+	    max_probes = max_probes_default;
+	else
+	    max_probes = max_probes * max_probes_default;
 
 	if(chd_ph->keys_per_bin == 1)
 		chd_ph->occup_table = (cmph_uint8 *) calloc(((chd_ph->n + 31)/32), sizeof(cmph_uint32));
@@ -697,45 +686,38 @@ cmph_t *chd_ph_new(cmph_config_t *mph, double c)
 		chd_ph->occup_table = (cmph_uint8 *) calloc(chd_ph->n, sizeof(cmph_uint8));
 
 	disp_table = (cmph_uint32 *) calloc(chd_ph->nbuckets, sizeof(cmph_uint32));
-// 
+//
 // 	init_genrand(time(0));
 
 	while(1)
 	{
 		iterations --;
 		if (mph->verbosity)
-		{
-			fprintf(stderr, "Starting mapping step for mph creation of %u keys with %u bins\n", chd_ph->m, chd_ph->n);
-		}
+			fprintf(stderr, "Starting mapping step for mph creation of %u keys with %u bins\n",
+				chd_ph->m, chd_ph->n);
 
 		if(!chd_ph_mapping(mph, buckets, items, &max_bucket_size))
 		{
 			if (mph->verbosity)
-			{
 				fprintf(stderr, "Failure in mapping step\n");
-			}
 			failure = 1;
 			goto cleanup;
 		}
 
 		if (mph->verbosity)
-		{
 			fprintf(stderr, "Starting ordering step\n");
-		}
 		if(sorted_lists)
-		{
 			free(sorted_lists);
-		}
 
-        	sorted_lists = chd_ph_ordering(&buckets, &items, chd_ph->nbuckets, chd_ph->m, max_bucket_size);
-
+		sorted_lists = chd_ph_ordering(&buckets, &items, chd_ph->nbuckets, chd_ph->m,
+					       max_bucket_size);
 		if (mph->verbosity)
-		{
 			fprintf(stderr, "Starting searching step\n");
-		}
 
-		searching_success = chd_ph_searching(chd_ph, buckets, items, max_bucket_size, sorted_lists, max_probes, disp_table);
-		if(searching_success) break;
+		searching_success = chd_ph_searching(chd_ph, buckets, items, max_bucket_size,
+						     sorted_lists, max_probes, disp_table);
+		if(searching_success)
+		    break;
 
 		// reset occup_table
 		if(chd_ph->keys_per_bin > 1)
@@ -746,21 +728,21 @@ cmph_t *chd_ph_new(cmph_config_t *mph, double c)
 		{
 			// Cleanup memory
 			if (mph->verbosity)
-			{
 				fprintf(stderr, "Failure because the max trials was exceeded\n");
-			}
 			failure = 1;
 			goto cleanup;
 		};
 	}
 
 #ifdef DEBUG
-        if(!chd_ph_check_bin_hashing(chd_ph, buckets, items, disp_table,sorted_lists,max_bucket_size))
-        {
-		DEBUGP("Error for bin packing generation");
-                failure = 1;
-                goto cleanup;
-        }
+	if(!chd_ph_check_bin_hashing(chd_ph, buckets, items, disp_table,
+				     sorted_lists, max_bucket_size))
+	{
+	    if (mph->verbosity)
+		fprintf(stderr, "Error for bin packing generation\n");
+	    failure = 1;
+	    goto cleanup;
+	}
 #endif
 
 	if (mph->verbosity)
@@ -792,8 +774,43 @@ cleanup:
 		return NULL;
 	}
 
+	if (mph->do_ordering_table) {
+	    if (mph->verbosity)
+		fprintf(stderr, "Create ordering table\n");
+	    ordering = (cmph_uint32 *)malloc(chd_ph->n * sizeof(cmph_uint32));
+	    assert(ordering);
+	    memset(ordering, 0xFF, chd_ph->n * sizeof(cmph_uint32));
+	    DEBUGP("Create ordering table:\n");
+	    mph->key_source->rewind(mph->key_source->data);
+	    for (cmph_uint32 i = 0; i < mph->key_source->nkeys; i++) {
+		cmph_uint32 hl[3];
+		cmph_uint32 disp, keylen;
+		cmph_uint32 probe0_num, probe1_num;
+		cmph_uint32 f, g, h, index;
+		char *key = NULL;
+		mph->key_source->read(mph->key_source->data, &key, &keylen);
+		hash_vector(chd_ph->hl, key, keylen, hl);
+		g = hl[0] % chd_ph->nbuckets;
+		f = hl[1] % chd_ph->n;
+		h = hl[2] % (chd_ph->n - 1) + 1;
+		disp = compressed_seq_query(chd_ph->cs, g);
+		probe0_num = disp % chd_ph->n;
+		probe1_num = disp / chd_ph->n;
+		index = (cmph_uint32)((f + ((cmph_uint64 )h)*probe0_num + probe1_num) % chd_ph->n);
+		ordering[index] = i;
+#ifdef DEBUG
+		fprintf(stderr, "%u ", index);
+#endif
+		mph->key_source->dispose(key);
+	    }
+#ifdef DEBUG
+	    fprintf(stderr, "\n");
+#endif
+	}
+
 	mphf = (cmph_t *)malloc(sizeof(cmph_t));
 	mphf->algo = mph->algo;
+	mphf->o = ordering;
 	chd_phf = (chd_ph_data_t *)malloc(sizeof(chd_ph_data_t));
 
 	chd_phf->cs = chd_ph->cs;
@@ -844,9 +861,23 @@ void chd_ph_load(FILE *fd, cmph_t *mphf)
 	free(buf);
 
 	// loading n and nbuckets
-	DEBUGP("Reading n and nbuckets\n");
 	CHK_FREAD(&(chd_ph->n), sizeof(cmph_uint32), (size_t)1, fd);
 	CHK_FREAD(&(chd_ph->nbuckets), sizeof(cmph_uint32), (size_t)1, fd);
+	DEBUGP("Read n %u and nbuckets %u\n", chd_ph->n, chd_ph->nbuckets);
+	// if more room in f than current position, TODO use fstat and ftell instead
+	mphf->o = (cmph_uint32 *)malloc(sizeof(cmph_uint32) * mphf->size);
+	cmph_uint32 nread = fread(mphf->o, sizeof(cmph_uint32), (size_t)mphf->size, fd);
+	if (nread != mphf->size){
+	    free(mphf->o);
+	    mphf->o = NULL;
+	}
+#ifdef DEBUG
+	if (mphf->o) {
+	    fprintf(stderr, "O: ");
+	    for (cmph_uint32 i = 0; i < mphf->size; ++i) fprintf(stderr, "%d ", mphf->o[i]);
+	    fprintf(stderr, "\n");
+	}
+#endif
 }
 
 int chd_ph_compile(cmph_t *mphf, cmph_config_t *mph, FILE *out)
@@ -881,11 +912,19 @@ int chd_ph_compile(cmph_t *mphf, cmph_config_t *mph, FILE *out)
 	fprintf(out, "    return (uint32_t)((f + ((uint64_t)h)*probe0_num + probe1_num) %% %u);\n",
 	       chd_ph->n);
 	fprintf(out, "};\n");
+	if (mphf->o) {
+		uint32_compile(out, "ordering_table", mphf->o, chd_ph->n);
+		fprintf(out, "uint32_t %s_order(uint32_t id) {\n", mph->c_prefix);
+		fprintf(out, "    assert(id < %u);\n", chd_ph->n);
+		fprintf(out, "    return ordering_table[id];\n");
+		fprintf(out, "}\n");
+	}
 	fprintf(out, "uint32_t %s_size(void) {\n", mph->c_prefix);
 	fprintf(out, "    return %u;\n}\n", chd_ph->n);
 	fclose(out);
 	return 1;
 }
+
 int chd_ph_dump(cmph_t *mphf, FILE *fd)
 {
 	char *buf = NULL;
@@ -909,6 +948,15 @@ int chd_ph_dump(cmph_t *mphf, FILE *fd)
 	// dumping n and nbuckets
 	CHK_FWRITE(&(data->n), sizeof(cmph_uint32), (size_t)1, fd);
 	CHK_FWRITE(&(data->nbuckets), sizeof(cmph_uint32), (size_t)1, fd);
+	if (mphf->o) {
+		DEBUGP("Dumping ordering_table\n");
+		CHK_FWRITE(mphf->o, (size_t)mphf->size, sizeof(cmph_uint32), fd);
+#ifdef DEBUG
+		fprintf(stderr, "O: ");
+		for (cmph_uint32 i = 0; i < mphf->size; ++i) fprintf(stderr, "%d ", mphf->o[i]);
+		fprintf(stderr, "\n");
+#endif
+	}
 	return 1;
 }
 
@@ -919,21 +967,22 @@ void chd_ph_destroy(cmph_t *mphf)
 	free(data->cs);
 	hash_state_destroy(data->hl);
 	free(data);
+	if (mphf->o)
+	    free(mphf->o);
 	free(mphf);
-
 }
 
 cmph_uint32 chd_ph_search(cmph_t *mphf, const char *key, cmph_uint32 keylen)
 {
 	chd_ph_data_t * chd_ph = (chd_ph_data_t *)mphf->data;
 	cmph_uint32 hl[3];
-	cmph_uint32 disp,position;
-	cmph_uint32 probe0_num,probe1_num;
-	cmph_uint32 f,g,h;
+	cmph_uint32 disp, position;
+	cmph_uint32 probe0_num, probe1_num;
+	cmph_uint32 f, g, h;
 	hash_vector(chd_ph->hl, key, keylen, hl);
 	g = hl[0] % chd_ph->nbuckets;
 	f = hl[1] % chd_ph->n;
-	h = hl[2] % (chd_ph->n-1) + 1;
+	h = hl[2] % (chd_ph->n - 1) + 1;
 
 	disp = compressed_seq_query(chd_ph->cs, g);
 	probe0_num = disp % chd_ph->n;

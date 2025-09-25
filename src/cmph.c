@@ -490,7 +490,11 @@ void cmph_config_set_seed(cmph_config_t *mph, cmph_uint32 seed)
 }
 void cmph_config_set_verbosity(cmph_config_t *mph, cmph_uint32 verbosity)
 {
-	mph->verbosity = verbosity;
+	mph->verbosity = verbosity & 0xFF;
+}
+void cmph_config_set_ordering_table(cmph_config_t *mph)
+{
+	mph->do_ordering_table = 1;
 }
 
 void cmph_config_set_hashfuncs(cmph_config_t *mph, CMPH_HASH *hashfuncs)
@@ -681,6 +685,8 @@ int cmph_compile(cmph_t *mphf, cmph_config_t *config, const char *c_file,
 	fprintf(out, "/* Do not modify */\n\n");
 	fprintf(out, "/* n: %u */\n", config->key_source->nkeys);
 	fprintf(out, "/* c: %f */\n", config->c);
+	if (config->do_ordering_table)
+	    fprintf(out, "#include <assert.h>\n");
 	switch (mphf->algo)
 	{
 		case CMPH_CHM:
@@ -772,37 +778,41 @@ cmph_t *cmph_load(FILE *f)
 	return mphf;
 }
 
+cmph_uint32 *cmph_ordering_table(cmph_t *mphf)
+{
+	return mphf->o;
+}
 
 cmph_uint32 cmph_search(cmph_t *mphf, const char *key, cmph_uint32 keylen)
 {
-	DEBUGP("mphf algorithm: %s (%u)\n", cmph_names[mphf->algo], mphf->algo);
+	//DEBUGP("mphf algorithm: %s (%u)\n", cmph_names[mphf->algo], mphf->algo);
 	switch(mphf->algo)
 	{
 		case CMPH_CHM:
 			return chm_search(mphf, key, keylen);
 		case CMPH_BMZ:
-		        DEBUGP("bmz algorithm search\n");
+			//DEBUGP("bmz algorithm search\n");
 		        return bmz_search(mphf, key, keylen);
 		case CMPH_BMZ8:
-		        DEBUGP("bmz8 algorithm search\n");
+			//DEBUGP("bmz8 algorithm search\n");
 		        return bmz8_search(mphf, key, keylen);
 		case CMPH_BRZ:
-		        DEBUGP("brz algorithm search\n");
+			//DEBUGP("brz algorithm search\n");
 		        return brz_search(mphf, key, keylen);
 		case CMPH_FCH:
-		        DEBUGP("fch algorithm search\n");
+		    	//DEBUGP("fch algorithm search\n");
 		        return fch_search(mphf, key, keylen);
 		case CMPH_BDZ:
-		        DEBUGP("bdz algorithm search\n");
+		        //DEBUGP("bdz algorithm search\n");
 		        return bdz_search(mphf, key, keylen);
 		case CMPH_BDZ_PH:
-		        DEBUGP("bdz_ph algorithm search\n");
+			//DEBUGP("bdz_ph algorithm search\n");
 		        return bdz_ph_search(mphf, key, keylen);
 		case CMPH_CHD_PH:
-		        DEBUGP("chd_ph algorithm search\n");
+			//DEBUGP("chd_ph algorithm search\n");
 		        return chd_ph_search(mphf, key, keylen);
 		case CMPH_CHD:
-		        DEBUGP("chd algorithm search\n");
+			//DEBUGP("chd algorithm search\n");
 		        return chd_search(mphf, key, keylen);
 		default:
 			assert(0);

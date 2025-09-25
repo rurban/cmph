@@ -149,6 +149,7 @@ cmph_t *chm_new(cmph_config_t *mph, double c)
 
 	mphf = (cmph_t *)malloc(sizeof(cmph_t));
 	mphf->algo = mph->algo;
+	mphf->o = NULL;
 	chmf = (chm_data_t *)malloc(sizeof(chm_data_t));
 	chmf->g = chm->g;
 	chm->g = NULL; //transfer memory ownership
@@ -214,7 +215,8 @@ static int chm_gen_edges(cmph_config_t *mph)
 		if (h1 == h2) if (++h2 >= chm->n) h2 = 0;
 		if (h1 == h2)
 		{
-			if (mph->verbosity) fprintf(stderr, "Self loop for key %u\n", e);
+			if (mph->verbosity)
+				fprintf(stderr, "Self loop for key %u\n", e);
 			mph->key_source->dispose(key);
 			return 0;
 		}
@@ -223,7 +225,8 @@ static int chm_gen_edges(cmph_config_t *mph)
 		graph_add_edge(chm->graph, h1, h2);
 	}
 	cycles = graph_is_cyclic(chm->graph);
-	if (mph->verbosity && cycles) fprintf(stderr, "Cyclic graph generated\n");
+	if (mph->verbosity && cycles)
+		fprintf(stderr, "Cyclic graph generated\n");
 	DEBUGP("Looking for cycles: %u\n", cycles);
 
 	return ! cycles;
@@ -264,6 +267,9 @@ int chm_compile(cmph_t *mphf, cmph_config_t *mph, FILE *out)
 	//DEBUGP("key: %s g[h1]: %u g[h2]: %u edges: %u\n", key, chm->g[h1], chm->g[h2], chm->m);
 	fprintf(out, "    return (%s[h1] + %s[h2]) %% %u;\n", g_name, g_name, data->m);
 	fprintf(out, "};\n");
+	fprintf(out, "uint32_t %s_order(uint32_t i) {\n", mph->c_prefix);
+	fprintf(out, "    // illegal to use with CHM\n");
+	fprintf(out, "    return i;\n}\n");
 	fprintf(out, "uint32_t %s_size(void) {\n", mph->c_prefix);
 	fprintf(out, "    return %u;\n}\n", data->m);
 	fclose(out);
