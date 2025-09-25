@@ -81,6 +81,18 @@ for a in $algos; do
             echo "** mphf_tests -a $a -f $f $words"
             # shellcheck disable=SC2086
             ./mphf_tests -a "$a" -f $f "$words"
+
+            if [ "$a" = "brz" ]; then
+                echo "Skip ordering table for $a"
+                continue
+            else
+                echo "Test ordering table for $a"
+                echo "** cmph -gr -a $a -f $f $words"
+                ../src/cmph -gr -a $a -f $f "$words"
+                echo "** mphf_tests -a $a -f $f $words"
+                ./mphf_tests -a $a -f $f "$words"
+            fi
+
         fi
 
         if [ "$a" = "brz" ]; then

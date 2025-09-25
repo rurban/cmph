@@ -75,6 +75,7 @@ cmph_t *__cmph_load(FILE *f)
 	mphf->algo = algo;
 	CHK_FREAD(&(mphf->size), sizeof(mphf->size), (size_t)1, f);
 	mphf->data = NULL;
+	mphf->o = NULL;
 	DEBUGP("Algorithm is %s and mphf is sized %u\n", cmph_names[algo],  mphf->size);
 
 	return mphf;

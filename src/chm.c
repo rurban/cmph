@@ -149,6 +149,7 @@ cmph_t *chm_new(cmph_config_t *mph, double c)
 
 	mphf = (cmph_t *)malloc(sizeof(cmph_t));
 	mphf->algo = mph->algo;
+	mphf->o = NULL;
 	chmf = (chm_data_t *)malloc(sizeof(chm_data_t));
 	chmf->g = chm->g;
 	chm->g = NULL; //transfer memory ownership
@@ -264,6 +265,7 @@ int chm_compile(cmph_t *mphf, cmph_config_t *mph, FILE *out)
 	//DEBUGP("key: %s g[h1]: %u g[h2]: %u edges: %u\n", key, chm->g[h1], chm->g[h2], chm->m);
 	fprintf(out, "    return (%s[h1] + %s[h2]) %% %u;\n", g_name, g_name, data->m);
 	fprintf(out, "};\n");
+	// ordering_table not needed
 	fprintf(out, "uint32_t %s_size(void) {\n", mph->c_prefix);
 	fprintf(out, "    return %u;\n}\n", data->m);
 	fclose(out);

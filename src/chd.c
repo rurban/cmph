@@ -255,6 +255,15 @@ int chd_compile(cmph_t *mphf, cmph_config_t *mph, FILE *out) {
 #endif    
     fprintf(out, "    return bin_idx - rank;\n");
     fprintf(out, "};\n");
+    if (mphf->o) {
+        char name[32];
+        snprintf(name, sizeof(name)-1, "%s_ordering_table", mph->c_prefix);
+        uint32_compile(out, name, mphf->o, chd_ph->m);
+        fprintf(out, "uint32_t %s_order(uint32_t id) {\n", mph->c_prefix);
+        fprintf(out, "    assert(id < %u);\n", chd_ph->m);
+        fprintf(out, "    return %s[id];\n", name);
+        fprintf(out, "}\n");
+    }
     fprintf(out, "uint32_t %s_size(void) {\n", mph->c_prefix);
     fprintf(out, "    return %u;\n}\n", chd_ph->m);
     fclose(out);

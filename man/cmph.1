@@ -1,9 +1,13 @@
-.TH CMPH "1" "August 2022" "cmph 2.0.3" "User Commands"
+.TH CMPH "1" "August 2025" "cmph 2.1.0" "User Commands"
 .SH NAME
 cmph \- minimum perfect hashing tool
 .SH SYNOPSIS
 .B cmph
-[\-v] [\-h] [\-V] [\-C] [\-k nkeys] [\-f hash_function] [\-g [\-c value][\-s seed] ] [\-a algorithm] [\-M memory_in_MB] [\-b BRZ_parameter] [\-d tmp_dir] [\-m file.mph] [-o c_file] [-p c_func_prefix] keysfile
+[\-vhVgrR] [\-k nkeys] [\-f hash_function] [\-g [\-c value][\-s seed] ] [\-a algorithm]
+.br
+[\-M memory_in_MB] [\-b BRZ_parameter] [\-d tmp_dir] [\-m file.mph] [\-o c_file]
+.br
+[\-p c_func_prefix] keysfile
 .SH DESCRIPTION
 .PP
 Command line tool to generate and query minimal perfect hash functions.
@@ -14,13 +18,23 @@ Please refer to http://cmph.sf.net for full documentation.
 Print an help message
 .TP
 \fB\-c\fR
-This value determines: the number of vertices in the graph for the algorithms BMZ and CHM; the number of bits per key required in the FCH algorithm
+This value determines: the number of vertices in the graph for the algorithms
+.br
+BMZ and CHM.
+.br
+The number of bits per key required in the FCH algorithm.
+.br
+The load factor in the CHD_PH algorithm.
 .TP
 \fB\-a\fR
-Algorithm. Valid values are: chm (default), bmz, bmz8, brz, fch, bdz, bdz_ph, chd, chd_ph
+Algorithm. Valid values are:
+.br
+chm (default), bmz, bmz8, brz, fch, bdz, bdz_ph, chd, chd_ph
 .TP
 \fB\-f\fR
-hash function (may be used multiple times). Valid values are: jenkins (default), wyhash, djb2, fnv, sdbm, (crc32 in work)
+hash function (may be used multiple times).
+.br
+Valid values are: jenkins (default), wyhash, djb2, fnv, sdbm, crc32
 .TP
 \fB\-V\fR
 Print version number and exit
@@ -37,11 +51,17 @@ Generate a .mph file
 \fB\-C\fR
 Generate a C file
 .TP
+\fB\-r\fR
+create an ordering table for the key indices
+.TP
+\fB\-R\fR
+create an ordered keyfile
+.TP
 \fB\-s\fR
 Random seed
 .TP
 \fB\-m\fR
-Minimum perfect hash function file
+Minimum perfect hash function .mph file
 .TP
 \fB\-o\fR
 Name of C file. default: stdout (Only for -C)
@@ -53,10 +73,21 @@ Name of C functions prefix. default: cmph_c_ (Only for -C)
 Main memory availability (in MB)
 .TP
 \fB\-d\fR
-Temporary directory used in brz algorithm
+Temporary directory used in BRZ algorithm
 .TP
 \fB\-b\fR
-Parameter of BRZ algorithm to make the maximal number of keys in a bucket lower than 256
+Parameter of BRZ algorithm to make the maximal number of keys in a bucket
+lower than 256.
+.br
+For BDZ it is used to determine the size of some precomputed rank
+information and its value should be an integer in the range [3,10].
+Default is 7. The larger is this value, the more compact are the
+resulting functions and the slower are them at evaluation time.
+.br
+For CHD and CHD_PH it is used to set the average number of keys per bucket
+and its value should be an integer in the range [1,32]. Default is 4. The
+larger is this value, the slower is the construction of the functions.
+This parameter has no effect for other algorithms.
 .TP
 \fBkeysfile\fR
 Line separated file with keys
@@ -69,7 +100,33 @@ $ ./cmph \-v \-g keys_file
 .br
 $ # Query id of keys in the file keys_query
 .br
-$ ./cmph \-v \-m keys_file.mph keys_query
+$ cmph \-v \-m keys_file.mph keys_query
+.PP
+# Compile to a C file. CHM is ordered already
+.br
+$ cmph \-C -a chm -f jenkins keys_file > keys_file.c
+.br
+$ cc -O2 -Wall -Wextra keys_file.c -o keys_file.o
+.PP
+# For BMZ we need to add a ordering table
+.br
+$ cmph \-Cr -a bmz -f wyhash keys_file > keys_file.c
+.br
+# a wyhash.h is in src
+.br
+$ cc -O2 -Wall -Wextra -Isrc keys_file.c tests/cmph_compile-run.c -o keys_file_bmz
+.br
+$ ./keys_file_bmz bmz keys_file nkeys
+.PP
+# Reorder the keyfile
+.br
+$ cmph \-CO -a bmz keys_file > keys_file.c
+.br
+# Created keys_file_bmz.ord
+.br
+$ cc -O2 -Wall -Wextra -Isrc keys_file.c tests/cmph_compile-run.c -o keys_file_bmz
+.br
+$ ./keys_file_bmz bmz keys_file_bmz.ord nkeys
 .SH AUTHOR
 This manual page was written by Enrico Tassi <gareuselesinge@users.sourceforge.net>,
 for the Debian project (but may be used by others).

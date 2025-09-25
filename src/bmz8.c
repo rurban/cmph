@@ -5,6 +5,8 @@
 #include "hash.h"
 #include "vqueue.h"
 #include "bitbool.h"
+#include "compile.h"
+
 #include <math.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -62,17 +64,19 @@ cmph_t *bmz8_new(cmph_config_t *mph, double c)
 	cmph_uint8 *used_edges = NULL;
 	cmph_uint8 restart_mapping = 0;
 	cmph_uint8 * visited = NULL;
-	bmz8_config_data_t *bmz8 = (bmz8_config_data_t *)mph->data;
+	cmph_uint32 *o = NULL;
 
+	bmz8_config_data_t *bmz8 = (bmz8_config_data_t *)mph->data;
 	if (mph->key_source->nkeys >= 256)
 	{
 		if (mph->verbosity) fprintf(stderr, "The number of keys in BMZ8 must be lower than 256.\n");
 		return NULL;
 	}
-	if (c == 0) c = 1.15; // validating restrictions over parameter c.
+	if (c == 0)
+	    c = 1.15; // validating restrictions over parameter c.
 	DEBUGP("c: %f\n", c);
 	bmz8->m = (cmph_uint8) mph->key_source->nkeys;
-	bmz8->n = (cmph_uint8) ceil(c * mph->key_source->nkeys);
+	bmz8->n = (cmph_uint8) ceil(c * bmz8->m);
 
 	if (bmz8->n < 5) // workaround for small key sets
 		bmz8->n = 5;
@@ -82,6 +86,10 @@ cmph_t *bmz8_new(cmph_config_t *mph, double c)
 	DEBUGP("Created graph\n");
 
 	bmz8->hashes = (hash_state_t **)calloc(2, sizeof(hash_state_t *));
+	if (mph->do_ordering_table) {
+	    o = (cmph_uint32 *)calloc((size_t)bmz8->m, sizeof(cmph_uint32));
+	    assert(o);
+	}
 	do
 	{
 	  // Mapping step
@@ -89,9 +97,7 @@ cmph_t *bmz8_new(cmph_config_t *mph, double c)
 	  cmph_uint8 biggest_edge_value = 1;
 	  iterations = 100;
 	  if (mph->verbosity)
-	  {
 		fprintf(stderr, "Entering mapping step for mph creation of %u keys with graph sized %u\n", bmz8->m, bmz8->n);
-	  }
 	  while(1)
 	  {
 		int ok;
@@ -109,6 +115,8 @@ cmph_t *bmz8_new(cmph_config_t *mph, double c)
 		if (!ok)
 		{
 			--iterations;
+			if (o)
+			    memset(o, 0, (size_t)bmz8->m * sizeof(cmph_uint32));
 			hash_state_destroy(bmz8->hashes[0]);
 			bmz8->hashes[0] = NULL;
 			hash_state_destroy(bmz8->hashes[1]);
@@ -136,14 +144,13 @@ cmph_t *bmz8_new(cmph_config_t *mph, double c)
 		    bmz8->hashes[1] = NULL;
 		}
 		free(bmz8->hashes);
+		free(o);
 		return NULL;
 	  }
 
 	  // Ordering step
 	  if (mph->verbosity)
-	  {
 		fprintf(stderr, "Starting ordering step\n");
-	  }
 
 	  graph_obtain_critical_nodes(bmz8->graph);
 
@@ -165,41 +172,55 @@ cmph_t *bmz8_new(cmph_config_t *mph, double c)
 	  {
                 if (graph_node_is_critical(bmz8->graph, i) && (!GETBIT(visited,i)))
 		{
-		  if(c > 1.14)
+		  if (c > 1.14)
 		      restart_mapping = bmz8_traverse_critical_nodes(bmz8, i, &biggest_g_value, &biggest_edge_value, used_edges, visited);
 		  else
 		      restart_mapping = bmz8_traverse_critical_nodes_heuristic(bmz8, i, &biggest_g_value, &biggest_edge_value, used_edges, visited);
-		  if(restart_mapping)
+		  if (restart_mapping)
 		      break;
 		}
 	  }
-	  if(!restart_mapping)
+	  if (!restart_mapping)
 	  {
 	        if (mph->verbosity)
-	        {
-		  fprintf(stderr, "\tTraversing non critical vertices.\n");
-		}
+		    fprintf(stderr, "\tTraversing non critical vertices.\n");
 		bmz8_traverse_non_critical_nodes(bmz8, used_edges, visited); // non_critical_nodes
 	  }
 	  else
 	  {
  	        iterations_map--;
-		if (mph->verbosity) fprintf(stderr, "Restarting mapping step. %u iterations remaining.\n", iterations_map);
+		if (mph->verbosity)
+		    fprintf(stderr, "Restarting mapping step. %u iterations remaining.\n", iterations_map);
 	  }
 
 	  free(used_edges);
 	  free(visited);
 
 	} while(restart_mapping && iterations_map > 0);
+
+	if (o) {
+	    DEBUGP("Ordering table (WIP)\n");
+	    for (i = 0; i < bmz8->m; ++i) // all edges
+	    {
+		cmph_uint32 h1 = graph_vertex_id(bmz8->graph, i, 0);
+		cmph_uint32 h2 = graph_vertex_id(bmz8->graph, i, 1);
+		if (h1 == h2 && ++h2 > bmz8->n) h2 = 0;
+		//FIXME
+		//assert(bmz8->g[h1] + bmz8->g[h2] < bmz8->m);
+		//o[bmz8->g[h1] + bmz8->g[h2]] = i;
+	    }
+	}
 	graph_destroy(bmz8->graph);
 	bmz8->graph = NULL;
 	if (iterations_map == 0)
 	{
+		free(o);
 		free(bmz8->hashes);
 		return NULL;
 	}
 	mphf = (cmph_t *)malloc(sizeof(cmph_t));
 	mphf->algo = mph->algo;
+	mphf->o = o;
 	bmz8f = (bmz8_data_t *)malloc(sizeof(bmz8_data_t));
 	bmz8f->g = bmz8->g;
 	bmz8->g = NULL; //transfer memory ownership
@@ -429,9 +450,12 @@ static void bmz8_traverse_non_critical_nodes(bmz8_config_data_t *bmz8, cmph_uint
 	{
 	        v1 = (cmph_uint8)graph_vertex_id(bmz8->graph, i, 0);
 		v2 = (cmph_uint8)graph_vertex_id(bmz8->graph, i, 1);
-		if((GETBIT(visited,v1) && GETBIT(visited,v2)) || (!GETBIT(visited,v1) && !GETBIT(visited,v2))) continue;
-		if(GETBIT(visited,v1)) bmz8_traverse(bmz8, used_edges, v1, &unused_edge_index, visited);
-	        else bmz8_traverse(bmz8, used_edges, v2, &unused_edge_index, visited);
+		if((GETBIT(visited,v1) && GETBIT(visited,v2)) || (!GETBIT(visited,v1) && !GETBIT(visited,v2)))
+		    continue;
+		if(GETBIT(visited,v1))
+		    bmz8_traverse(bmz8, used_edges, v1, &unused_edge_index, visited);
+	        else
+		    bmz8_traverse(bmz8, used_edges, v2, &unused_edge_index, visited);
 
 	}
 
@@ -468,7 +492,8 @@ static int bmz8_gen_edges(cmph_config_t *mph)
 		if (h1 == h2) if (++h2 >= bmz8->n) h2 = 0;
 		if (h1 == h2)
 		{
-			if (mph->verbosity) fprintf(stderr, "Self loop for key %u\n", e);
+			if (mph->verbosity)
+			    fprintf(stderr, "Self loop for key %u\n", e);
 			mph->key_source->dispose(key);
 			return 0;
 		}
@@ -476,7 +501,8 @@ static int bmz8_gen_edges(cmph_config_t *mph)
 		mph->key_source->dispose(key);
 //		fprintf(stderr, "key = %s -- dispose BMZ\n", key);
 		multiple_edges = graph_contains_edge(bmz8->graph, h1, h2);
-		if (mph->verbosity && multiple_edges) fprintf(stderr, "A non simple graph was generated\n");
+		if (mph->verbosity && multiple_edges)
+		    fprintf(stderr, "A non simple graph was generated\n");
 		if (multiple_edges) return 0; // checking multiple edge restriction.
 		graph_add_edge(bmz8->graph, h1, h2);
 	}
@@ -487,9 +513,36 @@ int bmz8_compile(cmph_t *mphf, cmph_config_t *mph, FILE *out)
 {
 	bmz8_data_t *data = (bmz8_data_t *)mphf->data;
 	DEBUGP("Compiling bmz8\n");
-	fprintf(out, "// NYI\n");
-	fprintf(out, "uint32_t %s_size(void) {\n", mph->c_prefix);
-	fprintf(out, "    return %u;\n}\n", data->m);
+	hash_state_compile(2, data->hashes, false, out);
+	printf("\nuint32_t %s_search(const char* key, uint32_t keylen) {\n", mph->c_prefix);
+	printf("    /* n: %u */\n", data->n);
+	printf("    const uint32_t g[%u] = {\n        ", data->n);
+	for (int i=0; i < data->n - 1; i++) {
+		printf("%u, ", data->g[i]);
+		if (i % 16 == 15)
+			printf("\n        ");
+	}
+	printf("%u\n    };\n", data->g[data->n - 1]);
+	printf("    uint32_t h1, h2;\n");
+	printf("   h1 = %s_0(%u, (const unsigned char*)key, keylen) %% %u;\n",
+	       cmph_hash_names[mph->hashfuncs[0]], data->hashes[0]->seed, data->n);
+	printf("   h2 = %s_1(%u, (const unsigned char*)key, keylen) %% %u;\n",
+	       cmph_hash_names[mph->hashfuncs[1]], data->hashes[1]->seed,
+	       data->n);
+	printf("    if (h1 == h2 && ++h2 >= %u) h2 = 0;\n", data->n);
+	printf("    return (g[h1] + g[h2]) %% %u;\n", data->m);
+	printf("};\n");
+	if (mphf->o) {
+	    char name[32];
+	    snprintf(name, sizeof(name)-1, "%s_ordering_table", mph->c_prefix);
+	    uint32_compile(out, name, mphf->o, data->m);
+	    fprintf(out, "uint32_t %s_order(uint32_t id) {\n", mph->c_prefix);
+	    fprintf(out, "    assert(id < %u);\n", data->m);
+	    fprintf(out, "    return %s[id];\n", name);
+	    fprintf(out, "}\n");
+	}
+	printf("uint32_t %s_size(void) {\n", mph->c_prefix);
+	printf("    return %u;\n}\n", data->m);
 	return 0;
 }
 int bmz8_dump(cmph_t *mphf, FILE *fd)
@@ -524,6 +577,10 @@ int bmz8_dump(cmph_t *mphf, FILE *fd)
 	for (int i = 0; i < data->n; ++i) fprintf(stderr, "%u ", data->g[i]);
 	fprintf(stderr, "\n");
 #endif
+	if (mphf->o) {
+	    DEBUGP("Dumping ordering table with %u entries\n", data->m);
+	    CHK_FWRITE(mphf->o, sizeof(cmph_uint32) * (data->m), (size_t)1, fd);
+	}
 	return 1;
 }
 
@@ -555,9 +612,9 @@ void bmz8_load(FILE *f, cmph_t *mphf)
 		free(buf);
 	}
 
-	DEBUGP("Reading m and n\n");
 	CHK_FREAD(&(bmz8->n), sizeof(cmph_uint8), (size_t)1, f);
-	CHK_FREAD(&(bmz8->m), sizeof(cmph_uint8), (size_t)1, f);
+	CHK_FREAD(&(bmz8->m), sizeof(cmph_uint8), (size_t)1, f)
+	DEBUGP("Read n %u and m %u\n", bmz8->n, bmz8->m);
 
 	bmz8->g = (cmph_uint8 *)malloc(sizeof(cmph_uint8)*bmz8->n);
 	CHK_FREAD(bmz8->g, bmz8->n*sizeof(cmph_uint8), (size_t)1, f);
@@ -565,6 +622,21 @@ void bmz8_load(FILE *f, cmph_t *mphf)
 	fprintf(stderr, "G: ");
 	for (i = 0; i < bmz8->n; ++i) fprintf(stderr, "%u ", bmz8->g[i]);
 	fprintf(stderr, "\n");
+#endif
+	mphf->o = (cmph_uint32 *)malloc(sizeof(cmph_uint32) * bmz8->m);
+	cmph_uint32 nread =
+	    fread(mphf->o, sizeof(cmph_uint32), (size_t)bmz8->m, f);
+	if (nread != bmz8->m) {
+	    free(mphf->o);
+	    mphf->o = NULL;
+	}
+#ifdef DEBUG
+	if (mphf->o) {
+	    fprintf(stderr, "O: ");
+	    for (cmph_uint32 i = 0; i < bmz8->m; ++i)
+		fprintf(stderr, "%u ", mphf->o[i]);
+	    fprintf(stderr, "\n");
+	}
 #endif
 	return;
 }
@@ -588,6 +660,7 @@ void bmz8_destroy(cmph_t *mphf)
 	hash_state_destroy(data->hashes[1]);
 	free(data->hashes);
 	free(data);
+	free(mphf->o);
 	free(mphf);
 }
 

@@ -1,7 +1,7 @@
 cmph
 
 ```
-usage: cmph [-v][-h][-V][-C] [-k nkeys] [-f hash_function] [-g [-c algorithm_dependent_value][-s seed] ]
+usage: cmph [-vhVCrR] [-k nkeys] [-f hash_function] [-g [-c algorithm_dependent_value][-s seed] ]
             [-a algorithm] [-M memory_in_MB] [-b algorithm_dependent_value] [-t keys_per_bin] [-d tmp_dir]
             [-m file.mph] [-o c_file] [-p c_func_prefix] keysfile
 Minimum perfect hashing tool
@@ -14,7 +14,7 @@ Minimum perfect hashing tool
   -a	 algorithm - valid values are
     	  * bmz
     	  * bmz8
-    	  * chm
+    	  * chm (default)
     	  * brz
     	  * fch
     	  * bdz
@@ -35,6 +35,8 @@ Minimum perfect hashing tool
   -C	 generate a C file
   -o	 name of C file (default: stdout)
   -p	 name of C functions prefix (default: cmph_c_)
+  -r     create an ordering table for the key indices
+  -R     create an ordered keyfile
   -s	 random seed
   -m	 minimum perfect hash function .mph file
   -M	 main memory availability (in MB) used in BRZ algorithm

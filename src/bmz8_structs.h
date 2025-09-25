@@ -9,6 +9,7 @@ struct __bmz8_data_t
 	cmph_uint8 n; //vertex count
 	cmph_uint8 *g;
 	hash_state_t **hashes;
+	// nhashes always 2
 };
 
 

@@ -140,6 +140,7 @@ cmph_t *brz_new(cmph_config_t *mph, double c)
 	brz_data_t *brzf = NULL;
 	cmph_uint32 i;
 	cmph_uint32 iterations = 20;
+	cmph_uint32 *o = NULL;
 
 	DEBUGP("c: %f\n", c);
 	brz_config_data_t *brz = (brz_config_data_t *)mph->data;
@@ -355,7 +356,7 @@ static int brz_gen_mphf(cmph_config_t *mph)
 			h0 = hash(brz->h0, (char *)(buffer + memory_usage + sizeof(keylen1)), keylen1) % brz->k;
 			keys_index[buckets_size[h0]] = memory_usage;
 			buckets_size[h0]++;
-			memory_usage +=  keylen1 + (cmph_uint32)sizeof(keylen1);
+			memory_usage += keylen1 + (cmph_uint32)sizeof(keylen1);
 		}
 		filename = (char *)calloc(strlen((char *)(brz->tmp_dir)) + 11, sizeof(char));
 		sprintf(filename, "%s%u.cmph", brz->tmp_dir, nflushes);
@@ -398,7 +399,7 @@ static int brz_gen_mphf(cmph_config_t *mph)
 	for(i = 0; i < nflushes; i++)
 	{
 		filename = (char *)calloc(strlen((char *)(brz->tmp_dir)) + 11, sizeof(char));
-		sprintf(filename, "%s%u.cmph",brz->tmp_dir, i);
+		sprintf(filename, "%s%u.cmph", brz->tmp_dir, i);
 		buffer_manager_open(buff_manager, i, filename);
 		free(filename);
 		filename = NULL;
@@ -523,7 +524,8 @@ static cmph_uint32 brz_min_index(cmph_uint32 * vector, cmph_uint32 n)
 	cmph_uint32 i, min_index = 0;
 	for(i = 1; i < n; i++)
 	{
-		if(vector[i] < vector[min_index]) min_index = i;
+		if(vector[i] < vector[min_index])
+			min_index = i;
 	}
 	return min_index;
 }
@@ -593,6 +595,15 @@ int brz_compile(cmph_t *mphf, cmph_config_t *mph, FILE *out)
 	hashes[2] = data->h0;
 	hash_state_compile(3, hashes, do_vector, out);
 	fprintf(out, "// NYI\n");
+	if (mphf->o) {
+	    char name[32];
+	    snprintf(name, sizeof(name)-1, "%s_ordering_table", mph->c_prefix);
+	    uint32_compile(out, name, mphf->o, data->m);
+	    fprintf(out, "uint32_t %s_order(uint32_t id) {\n", mph->c_prefix);
+	    fprintf(out, "    assert(id < %u);\n", data->m);
+	    fprintf(out, "    return %s[id];\n", name);
+	    fprintf(out, "}\n");
+	}
 	fprintf(out, "uint32_t %s_size(void) {\n", mph->c_prefix);
 	fprintf(out, "    return %u;\n}\n", data->m);
 	return 0;
@@ -616,6 +627,10 @@ int brz_dump(cmph_t *mphf, FILE *fd)
 	// Dumping m and the vector offset.
 	CHK_FWRITE(&(data->m), sizeof(cmph_uint32), (size_t)1, fd);
 	CHK_FWRITE(data->offset, sizeof(cmph_uint32)*(data->k), (size_t)1, fd);
+	if (mphf->o) {
+	    DEBUGP("Dumping ordering table with %u entries\n", data->m);
+	    CHK_FWRITE(mphf->o, sizeof(cmph_uint32) * (data->m), (size_t)1, fd);
+	}
 	return 1;
 }
 
@@ -685,6 +700,22 @@ void brz_load(FILE *f, cmph_t *mphf)
 	CHK_FREAD(&(brz->m), sizeof(cmph_uint32), (size_t)1, f);
 	brz->offset = (cmph_uint32 *)malloc(sizeof(cmph_uint32)*brz->k);
 	CHK_FREAD(brz->offset, sizeof(cmph_uint32)*(brz->k), (size_t)1, f);
+	//loading the optional ordering table.
+	mphf->o = (cmph_uint32 *)malloc(sizeof(cmph_uint32) * brz->m);
+	cmph_uint32 nread =
+	    fread(mphf->o, sizeof(cmph_uint32), (size_t)brz->m, f);
+	if (nread != brz->m) {
+	    free(mphf->o);
+	    mphf->o = NULL;
+	}
+#ifdef DEBUG
+	if (mphf->o) {
+	    fprintf(stderr, "O: ");
+	    for (cmph_uint32 i = 0; i < brz->m; ++i)
+		fprintf(stderr, "%u ", mphf->o[i]);
+	    fprintf(stderr, "\n");
+	}
+#endif
 	return;
 }
 
