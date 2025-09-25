@@ -307,7 +307,8 @@ int main(int argc, char **argv)
 	        srand((unsigned)ts.tv_sec ^ ts.tv_nsec ^ (unsigned int)(uintptr_t)&ts);
 #endif
 	}
-	DEBUGP("Using seed %u\n", seed);
+	if (verbosity)
+		printf("Using seed %u\n", seed);
 	if (nkeys == UINT_MAX) source = cmph_io_nlfile_adapter(keys_fd);
 	else source = cmph_io_nlnkfile_adapter(keys_fd, nkeys);
 	if (generate || compile)

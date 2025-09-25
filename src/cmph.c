@@ -661,15 +661,15 @@ int cmph_dump(cmph_t *mphf, FILE *f)
 int cmph_compile(cmph_t *mphf, cmph_config_t *config, const char *c_file,
 		 const char *keys_file)
 {
-	bool do_vector = false;
 	FILE *out = c_file ? fopen(c_file, "w") : stdout;
 	DEBUGP("Compiling mphf with algorithm %s\n", cmph_names[mphf->algo]);
 	fprintf(out, "/* ex: set ro ft=c: -*- mode: c; buffer-read-only: t -*- */\n");
 	fprintf(out, "/* Created via cmph -C ");
+	if (config->verbosity)
+	    fprintf(out, "-v ");
 	if (mphf->algo != CMPH_CHM)
 	    fprintf(out, "-a %s ", cmph_names[mphf->algo]);
-	if (config->seed != UINT_MAX)
-	    fprintf(out, "-s %u ", config->seed);
+	fprintf(out, "-s %u ", config->seed);
 	for (unsigned i=0; i<config->nhashfuncs; ++i)
 	{
 	    if (config->hashfuncs[i] == CMPH_HASH_COUNT)
@@ -677,15 +677,6 @@ int cmph_compile(cmph_t *mphf, cmph_config_t *config, const char *c_file,
 	    if (i>0 || config->hashfuncs[i] != CMPH_HASH_JENKINS)
 		fprintf(out, "-f %s ", cmph_hash_names[config->hashfuncs[i]]);
 	}
-	// see if we need a hash_vector API or seperate hash() calls are
-	// enough. a vector is only good with all 2-3 the same
-	if (config->nhashfuncs == 2
-	    && config->hashfuncs[0] == config->hashfuncs[1])
-		do_vector = true;
-	if (config->nhashfuncs == 3
-	    && config->hashfuncs[0] == config->hashfuncs[1]
-	    && config->hashfuncs[0] == config->hashfuncs[2])
-		do_vector = true;
 	fprintf(out, "\"%s\" */\n", keys_file);
 	fprintf(out, "/* Do not modify */\n\n");
 	fprintf(out, "/* n: %u */\n", config->key_source->nkeys);
