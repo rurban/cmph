@@ -358,7 +358,7 @@ void compressed_rank_query_compile(FILE *out, const compressed_rank_t *cr)
     uint32_compile(out, "bitmask32", bitmask32, 32);
     fprintf(out,
 	    "#define GETBIT32(array, i) (array[i >> 5] & bitmask32[i & 0x0000001f])\n"
-	    "static uint32_t compressed_rank_query(const compressed_rank_t *cr, const uint32_t idx) {\n"
+	    "static uint32_t compressed_rank_query(const uint32_t idx) {\n"
 	    "    // compressed sequence query computation\n"
 	    "    uint32_t sel_res, rank;\n"
 	    "\n"
@@ -385,7 +385,7 @@ void compressed_rank_query_compile(FILE *out, const compressed_rank_t *cr)
 	    "    do {\n"
 	    "    	if(GETBIT32(rsel_bits_vec, sel_res))\n"
 	    "    	    break;\n"
-	    "    	if(get_bits_value(cr->vals_rems, rank, %uU, %uU) >= val_rem)\n", cr->rem_r, rems_mask);
+	    "    	if(get_bits_value(vals_rems, rank, %uU, %uU) >= val_rem)\n", cr->rem_r, rems_mask);
     fprintf(out,
 	    "   	    break;\n"
 	    "   	sel_res++;\n"

@@ -230,7 +230,7 @@ int chd_compile(cmph_t *mphf, cmph_config_t *mph, FILE *out) {
     fprintf(out, "    p1 = disp / %u;\n", chd_ph->n);
     fprintf(out, "    bin_idx = (uint32_t)((f + ((uint64_t)h)*p0 + p1) %% %u);\n",
             chd_ph->n);
-    fprintf(out, "    rank = compressed_rank_query(&cr, bin_idx);\n");
+    fprintf(out, "    rank = compressed_rank_query(bin_idx);\n");
     fprintf(out, "    return bin_idx - rank;\n");
     fprintf(out, "};\n");
     fprintf(out, "uint32_t %s_size(void) {\n", mph->c_prefix);
