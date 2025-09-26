@@ -110,15 +110,11 @@ void select_generate(select_t * sel, cmph_uint32 * keys_vec, cmph_uint32 n, cmph
 	sel_table_size = (sel->n >> NBITS_STEP_SELECT_TABLE) + 1; // (sel->n >> NBITS_STEP_SELECT_TABLE) = (sel->n/STEP_SELECT_TABLE)
 	
 	if(sel->bits_vec)
-	{
 		free(sel->bits_vec);
-	}
 	sel->bits_vec = (cmph_uint32 *)calloc(vec_size, sizeof(cmph_uint32));
 
 	if(sel->select_table)
-	{
 		free(sel->select_table);
-	}
 	sel->select_table = (cmph_uint32 *)calloc(sel_table_size, sizeof(cmph_uint32));
 
 	
@@ -288,7 +284,7 @@ static void _select_query_compile(FILE* out, const bool packed)
       "                                     const uint32_t *select_table,\n"
       "                                     uint32_t one_idx)\n"
       "{\n"
-      "    uint32_t vec_bit_idx ,vec_byte_idx;\n"
+      "    uint32_t vec_bit_idx, vec_byte_idx;\n"
       "    uint32_t part_sum, old_part_sum;\n"
       "\n"
       "    vec_bit_idx = select_table[one_idx >> NBITS_STEP_SELECT_TABLE];\n"
