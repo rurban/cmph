@@ -204,12 +204,15 @@ int chd_compile(cmph_t *mphf, cmph_config_t *mph, FILE *out) {
     hash_state_t *states = &state;
     DEBUGP("Compiling chd\n");
     fprintf(out, "#include <assert.h>\n");
+#ifdef DEBUG
+    fprintf(out, "#include \"debug.h\"\n");
+#else
+    //fprintf(out, "#define DEBUGP(...)\n");
+#endif
     hash_state_compile(1, (hash_state_t **)&states, true, out);
 
-    //const uint32_t *cs_packed = (const uint32_t*)&data->packed_chd_phf[9];
     compressed_seq_data_compile(out, "cs", &cs);
     compressed_seq_query_compile(out, &cs);
-    //select_data_compile(out, "sel", &sel);
     compressed_rank_data_compile(out, "cr", &cr);
     compressed_rank_query_compile(out, &cr);
 
@@ -220,17 +223,36 @@ int chd_compile(cmph_t *mphf, cmph_config_t *mph, FILE *out) {
     fprintf(out, "    uint32_t disp, p0, p1, f, g, h;\n");
     fprintf(out, "    uint32_t bin_idx, rank;\n");
     fprintf(out, "    uint32_t hv[3];\n");
+#ifdef DEBUG
+    fprintf(out, "    DEBUGP(\"n: %u, m: %u, nbuckets: %u, seed: %u\\n\");\n",
+            chd_ph->n, chd_ph->m, chd_ph->nbuckets, states[0].seed);
+#endif    
     fprintf(out, "    %s_hash_vector(%u, (const unsigned char*)key, keylen, hv);\n",
             cmph_hash_names[states[0].hashfunc], states[0].seed);
+#ifdef DEBUG
+    fprintf(out, "    DEBUGP(\"hv: {%%u, %%u, %%u}\\n\", hv[0], hv[1], hv[2]);\n");
+#endif    
     fprintf(out, "    g = hv[0] %% %u;\n", chd_ph->nbuckets);
     fprintf(out, "    f = hv[1] %% %u;\n", chd_ph->n);
     fprintf(out, "    h = hv[2] %% %u + 1;\n", chd_ph->n - 1);
     fprintf(out, "    disp = compressed_seq_query(&cs, g);\n");
+#ifdef DEBUG
+    fprintf(out, "    DEBUGP(\"g: %%u, disp: %%u\\n\", g, disp);\n");
+#endif    
     fprintf(out, "    p0 = disp %% %u;\n", chd_ph->n);
     fprintf(out, "    p1 = disp / %u;\n", chd_ph->n);
+#ifdef DEBUG
+    fprintf(out, "    DEBUGP(\"p0: %%u, p1: %%u\\n\", p0, p1);\n");
+#endif    
     fprintf(out, "    bin_idx = (uint32_t)((f + ((uint64_t)h)*p0 + p1) %% %u);\n",
             chd_ph->n);
+#ifdef DEBUG
+    fprintf(out, "    DEBUGP(\"bin_idx: %%u\\n\", bin_idx);\n");
+#endif    
     fprintf(out, "    rank = compressed_rank_query(bin_idx);\n");
+#ifdef DEBUG
+    fprintf(out, "    DEBUGP(\"rank: %%u\\n\", rank);\n");
+#endif    
     fprintf(out, "    return bin_idx - rank;\n");
     fprintf(out, "};\n");
     fprintf(out, "uint32_t %s_size(void) {\n", mph->c_prefix);
