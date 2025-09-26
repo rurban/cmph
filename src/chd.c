@@ -41,6 +41,12 @@ void chd_config_destroy(cmph_config_t *mph) {
 
 void chd_config_set_hashfuncs(cmph_config_t *mph, CMPH_HASH *hashfuncs) {
   chd_config_data_t *data = (chd_config_data_t *)mph->data;
+  for (unsigned i = 0; i < mph->nhashfuncs; i++) {
+    mph->hashfuncs[i] = hashfuncs[i];
+  }
+  for (unsigned i = mph->nhashfuncs; i < 3; i++) {
+    mph->hashfuncs[i] = CMPH_HASH_COUNT;
+  }
   cmph_config_set_hashfuncs(data->chd_ph, hashfuncs);
 }
 
