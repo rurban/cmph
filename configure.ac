@@ -1,6 +1,6 @@
 dnl Process this file with autoconf to produce a configure script.
-AC_INIT([cmph], [2.1.0], [https://sourceforge.net/projects/cmph/support],[cmph],
-        [https://cmph.sf.net/])
+AC_INIT([cmph], [2.1.0], [https://sourceforge.net/projects/cmph/support], [cmph],
+        [https://github.com/rurban/cmph/])
 AC_CONFIG_SRCDIR([Makefile.am])
 AM_INIT_AUTOMAKE
 AC_CONFIG_HEADERS([config.h])
@@ -11,7 +11,14 @@ AC_PROG_CC
 AC_PROG_INSTALL
 AC_PROG_LN_S
 LT_INIT
+dnl weed out MSVC
+AC_PROG_CC_C99
 AC_SYS_EXTRA_LARGEFILE
+if test "x$ac_cv_prog_cc_c99" != "xno"; then
+  AC_DEFINE([HAVE_C99], 1,
+    [Define if the C compiler supports C99 for named initializers])
+fi
+
 if test "x$ac_cv_sys_largefile_CFLAGS" = "xno" ; then
   ac_cv_sys_largefile_CFLAGS=""
 fi

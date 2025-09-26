@@ -258,13 +258,14 @@ void compressed_seq_data_compile(FILE *out, const char *name, const compressed_s
 		"    const uint32_t *store_table;\n"
 		"};\n"
 		"typedef struct _compressed_seq_t compressed_seq_t;\n");
+	// MSVC cannot do designated initializers, a C99 feature
 	fprintf(out, "const compressed_seq_t %s = {\n", name);
-	fprintf(out, "    .n = %u,\n", cs->n);
-	fprintf(out, "    .rem_r = %u,\n", cs->rem_r);
-	fprintf(out, "    .total_length = %u,\n", cs->total_length);
-	fprintf(out, "    .sel = sel,\n");
-	fprintf(out, "    .length_rems = length_rems,\n");
-	fprintf(out, "    .store_table = store_table\n};\n");
+	fprintf(out, "    /*.n =*/ %u,\n", cs->n);
+	fprintf(out, "    /*.rem_r =*/ %u,\n", cs->rem_r);
+	fprintf(out, "    /*.total_length =*/ %u,\n", cs->total_length);
+	fprintf(out, "    /*.sel =*/ sel,\n");
+	fprintf(out, "    /*.length_rems =*/ length_rems,\n");
+	fprintf(out, "    /*.store_table =*/ store_table\n};\n");
 }
 
 void compressed_seq_load(compressed_seq_t * cs, const char * buf)

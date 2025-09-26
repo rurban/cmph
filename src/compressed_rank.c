@@ -344,12 +344,13 @@ void compressed_rank_data_compile(FILE *out, const char *name, const compressed_
 	    "    const uint32_t *vals_rems;\n"
 	    "};\n"
 	    "typedef struct _compressed_rank_t compressed_rank_t;\n");
+    // MSVC cannot do designated initializers, a C99 feature
     fprintf(out, "const compressed_rank_t %s = {\n", name);
-    fprintf(out, "    .max_val = %u,\n", cr->max_val);
-    fprintf(out, "    .n = %u,\n", cr->n);
-    fprintf(out, "    .rem_r = %u,\n", cr->rem_r);
-    fprintf(out, "    .sel = rsel,\n");
-    fprintf(out, "    .vals_rems = vals_rems};\n");
+    fprintf(out, "    /*.max_val =*/ %u,\n", cr->max_val);
+    fprintf(out, "    /*.n =*/ %u,\n", cr->n);
+    fprintf(out, "    /*.rem_r =*/ %u,\n", cr->rem_r);
+    fprintf(out, "    /*.sel =*/ rsel,\n");
+    fprintf(out, "    /*.vals_rems =*/ vals_rems};\n");
 }
 
 void compressed_rank_query_compile(FILE *out, const compressed_rank_t *cr)
