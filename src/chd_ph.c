@@ -1,10 +1,12 @@
-#include<stdio.h>
-#include<stdlib.h>
-#include<string.h>
-#include<math.h>
-#include<time.h>
-#include<assert.h>
-#include<limits.h>
+/* Non-minimal perfect CHD hash,
+   i.e. array size != numer of keys */
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <math.h>
+#include <time.h>
+#include <assert.h>
+#include <limits.h>
 
 #include "cmph_structs.h"
 #include "hash.h"

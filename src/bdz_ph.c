@@ -1,3 +1,5 @@
+/* Non-minimal perfect BDZ hash,
+   i.e. array size != numer of keys */
 #include "bdz_ph.h"
 #include "cmph_structs.h"
 #include "bdz_structs_ph.h"
