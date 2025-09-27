@@ -8,7 +8,7 @@
 
 static inline void print_values(select_t * sel)
 {
-	register cmph_uint32 index;
+	cmph_uint32 index;
 
 	index = select_query(sel, 0);
 	fprintf(stderr, "Index[0]\t= %u\n", index - 0);
@@ -35,7 +35,7 @@ static inline void print_values(select_t * sel)
 
 static inline void print_values_packed(char * sel_packed)
 {
-	register cmph_uint32 index;
+	cmph_uint32 index;
 
 	index = select_query_packed(sel_packed, 0);
 	fprintf(stderr, "Index[0]\t= %u\n", index - 0);

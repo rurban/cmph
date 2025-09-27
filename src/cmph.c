@@ -154,7 +154,7 @@ static void key_vector_rewind(void *data)
 static cmph_uint32 count_nlfile_keys(FILE *fd)
 {
     cmph_uint32 count = 0;
-    register char * ptr;
+    char * ptr;
     rewind(fd);
     while(1)
     {

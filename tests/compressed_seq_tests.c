@@ -8,7 +8,7 @@
 
 static inline void print_values(compressed_seq_t * cs, cmph_uint32 idx)
 {
-	register cmph_uint32 index;
+	cmph_uint32 index;
 	
 	index = compressed_seq_query(cs, idx);
 	fprintf(stderr, "Index[%u]\t= %u\n", idx, index);
@@ -17,7 +17,7 @@ static inline void print_values(compressed_seq_t * cs, cmph_uint32 idx)
 
 static inline void print_values_packed(char * cs_packed, cmph_uint32 idx)
 {
-	register cmph_uint32 index;
+	cmph_uint32 index;
 	
 	index = compressed_seq_query_packed((const cmph_uint32 *)cs_packed, idx);
 	fprintf(stderr, "Index[%u]\t= %u\n", idx, index);

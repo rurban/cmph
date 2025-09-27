@@ -75,7 +75,7 @@ void fch_config_set_hashfuncs(cmph_config_t *mph, CMPH_HASH *hashfuncs)
 
 cmph_uint32 mixh10h11h12(cmph_uint32 b, double p1, double p2, cmph_uint32 initial_index)
 {
-	register cmph_uint32 int_p2 = (cmph_uint32)p2;
+	cmph_uint32 int_p2 = (cmph_uint32)p2;
 	if (initial_index < p1)  initial_index %= int_p2;  /* h11 o h10 */
 	else { /* h12 o h10 */
 		initial_index %= b;
@@ -553,28 +553,28 @@ cmph_uint32 fch_packed_size(cmph_t *mphf)
  */
 cmph_uint32 fch_search_packed(void *packed_mphf, const char *key, cmph_uint32 keylen)
 {
-	register cmph_uint8 *h1_ptr = (cmph_uint8 *)packed_mphf;
-	register CMPH_HASH h1_type  = (CMPH_HASH)*((cmph_uint32 *)h1_ptr);
+	cmph_uint8 *h1_ptr = (cmph_uint8 *)packed_mphf;
+	CMPH_HASH h1_type  = (CMPH_HASH)*((cmph_uint32 *)h1_ptr);
 	h1_ptr += 4;
 
-	register cmph_uint8 *h2_ptr = h1_ptr + hash_state_packed_size(h1_type);
-	register CMPH_HASH h2_type  = (CMPH_HASH)*((cmph_uint32 *)h2_ptr);
+	cmph_uint8 *h2_ptr = h1_ptr + hash_state_packed_size(h1_type);
+	CMPH_HASH h2_type  = (CMPH_HASH)*((cmph_uint32 *)h2_ptr);
 	h2_ptr += 4;
 
-	register cmph_uint32 *g_ptr = (cmph_uint32 *)(h2_ptr + hash_state_packed_size(h2_type));
+	cmph_uint32 *g_ptr = (cmph_uint32 *)(h2_ptr + hash_state_packed_size(h2_type));
 
-	register cmph_uint32 m = *g_ptr++;
+	cmph_uint32 m = *g_ptr++;
 
-	register cmph_uint32 b = *g_ptr++;
+	cmph_uint32 b = *g_ptr++;
 
-	register double p1 = (double)(*((cmph_uint64 *)g_ptr));
+	double p1 = (double)(*((cmph_uint64 *)g_ptr));
 	g_ptr += 2;
 
-	register double p2 = (double)(*((cmph_uint64 *)g_ptr));
+	double p2 = (double)(*((cmph_uint64 *)g_ptr));
 	g_ptr += 2;
 
-	register cmph_uint32 h1 = hash_packed(h1_ptr, h1_type, key, keylen) % m;
-	register cmph_uint32 h2 = hash_packed(h2_ptr, h2_type, key, keylen) % m;
+	cmph_uint32 h1 = hash_packed(h1_ptr, h1_type, key, keylen) % m;
+	cmph_uint32 h2 = hash_packed(h2_ptr, h2_type, key, keylen) % m;
 
 	h1 = mixh10h11h12 (b, p1, p2, h1);
 	return (h2 + g_ptr[h1]) % m;

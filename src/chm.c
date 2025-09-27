@@ -275,7 +275,7 @@ int chm_dump(cmph_t *mphf, FILE *fd)
 	cmph_uint32 buflen;
 	chm_data_t *data = (chm_data_t *)mphf->data;
 	cmph_uint32 nhashes = data->nhashes;
-	register size_t nwrite;
+	size_t nwrite;
 
 	__cmph_dump(mphf, fd);
 
@@ -315,7 +315,7 @@ void chm_load(FILE *f, cmph_t *mphf)
 	cmph_uint32 buflen;
 	cmph_uint32 i;
 	chm_data_t *chm = (chm_data_t *)calloc(1, sizeof(chm_data_t));
-	register size_t nread;
+	size_t nread;
 	DEBUGP("Loading chm mphf\n");
 	mphf->data = chm;
 	nread = fread(&nhashes, sizeof(cmph_uint32), (size_t)1, f);
@@ -457,21 +457,21 @@ cmph_uint32 chm_packed_size(cmph_t *mphf)
  */
 cmph_uint32 chm_search_packed(void *packed_mphf, const char *key, cmph_uint32 keylen)
 {
-	register cmph_uint8 *h1_ptr = (cmph_uint8 *)packed_mphf;
-	register CMPH_HASH h1_type  = (CMPH_HASH)(*((cmph_uint32 *)h1_ptr));
+	cmph_uint8 *h1_ptr = (cmph_uint8 *)packed_mphf;
+	CMPH_HASH h1_type  = (CMPH_HASH)(*((cmph_uint32 *)h1_ptr));
 	h1_ptr += 4;
 
-	register cmph_uint8 *h2_ptr = h1_ptr + hash_state_packed_size(h1_type);
-	register CMPH_HASH h2_type  = (CMPH_HASH)(*((cmph_uint32 *)h2_ptr));
+	cmph_uint8 *h2_ptr = h1_ptr + hash_state_packed_size(h1_type);
+	CMPH_HASH h2_type  = (CMPH_HASH)(*((cmph_uint32 *)h2_ptr));
 	h2_ptr += 4;
 
-	register cmph_uint32 *g_ptr = (cmph_uint32 *)(h2_ptr + hash_state_packed_size(h2_type));
+	cmph_uint32 *g_ptr = (cmph_uint32 *)(h2_ptr + hash_state_packed_size(h2_type));
 
-	register cmph_uint32 n = *g_ptr++;
-	register cmph_uint32 m = *g_ptr++;
+	cmph_uint32 n = *g_ptr++;
+	cmph_uint32 m = *g_ptr++;
 
-	register cmph_uint32 h1 = hash_packed(h1_ptr, h1_type, key, keylen) % n;
-	register cmph_uint32 h2 = hash_packed(h2_ptr, h2_type, key, keylen) % n;
+	cmph_uint32 h1 = hash_packed(h1_ptr, h1_type, key, keylen) % n;
+	cmph_uint32 h2 = hash_packed(h2_ptr, h2_type, key, keylen) % n;
 	DEBUGP("key: %.*s h1: %u h2: %u\n", (int)keylen, key, h1, h2);
 	if (h1 == h2 && ++h2 >= n) h2 = 0;
 	DEBUGP("key: %.*s g[h1]: %u g[h2]: %u edges: %u\n", (int)keylen, key, g_ptr[h1], g_ptr[h2], m);

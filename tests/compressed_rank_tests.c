@@ -8,7 +8,7 @@
 
 static inline void print_values(compressed_rank_t * cr, cmph_uint32 idx)
 {
-	register cmph_uint32 index;
+	cmph_uint32 index;
 
 	index = compressed_rank_query(cr, idx);
 	fprintf(stderr, "Index[%u]\t= %u\n", idx, index);
@@ -17,7 +17,7 @@ static inline void print_values(compressed_rank_t * cr, cmph_uint32 idx)
 
 static inline void print_values_packed(char * cr_packed, cmph_uint32 idx)
 {
-	register cmph_uint32 index;
+	cmph_uint32 index;
 	
 	index = compressed_rank_query_packed(cr_packed, idx);
 	fprintf(stderr, "Index[%u]\t= %u\n", idx, index);

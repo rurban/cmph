@@ -650,20 +650,20 @@ cmph_uint32 bmz8_packed_size(cmph_t *mphf)
  */
 cmph_uint8 bmz8_search_packed(void *packed_mphf, const char *key, cmph_uint32 keylen)
 {
-	register cmph_uint8 *h1_ptr = (cmph_uint8 *)packed_mphf;
-	register CMPH_HASH h1_type  = (CMPH_HASH)(*((cmph_uint32 *)h1_ptr));
+	cmph_uint8 *h1_ptr = (cmph_uint8 *)packed_mphf;
+	CMPH_HASH h1_type  = (CMPH_HASH)(*((cmph_uint32 *)h1_ptr));
 	h1_ptr += 4;
 
-	register cmph_uint8 *h2_ptr = h1_ptr + hash_state_packed_size(h1_type);
-	register CMPH_HASH h2_type  = (CMPH_HASH)(*((cmph_uint32 *)h2_ptr));
+	cmph_uint8 *h2_ptr = h1_ptr + hash_state_packed_size(h1_type);
+	CMPH_HASH h2_type  = (CMPH_HASH)(*((cmph_uint32 *)h2_ptr));
 	h2_ptr += 4;
 
-	register cmph_uint8 *g_ptr = h2_ptr + hash_state_packed_size(h2_type);
+	cmph_uint8 *g_ptr = h2_ptr + hash_state_packed_size(h2_type);
 
-	register cmph_uint8 n = *g_ptr++;
+	cmph_uint8 n = *g_ptr++;
 
-	register cmph_uint8 h1 = (cmph_uint8)(hash_packed(h1_ptr, h1_type, key, keylen) % n);
-	register cmph_uint8 h2 = (cmph_uint8)(hash_packed(h2_ptr, h2_type, key, keylen) % n);
+	cmph_uint8 h1 = (cmph_uint8)(hash_packed(h1_ptr, h1_type, key, keylen) % n);
+	cmph_uint8 h2 = (cmph_uint8)(hash_packed(h2_ptr, h2_type, key, keylen) % n);
 	DEBUGP("key: %s h1: %u h2: %u\n", key, h1, h2);
 	if (h1 == h2 && ++h2 > n) h2 = 0;
 	return (cmph_uint8)(g_ptr[h1] + g_ptr[h2]);

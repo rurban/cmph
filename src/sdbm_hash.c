@@ -36,7 +36,7 @@ cmph_uint32 sdbm_hash(hash_state_t *state, const char *k, const cmph_uint32 keyl
 
 static cmph_uint32 sdbm_hash_seed(const cmph_uint32 seed, const char *k, const cmph_uint32 keylen)
 {
-	register cmph_uint32 hash = seed;
+	cmph_uint32 hash = seed;
 	const unsigned char *ptr = (unsigned char *)k;
 	cmph_uint32 i = 0;
 

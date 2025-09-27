@@ -385,8 +385,8 @@ cmph_t *bdz_new(cmph_config_t *mph, double c)
 
 
 #ifdef CMPH_TIMING
-	register cmph_uint32 space_usage = bdz_packed_size(mphf)*8;
-	register cmph_uint32 keys_per_bucket = 1;
+	cmph_uint32 space_usage = bdz_packed_size(mphf)*8;
+	cmph_uint32 keys_per_bucket = 1;
 	construction_time = construction_time - construction_time_begin;
 	fprintf(stdout, "%u\t%.2f\t%u\t%.4f\t%.4f\n", bdz->m, bdz->m/(double)bdz->n,
                 keys_per_bucket, construction_time, space_usage/(double)bdz->m);
@@ -640,11 +640,11 @@ void bdz_load(FILE *f, cmph_t *mphf)
 
 static inline cmph_uint32 rank(cmph_uint32 b, cmph_uint32 * ranktable, cmph_uint8 * g, cmph_uint32 vertex)
 {
-	register cmph_uint32 index = vertex >> b;
-	register cmph_uint32 base_rank = ranktable[index];
-	register cmph_uint32 beg_idx_v = index << b;
-	register cmph_uint32 beg_idx_b = beg_idx_v >> 2;
-	register cmph_uint32 end_idx_b = vertex >> 2;
+	cmph_uint32 index = vertex >> b;
+	cmph_uint32 base_rank = ranktable[index];
+	cmph_uint32 beg_idx_v = index << b;
+	cmph_uint32 beg_idx_b = beg_idx_v >> 2;
+	cmph_uint32 end_idx_b = vertex >> 2;
 	while(beg_idx_b < end_idx_b)
 	{
 		base_rank += bdz_lookup_table[*(g + beg_idx_b++)];
@@ -666,8 +666,8 @@ static inline cmph_uint32 rank(cmph_uint32 b, cmph_uint32 * ranktable, cmph_uint
 /* bdz is not order-preserving! thus the result is not the index into the keys */
 cmph_uint32 bdz_search(cmph_t *mphf, const char *key, cmph_uint32 keylen)
 {
-	register cmph_uint32 vertex;
-	register bdz_data_t *bdz = (bdz_data_t *)mphf->data;
+	cmph_uint32 vertex;
+	bdz_data_t *bdz = (bdz_data_t *)mphf->data;
 	cmph_uint32 hl[3];
 	hash_vector(bdz->hl, key, keylen, hl);
 	hl[0] = hl[0] % bdz->r;
@@ -755,16 +755,16 @@ cmph_uint32 bdz_packed_size(cmph_t *mphf)
 cmph_uint32 bdz_search_packed(void *packed_mphf, const char *key, cmph_uint32 keylen)
 {
 
-	register cmph_uint32 vertex;
-	register CMPH_HASH hl_type  = (CMPH_HASH)(*(cmph_uint32 *)packed_mphf);
-	register cmph_uint8 *hl_ptr = (cmph_uint8 *)(packed_mphf) + 4;
+	cmph_uint32 vertex;
+	CMPH_HASH hl_type  = (CMPH_HASH)(*(cmph_uint32 *)packed_mphf);
+	cmph_uint8 *hl_ptr = (cmph_uint8 *)(packed_mphf) + 4;
 
-	register cmph_uint32 *ranktable = (cmph_uint32*)(hl_ptr + hash_state_packed_size(hl_type));
+	cmph_uint32 *ranktable = (cmph_uint32*)(hl_ptr + hash_state_packed_size(hl_type));
 
-	register cmph_uint32 r = *ranktable++;
-	register cmph_uint32 ranktablesize = *ranktable++;
-	register cmph_uint8 * g = (cmph_uint8 *)(ranktable + ranktablesize);
-	register cmph_uint8 b = *g++;
+	cmph_uint32 r = *ranktable++;
+	cmph_uint32 ranktablesize = *ranktable++;
+	cmph_uint8 * g = (cmph_uint8 *)(ranktable + ranktablesize);
+	cmph_uint8 b = *g++;
 
 	cmph_uint32 hl[3];
 	hash_vector_packed(hl_ptr, hl_type, key, keylen, hl);

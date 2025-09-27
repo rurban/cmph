@@ -10,7 +10,7 @@
 
 static inline cmph_uint32 compressed_rank_i_log2(cmph_uint32 x)
 {
-	register cmph_uint32 res = 0;
+	cmph_uint32 res = 0;
 	
 	while(x > 1)
 	{
@@ -38,9 +38,9 @@ void compressed_rank_destroy(compressed_rank_t * cr)
 
 void compressed_rank_generate(compressed_rank_t * cr, cmph_uint32 * vals_table, cmph_uint32 n)
 {
-	register cmph_uint32 i,j;
-	register cmph_uint32 rems_mask;
-	register cmph_uint32 * select_vec = 0;
+	cmph_uint32 i,j;
+	cmph_uint32 rems_mask;
+	cmph_uint32 * select_vec = 0;
 	cr->n = n;
 	cr->max_val = vals_table[cr->n - 1];
 	cr->rem_r = compressed_rank_i_log2(cr->max_val/cr->n);

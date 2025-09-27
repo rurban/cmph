@@ -690,16 +690,16 @@ void brz_load(FILE *f, cmph_t *mphf)
 
 static cmph_uint32 brz_bmz8_search(brz_data_t *brz, const char *key, cmph_uint32 keylen, cmph_uint32 * fingerprint)
 {
-	register cmph_uint32 h0;
+	cmph_uint32 h0;
 
 	hash_vector(brz->h0, key, keylen, fingerprint);
 	h0 = fingerprint[2] % brz->k;
 
-	register cmph_uint32 m = brz->size[h0];
-	register cmph_uint32 n = (cmph_uint32)ceil(brz->c * m);
-	register cmph_uint32 h1 = hash(brz->h1[h0], key, keylen) % n;
-	register cmph_uint32 h2 = hash(brz->h2[h0], key, keylen) % n;
-	register cmph_uint8 mphf_bucket;
+	cmph_uint32 m = brz->size[h0];
+	cmph_uint32 n = (cmph_uint32)ceil(brz->c * m);
+	cmph_uint32 h1 = hash(brz->h1[h0], key, keylen) % n;
+	cmph_uint32 h2 = hash(brz->h2[h0], key, keylen) % n;
+	cmph_uint8 mphf_bucket;
 
 	if (h1 == h2 && ++h2 >= n) h2 = 0;
 	mphf_bucket = (cmph_uint8)(brz->g[h0][h1] + brz->g[h0][h2]);
@@ -712,18 +712,18 @@ static cmph_uint32 brz_bmz8_search(brz_data_t *brz, const char *key, cmph_uint32
 
 static cmph_uint32 brz_fch_search(brz_data_t *brz, const char *key, cmph_uint32 keylen, cmph_uint32 * fingerprint)
 {
-	register cmph_uint32 h0;
+	cmph_uint32 h0;
 
 	hash_vector(brz->h0, key, keylen, fingerprint);
 	h0 = fingerprint[2] % brz->k;
 
-	register cmph_uint32 m = brz->size[h0];
-	register cmph_uint32 b = fch_calc_b(brz->c, m);
-	register double p1 = fch_calc_p1(m);
-	register double p2 = fch_calc_p2(b);
-	register cmph_uint32 h1 = hash(brz->h1[h0], key, keylen) % m;
-	register cmph_uint32 h2 = hash(brz->h2[h0], key, keylen) % m;
-	register cmph_uint8 mphf_bucket = 0;
+	cmph_uint32 m = brz->size[h0];
+	cmph_uint32 b = fch_calc_b(brz->c, m);
+	double p1 = fch_calc_p1(m);
+	double p2 = fch_calc_p2(b);
+	cmph_uint32 h1 = hash(brz->h1[h0], key, keylen) % m;
+	cmph_uint32 h2 = hash(brz->h2[h0], key, keylen) % m;
+	cmph_uint8 mphf_bucket = 0;
 	h1 = mixh10h11h12(b, p1, p2, h1);
 	mphf_bucket = (cmph_uint8)((h2 + brz->g[h0][h1]) % m);
 	return (mphf_bucket + brz->offset[h0]);
@@ -922,49 +922,49 @@ cmph_uint32 brz_packed_size(cmph_t *mphf)
 
 static cmph_uint32 brz_bmz8_search_packed(cmph_uint32 *packed_mphf, const char *key, cmph_uint32 keylen, cmph_uint32 * fingerprint)
 {
-	register CMPH_HASH h0_type = (CMPH_HASH)*packed_mphf++;
-	register cmph_uint32 *h0_ptr = packed_mphf;
+	CMPH_HASH h0_type = (CMPH_HASH)*packed_mphf++;
+	cmph_uint32 *h0_ptr = packed_mphf;
 	packed_mphf = (cmph_uint32 *)(((cmph_uint8 *)packed_mphf) + hash_state_packed_size(h0_type));
 
-	register cmph_uint32 k = *packed_mphf++;
+	cmph_uint32 k = *packed_mphf++;
 
-	register double c = (double)(*((cmph_uint64*)packed_mphf));
+	double c = (double)(*((cmph_uint64*)packed_mphf));
 	packed_mphf += 2;
 
-	register CMPH_HASH h1_type = (CMPH_HASH)*packed_mphf++;
+	CMPH_HASH h1_type = (CMPH_HASH)*packed_mphf++;
 
-	register CMPH_HASH h2_type = (CMPH_HASH)*packed_mphf++;
+	CMPH_HASH h2_type = (CMPH_HASH)*packed_mphf++;
 
-	register cmph_uint8 * size = (cmph_uint8 *) packed_mphf;
+	cmph_uint8 * size = (cmph_uint8 *) packed_mphf;
 	packed_mphf = (cmph_uint32 *)(size + k);
 
-	register cmph_uint32 * offset = packed_mphf;
+	cmph_uint32 * offset = packed_mphf;
 	packed_mphf += k;
 
-	register cmph_uint32 h0;
+	cmph_uint32 h0;
 
 	hash_vector_packed(h0_ptr, h0_type, key, keylen, fingerprint);
 	h0 = fingerprint[2] % k;
 
-	register cmph_uint32 m = size[h0];
-	register cmph_uint32 n = (cmph_uint32)ceil(c * m);
+	cmph_uint32 m = size[h0];
+	cmph_uint32 n = (cmph_uint32)ceil(c * m);
 
 #if defined (__ia64) || defined (__x86_64__)
-        register cmph_uint64 * g_is_ptr = (cmph_uint64 *)packed_mphf;
+        cmph_uint64 * g_is_ptr = (cmph_uint64 *)packed_mphf;
 #else
-        register cmph_uint32 * g_is_ptr = packed_mphf;
+        cmph_uint32 * g_is_ptr = packed_mphf;
 #endif
 
-	register cmph_uint8 * h1_ptr = (cmph_uint8 *) g_is_ptr[h0];
+	cmph_uint8 * h1_ptr = (cmph_uint8 *) g_is_ptr[h0];
 
-	register cmph_uint8 * h2_ptr = h1_ptr + hash_state_packed_size(h1_type);
+	cmph_uint8 * h2_ptr = h1_ptr + hash_state_packed_size(h1_type);
 
-	register cmph_uint8 * g = h2_ptr + hash_state_packed_size(h2_type);
+	cmph_uint8 * g = h2_ptr + hash_state_packed_size(h2_type);
 
-	register cmph_uint32 h1 = hash_packed(h1_ptr, h1_type, key, keylen) % n;
-	register cmph_uint32 h2 = hash_packed(h2_ptr, h2_type, key, keylen) % n;
+	cmph_uint32 h1 = hash_packed(h1_ptr, h1_type, key, keylen) % n;
+	cmph_uint32 h2 = hash_packed(h2_ptr, h2_type, key, keylen) % n;
 
-	register cmph_uint8 mphf_bucket;
+	cmph_uint8 mphf_bucket;
 
 	if (h1 == h2 && ++h2 >= n) h2 = 0;
 	mphf_bucket = (cmph_uint8)(g[h1] + g[h2]);
@@ -975,52 +975,52 @@ static cmph_uint32 brz_bmz8_search_packed(cmph_uint32 *packed_mphf, const char *
 
 static cmph_uint32 brz_fch_search_packed(cmph_uint32 *packed_mphf, const char *key, cmph_uint32 keylen, cmph_uint32 * fingerprint)
 {
-	register CMPH_HASH h0_type = (CMPH_HASH)*packed_mphf++;
+	CMPH_HASH h0_type = (CMPH_HASH)*packed_mphf++;
 
-	register cmph_uint32 *h0_ptr = packed_mphf;
+	cmph_uint32 *h0_ptr = packed_mphf;
 	packed_mphf = (cmph_uint32 *)(((cmph_uint8 *)packed_mphf) + hash_state_packed_size(h0_type));
 
-	register cmph_uint32 k = *packed_mphf++;
+	cmph_uint32 k = *packed_mphf++;
 
-	register double c = (double)(*((cmph_uint64*)packed_mphf));
+	double c = (double)(*((cmph_uint64*)packed_mphf));
 	packed_mphf += 2;
 
-	register CMPH_HASH h1_type = (CMPH_HASH)*packed_mphf++;
+	CMPH_HASH h1_type = (CMPH_HASH)*packed_mphf++;
 
-	register CMPH_HASH h2_type = (CMPH_HASH)*packed_mphf++;
+	CMPH_HASH h2_type = (CMPH_HASH)*packed_mphf++;
 
-	register cmph_uint8 * size = (cmph_uint8 *) packed_mphf;
+	cmph_uint8 * size = (cmph_uint8 *) packed_mphf;
 	packed_mphf = (cmph_uint32 *)(size + k);
 
-	register cmph_uint32 * offset = packed_mphf;
+	cmph_uint32 * offset = packed_mphf;
 	packed_mphf += k;
 
-	register cmph_uint32 h0;
+	cmph_uint32 h0;
 
 	hash_vector_packed(h0_ptr, h0_type, key, keylen, fingerprint);
 	h0 = fingerprint[2] % k;
 
-	register cmph_uint32 m = size[h0];
-	register cmph_uint32 b = fch_calc_b(c, m);
-	register double p1 = fch_calc_p1(m);
-	register double p2 = fch_calc_p2(b);
+	cmph_uint32 m = size[h0];
+	cmph_uint32 b = fch_calc_b(c, m);
+	double p1 = fch_calc_p1(m);
+	double p2 = fch_calc_p2(b);
 
 #if defined (__ia64) || defined (__x86_64__)
-        register cmph_uint64 * g_is_ptr = (cmph_uint64 *)packed_mphf;
+        cmph_uint64 * g_is_ptr = (cmph_uint64 *)packed_mphf;
 #else
-        register cmph_uint32 * g_is_ptr = packed_mphf;
+        cmph_uint32 * g_is_ptr = packed_mphf;
 #endif
 
-	register cmph_uint8 * h1_ptr = (cmph_uint8 *) g_is_ptr[h0];
+	cmph_uint8 * h1_ptr = (cmph_uint8 *) g_is_ptr[h0];
 
-	register cmph_uint8 * h2_ptr = h1_ptr + hash_state_packed_size(h1_type);
+	cmph_uint8 * h2_ptr = h1_ptr + hash_state_packed_size(h1_type);
 
-	register cmph_uint8 * g = h2_ptr + hash_state_packed_size(h2_type);
+	cmph_uint8 * g = h2_ptr + hash_state_packed_size(h2_type);
 
-	register cmph_uint32 h1 = hash_packed(h1_ptr, h1_type, key, keylen) % m;
-	register cmph_uint32 h2 = hash_packed(h2_ptr, h2_type, key, keylen) % m;
+	cmph_uint32 h1 = hash_packed(h1_ptr, h1_type, key, keylen) % m;
+	cmph_uint32 h2 = hash_packed(h2_ptr, h2_type, key, keylen) % m;
 
-	register cmph_uint8 mphf_bucket = 0;
+	cmph_uint8 mphf_bucket = 0;
 	h1 = mixh10h11h12(b, p1, p2, h1);
 	mphf_bucket = (cmph_uint8)((h2 + g[h1]) % m);
 	return (mphf_bucket + offset[h0]);
@@ -1035,8 +1035,8 @@ static cmph_uint32 brz_fch_search_packed(cmph_uint32 *packed_mphf, const char *k
  */
 cmph_uint32 brz_search_packed(void *packed_mphf, const char *key, cmph_uint32 keylen)
 {
-	register cmph_uint32 *ptr = (cmph_uint32 *)packed_mphf;
-	register CMPH_ALGO algo = (CMPH_ALGO)*ptr++;
+	cmph_uint32 *ptr = (cmph_uint32 *)packed_mphf;
+	CMPH_ALGO algo = (CMPH_ALGO)*ptr++;
 	cmph_uint32 fingerprint[3];
 	switch(algo)
 	{

@@ -100,7 +100,7 @@ void jenkins_state_destroy(hash_state_t *state)
 
 static inline void __jenkins_hash_vector(cmph_uint32 seed, const unsigned char *k, cmph_uint32 keylen, cmph_uint32 * hashes)
 {
-	register cmph_uint32 len, length;
+	cmph_uint32 len, length;
 
 	/* Set up the internal state */
 	length = keylen;
