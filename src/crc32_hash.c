@@ -56,6 +56,7 @@ static const uint32_t crc32c_table[256] = {
     0xdd07448e, 0x57a3d037, 0xdde8f5b9, 0x6956fc3b, 0xa3e3e02c, 0x42d98888, 0xd73c7bea, 0x3771e98f,
     0x80ff0093, 0xb42ae3d9, 0x8fe4c34d, 0x2178513a, 0xdf99fc11, 0xe0ac139e, 0x6c23e841, 0x170076fa
 };
+
 #if 0
 // computed by
 void compute_crc32c_table(uint32_t* crc32c_table, uint32_t n)

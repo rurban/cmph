@@ -365,34 +365,9 @@ void select_unpack(const uint32_t *sel_packed, select_t *sel)
 void select_unpack_compile(FILE *out, const uint32_t *sel_packed)
 {
     select_t sel;
-    //static int _num = 0;
-    //char name[6] = "sel0";
-    //name[3] = '0' + _num++;
     select_unpack(sel_packed, &sel);
     select_data_compile(out, "sel", &sel);
 }
-
-#if 0
-void select_query_packed_compile(FILE* out, const uint32_t *packed_chd_phf)
-{
-    // unpack chd_phf
-    // algo, hash, n, nbuckets
-    uint32_t algo = packed_chd_phf[0];
-    uint32_t n = packed_chd_phf[0];
-    uint32_t offset = 4 + hash_state_packed_size(state->hashfunc);
-    const uint32_t *sel_packed = &packed_chd_phf[2];
-
-    select_unpack_compile(out, sel_packed);
-    _select_query_compile(out, true);
-    fprintf(out,
-      "static uint32_t select_next_query_packed(const void *sel_packed, const uint32_t vec_bit_idx)\n"
-      "{\n"
-      "    const uint8_t *bits_vec = (const uint8_t *)sel_packed;\n"
-      "    bits_vec += 8; // skipping n and m\n"
-      "    return _select_next_query(bits_vec, vec_bit_idx);\n"
-      "}\n");
-}
-#endif
 
 void select_load(select_t * sel, const char *buf)
 {
