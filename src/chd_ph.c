@@ -806,9 +806,9 @@ cleanup:
 	mphf->data = chd_phf;
 	mphf->size = chd_ph->n;
 
-	DEBUGP("Successfully generated minimal perfect hash\n");
+	DEBUGP("Successfully generated perfect hash\n");
 	if (mph->verbosity)
-		fprintf(stderr, "Successfully generated minimal perfect hash function\n");
+		fprintf(stderr, "Successfully generated perfect hash function\n");
 
 #ifdef CMPH_TIMING
 	cmph_uint32 space_usage = chd_ph_packed_size(mphf)*8;

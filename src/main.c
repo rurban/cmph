@@ -5,6 +5,7 @@
 #endif
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdbool.h>
 #ifdef __linux__
 #include <unistd.h>
 #include <fcntl.h>
@@ -14,6 +15,7 @@
 #include <time.h>
 #include <limits.h>
 #include <assert.h>
+
 #include "cmph.h"
 #include "hash.h"
 #include "debug.h"
@@ -98,6 +100,7 @@ int main(int argc, char **argv)
 	cmph_uint32 b = 0;
 	cmph_uint32 keys_per_bin = 1;
 	unsigned errs = 0;
+	bool is_minimal = true;
 
 	while (1)
 	{
@@ -212,6 +215,8 @@ int main(int argc, char **argv)
                                         fprintf(stderr, "\n");
 					return -1;
 				}
+				if (mph_algo == CMPH_BDZ_PH || mph_algo == CMPH_CHD_PH)
+				    is_minimal = false;
 				}
 				break;
 			case 'f':
@@ -335,7 +340,7 @@ int main(int argc, char **argv)
 
 		if (mphf == NULL)
 		{
-			fprintf(stderr, "Unable to create minimum perfect hashing function with seed %u\n", seed);
+			fprintf(stderr, "Unable to create %sperfect hashing function with seed %u\n", is_minimal ? "minimal " : "", seed);
 			cmph_config_destroy(config);
 			if (nhashes)
 				free(hashes);
