@@ -31,7 +31,7 @@ void uint32_compile(FILE *out, const char *name, const uint32_t *buf, unsigned l
 }
 
 void bytes_2_compile(FILE *out, const char *name, const uint8_t *buf,
-                  unsigned len1, unsigned len2) {
+                     unsigned len1, unsigned len2) {
   fprintf(out, "const uint8_t %s[%u][%u] = {\n    ", name, len1, len2);
   for (unsigned i = 0; i < len1; i++) {
     fprintf(out, "{");

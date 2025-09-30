@@ -269,7 +269,7 @@ void select_data_compile(FILE* out, const char *name, const select_t *sel)
 }
 
 // needed by both, chd_ph and chd (packed)
-static void _select_query_compile(FILE* out, const bool packed)
+static void _select_query_compile(FILE* out, const char packed)
 {
   bytes_compile(out, "rank_lookup_table", rank_lookup_table, 256);
   bytes_2_compile(out, "select_lookup_table", (uint8_t *)select_lookup_table, 256, 8);

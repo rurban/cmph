@@ -329,7 +329,7 @@ int fch_compile(cmph_t *mphf, cmph_config_t *mph, FILE *out)
 {
 	fch_data_t *data = (fch_data_t *)mphf->data;
 	char g_name[24];
-	/*bool do_vector = mph->nhashfuncs == 1 ||
+	/*char do_vector = mph->nhashfuncs == 1 ||
 	  mph->hashfuncs[0] == mph->hashfuncs[1];*/
 	hash_state_t *hl[2] = { data->h1, data->h2 };
 	DEBUGP("Compiling fch\n");

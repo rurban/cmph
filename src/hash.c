@@ -104,7 +104,7 @@ void hash_vector(hash_state_t *state, const char *key, cmph_uint32 keylen, cmph_
 }
 
 
-void hash_state_compile(int count, hash_state_t **states, bool do_vector, FILE* out)
+void hash_state_compile(int count, hash_state_t **states, char do_vector, FILE* out)
 {
 	fprintf(out, "#include <stdint.h>\n");
 	// see if we need a hash_vector API or seperate hash() calls are

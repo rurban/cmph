@@ -230,7 +230,7 @@ void crc32_hash_vector_packed(void *packed, const char *k, cmph_uint32 keylen, c
 	crc32_hash_vector(&state, k, keylen, hashes);
 }
 
-void crc32_prep_compile(bool do_vector, FILE* out) {
+void crc32_prep_compile(char do_vector, FILE* out) {
     fprintf(out,
 "/* crc32_hash */\n"
 "#ifndef HAVE_CRC32_HW\n"
@@ -372,7 +372,7 @@ void crc32_prep_compile(bool do_vector, FILE* out) {
 "#endif\n");
 }
 
-void crc32_state_compile_seed(int i, cmph_uint32 seed, bool do_vector, FILE* out) {
+void crc32_state_compile_seed(int i, cmph_uint32 seed, char do_vector, FILE* out) {
     if (!do_vector) {
 	fprintf(out, "static uint32_t crc32_hash_%d(const unsigned char *key, uint32_t keylen) {\n"
 	       "	return crc32c(%uU, key, keylen);\n"

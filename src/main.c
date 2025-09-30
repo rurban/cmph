@@ -5,7 +5,6 @@
 #endif
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdbool.h>
 #ifdef __linux__
 #include <unistd.h>
 #include <fcntl.h>
@@ -100,7 +99,7 @@ int main(int argc, char **argv)
 	cmph_uint32 b = 0;
 	cmph_uint32 keys_per_bin = 1;
 	unsigned errs = 0;
-	bool is_minimal = true;
+	char is_minimal = 1;
 
 	while (1)
 	{
@@ -216,7 +215,7 @@ int main(int argc, char **argv)
 					return -1;
 				}
 				if (mph_algo == CMPH_BDZ_PH || mph_algo == CMPH_CHD_PH)
-				    is_minimal = false;
+				    is_minimal = 0;
 				}
 				break;
 			case 'f':

@@ -459,7 +459,7 @@ int bdz_ph_compile(cmph_t *mphf, cmph_config_t *mph, FILE *out)
 	char g_name[24];
 	char lookup_name[40];
 	DEBUGP("Compiling bdz_ph\n");
-	hash_state_compile(1, &bdz->hl, true, out);
+	hash_state_compile(1, &bdz->hl, 1, out);
 	fprintf(out, "#include <assert.h>\n");
 	fprintf(out, "#ifdef DEBUG\n");
 	fprintf(out, "#include <stdio.h>\n");

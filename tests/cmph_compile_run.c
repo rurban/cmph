@@ -27,7 +27,7 @@ int main(int argc, char **argv) {
     uint32_t *hasharray = (uint32_t*)calloc(size, 4);
     uint8_t *hashtable = (uint8_t*)calloc(size, 1);
     printf("cmph_compile_run %s for %s, size=%u\n", argv[1], argv[2], size);
-    
+
     while (fgets(key, sizeof(key), f)) {
         // delete the ending \n
         int len = (int)strlen(key);

@@ -315,7 +315,7 @@ void jenkins_hash_vector_packed(void *jenkins_packed, const char *k, cmph_uint32
 /* jenkins is always vectored
    TODO optimize to skip the mix-step if not vectored
  */
-void jenkins_prep_compile(bool do_vector, FILE* out) {
+void jenkins_prep_compile(char do_vector, FILE* out) {
 	(void)do_vector;
 	fputs(
 "/* jenkins_hash */\n"
@@ -395,7 +395,7 @@ void jenkins_prep_compile(bool do_vector, FILE* out) {
 "\n", out);
 }
 // if not vectored, compile extra call
-void jenkins_state_compile_seed(int i, cmph_uint32 seed, bool do_vector, FILE* out) {
+void jenkins_state_compile_seed(int i, cmph_uint32 seed, char do_vector, FILE* out) {
     if (!do_vector) {
 	fprintf(out,
 	       "static uint32_t jenkins_hash_%d(const unsigned char *key, uint32_t keylen) {\n"

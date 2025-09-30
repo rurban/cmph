@@ -497,7 +497,7 @@ int bdz_compile(cmph_t *mphf, cmph_config_t *mph, FILE *out)
 	bdz_config_data_t *config = (bdz_config_data_t *)mph->data;
 	DEBUGP("Compiling bdz\n");
 	// only one function, but vectorized
-	hash_state_compile(1, &bdz->hl, true, out);
+	hash_state_compile(1, &bdz->hl, 1, out);
 	fprintf(out, "#include <assert.h>\n");
 	fprintf(out, "#ifdef DEBUG\n");
 	fprintf(out, "#include <stdio.h>\n");

@@ -175,7 +175,7 @@ void wyhash_hash_vector_packed(void *wyhash_packed, const char *k, cmph_uint32 k
 }
 
 /* TODO: optimize without vector */
-void wyhash_prep_compile(bool do_vector, FILE* out) {
+void wyhash_prep_compile(char do_vector, FILE* out) {
 	(void)do_vector;
 	fprintf(out,
 "#include \"wyhash.h\"\n"
@@ -219,7 +219,7 @@ void wyhash_prep_compile(bool do_vector, FILE* out) {
 "}\n"
 "\n");
 }
-void wyhash_state_compile_seed(int i, cmph_uint32 seed, bool do_vector, FILE* out) {
+void wyhash_state_compile_seed(int i, cmph_uint32 seed, char do_vector, FILE* out) {
     if (!do_vector) {
 	fprintf(out,
                "uint32_t wyhash_hash_%d(const unsigned char *key, uint32_t keylen) {\n"

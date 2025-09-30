@@ -61,14 +61,14 @@ void brz_config_set_hashfuncs(cmph_config_t *mph, CMPH_HASH *hashfuncs)
 {
 	CMPH_HASH *hashptr = hashfuncs;
 	CMPH_HASH def = *hashptr;
-	bool done = false;
+	char done = 0;
 	if (def >= CMPH_HASH_DJB2) // brz fails with weak hashes easily
 	    def = CMPH_HASH_JENKINS;
 	int i = 0;
 	for (; i<3; i++) // set three hash functions
 	{
 		if (done || *hashptr == CMPH_HASH_COUNT) {
-		    done = true;
+		    done = 1;
 		    mph->hashfuncs[i] = def;
 		} else {
 		    mph->hashfuncs[i] = *hashptr++;
@@ -583,7 +583,7 @@ int brz_compile(cmph_t *mphf, cmph_config_t *mph, FILE *out)
 {
 	brz_data_t *data = (brz_data_t *)mphf->data;
 	//brz_config_data_t *config = (brz_config_data_t *)mph->data;
-	bool do_vector = mph->nhashfuncs == 1 ||
+	char do_vector = mph->nhashfuncs == 1 ||
 		mph->hashfuncs[0] == mph->hashfuncs[1];
 	hash_state_t *hashes[3];
 	(void)mph; // TODO

@@ -209,7 +209,7 @@ int chd_compile(cmph_t *mphf, cmph_config_t *mph, FILE *out) {
 #else
     //fprintf(out, "#define DEBUGP(...)\n");
 #endif
-    hash_state_compile(1, (hash_state_t **)&states, true, out);
+    hash_state_compile(1, (hash_state_t **)&states, 1, out);
 
     compressed_seq_data_compile(out, "cs", &cs);
     compressed_seq_query_compile(out, &cs);

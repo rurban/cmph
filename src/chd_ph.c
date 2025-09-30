@@ -855,7 +855,7 @@ int chd_ph_compile(cmph_t *mphf, cmph_config_t *mph, FILE *out)
 	chd_ph_config_data_t *chd_ph = (chd_ph_config_data_t *)mph->data;
 	DEBUGP("Compiling chd_ph\n");
 	fprintf(out, "#include <assert.h>\n");
-	hash_state_compile(1, &data->hl, true, out);
+	hash_state_compile(1, &data->hl, 1, out);
 	cmph_uint32 occup_size = chd_ph->n;
 	if (chd_ph->keys_per_bin <= 1)
 		occup_size  = ((chd_ph->n + 31)/32) * 4;

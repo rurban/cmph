@@ -490,7 +490,7 @@ int bmz_compile(cmph_t *mphf, cmph_config_t *mph, FILE *out)
 {
 	bmz_data_t *data = (bmz_data_t *)mphf->data;
 	char g_name[24];
-	bool do_vector = mph->nhashfuncs == 1 ||
+	char do_vector = mph->nhashfuncs == 1 ||
 		mph->hashfuncs[0] == mph->hashfuncs[1];
 	DEBUGP("Compiling bmz\n");
 	hash_state_compile(data->nhashes, data->hashes, do_vector, out);

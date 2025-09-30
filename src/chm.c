@@ -233,7 +233,7 @@ int chm_compile(cmph_t *mphf, cmph_config_t *mph, FILE *out)
 {
 	chm_data_t *data = (chm_data_t *)mphf->data;
 	char g_name[24];
-	bool do_vector = mph->nhashfuncs == 1 ||
+	char do_vector = mph->nhashfuncs == 1 ||
 		mph->hashfuncs[0] == mph->hashfuncs[1];
 	//chm_config_data_t *config = (chm_config_data_t *)mph->data;
 	DEBUGP("Compiling chm\n");

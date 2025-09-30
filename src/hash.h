@@ -26,7 +26,7 @@ void hash_vector(hash_state_t *state, const char *key, cmph_uint32 keylen, cmph_
 void hash_state_dump(hash_state_t *state, const char* name, char **buf, cmph_uint32 *buflen);
 //hash_state_t * hash_state_copy(hash_state_t *src_state);
 hash_state_t *hash_state_load(const char *buf, const char* name);
-void hash_state_compile(int count, hash_state_t **states, bool do_vector, FILE* out);
+void hash_state_compile(int count, hash_state_t **states, char do_vector, FILE* out);
 
 void hash_state_destroy(hash_state_t *state);
 
