@@ -10,7 +10,11 @@ jobs:
       matrix:
         CFLAGS:
           -
+          - -DNDEBUG -O2
           - -O2 -g -fsanitize=address,undefined
+        CC:
+          - gcc
+          - clang
     steps:
     - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
       with:
@@ -19,8 +23,8 @@ jobs:
     - run: sudo apt-get install wamerican txt2tags
     - run: autoreconf -fi
     #  --enable-check --enable-cxxmph
-    - run: ./configure CFLAGS="${{ matrix.CFLAGS }}"
+    - run: ./configure CC="${{ matrix.CC }}" CFLAGS="${{ matrix.CFLAGS }}"
     - run: make
     - run: make check || (cat tests/test-suite.log; false)
-    - if: matrix.CFLAGS == ''
+    - if: ${{ matrix.CFLAGS == '' && matrix.CC == 'gcc' }}
       run: make distcheck || (cat tests/test-suite.log; false)
