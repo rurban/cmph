@@ -374,6 +374,9 @@ int main(int argc, char **argv)
 #ifdef __linux__
 		int fd = open("/dev/urandom", O_RDONLY);
 		int nread = read(fd, &seed, sizeof(seed));
+#ifdef NDEBUG
+		(void)nread;
+#endif
 		assert(nread == (int)sizeof(seed));
 	        srand(seed);
 #else
