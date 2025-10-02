@@ -16,6 +16,7 @@ int bm_increment(int iters) {
   for (i = 0; i < INT_MAX; ++i) {
     v += i;
   }
+  (void)v;
   return 0;
 }
 
