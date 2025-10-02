@@ -124,6 +124,7 @@ static inline double chd_ph_space_lower_bound(cmph_uint32 _n, cmph_uint32 _r)
 	return (1 + (r/n - 1.0 + 1.0/(2.0*n))*log(1 - n/r))/log(2);
 };
 
+#ifdef CMPH_TIMING
 /* computes the entropy of non empty buckets.*/
 static inline double chd_ph_get_entropy(cmph_uint32 * disp_table, cmph_uint32 n, cmph_uint32 max_probes)
 {
@@ -142,6 +143,7 @@ static inline double chd_ph_get_entropy(cmph_uint32 * disp_table, cmph_uint32 n,
 	free(probe_counts);
 	return entropy;
 };
+#endif
 
 chd_ph_config_data_t *chd_ph_config_new(void)
 {
@@ -565,6 +567,7 @@ cmph_uint8 chd_ph_searching(chd_ph_config_data_t *chd_ph, chd_ph_bucket_t *bucke
 				  disp_table);
 }
 
+#ifdef DEBUG
 static inline cmph_uint8 chd_ph_check_bin_hashing(
 			     chd_ph_config_data_t *chd_ph, chd_ph_bucket_t *buckets,
 			     chd_ph_item_t *items, cmph_uint32 *disp_table,
@@ -609,7 +612,7 @@ static inline cmph_uint8 chd_ph_check_bin_hashing(
 	DEBUGP("We were able to place m = %u keys\n", m);
 	return 1;
 };
-
+#endif
 
 cmph_t *chd_ph_new(cmph_config_t *mph, double c)
 {

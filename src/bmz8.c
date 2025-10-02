@@ -416,14 +416,17 @@ static cmph_uint8 bmz8_traverse_critical_nodes_heuristic(bmz8_config_data_t *bmz
 
 static cmph_uint8 next_unused_edge(bmz8_config_data_t *bmz8, cmph_uint8 * used_edges, cmph_uint32 unused_edge_index)
 {
-#ifdef NDEBUG
-	(void)bmz8;
-#endif
 	while(1)
 	{
 	    assert(unused_edge_index < bmz8->m);
-	    if(GETBIT(used_edges, unused_edge_index)) unused_edge_index ++;
-	    else break;
+#ifdef NDEBUG
+	    if (unused_edge_index >= bmz8->m)
+		exit(1);
+#endif
+	    if(GETBIT(used_edges, unused_edge_index))
+		unused_edge_index ++;
+	    else
+		break;
 	}
 	return (cmph_uint8)unused_edge_index;
 }
