@@ -303,7 +303,8 @@ int main(int argc, char **argv)
 	if (seed == UINT_MAX) {
 #ifdef __linux__
 		int fd = open("/dev/urandom", O_RDONLY);
-		read(fd, &seed, sizeof(seed));
+		int nread = read(fd, &seed, sizeof(seed));
+		assert(nread == (int)sizeof(seed));
 	        srand(seed);
 #else
 		struct timespec ts;
