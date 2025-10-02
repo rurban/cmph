@@ -250,6 +250,7 @@ cmph_t *brz_new(cmph_config_t *mph, double c)
 		ordering_table[h] = i;
 		mph->key_source->dispose(key);
 	    }
+	    mphf->o = ordering_table;
 	}
 
 	DEBUGP("Successfully generated minimal perfect hash\n");
@@ -303,7 +304,6 @@ static int brz_gen_mphf(cmph_config_t *mph)
 				sum += value;
 				value = buckets_size[i];
 				buckets_size[i] = sum;
-
 			}
 			memory_usage = 0;
 			keys_index = (cmph_uint32 *)calloc((size_t)nkeys_in_buffer, sizeof(cmph_uint32));
@@ -415,6 +415,11 @@ static int brz_gen_mphf(cmph_config_t *mph)
 	buff_manager = buffer_manager_new(brz->memory_availability, nflushes);
 	buffer_merge = (cmph_uint8 **)calloc((size_t)nflushes, sizeof(cmph_uint8 *));
 	buffer_h0    = (cmph_uint32 *)calloc((size_t)nflushes, sizeof(cmph_uint32));
+	if (mph->do_ordering_table) {
+	    brz->g  = (cmph_uint8 **)  calloc((size_t)brz->k, sizeof(cmph_uint8 *));
+	    brz->h1 = (hash_state_t **)calloc(brz->k, sizeof(hash_state_t*)*2);
+	    brz->h2 = (hash_state_t **)calloc(brz->k, sizeof(hash_state_t*)*2);
+	}
 
 	memory_usage = 0;
 	for(i = 0; i < nflushes; i++)
@@ -509,6 +514,14 @@ static int brz_gen_mphf(cmph_config_t *mph)
 				{
 					fch_data_t * fchf = NULL;
 					fchf = (fch_data_t *)mphf_tmp->data;
+					if (mph->do_ordering_table) {
+					    brz->g[cur_bucket] = malloc(fchf->b);
+					    brz->h1[cur_bucket] = malloc(sizeof(hash_state_t) * 2);
+					    brz->h2[cur_bucket] = malloc(sizeof(hash_state_t) * 2);
+					    memcpy(brz->g[cur_bucket], fchf->g, fchf->b);
+					    memcpy(brz->h1[cur_bucket], fchf->h1, sizeof(hash_state_t) * 2);
+					    memcpy(brz->h2[cur_bucket], fchf->h2, sizeof(hash_state_t) * 2);
+					}
 					bufmphf = brz_copy_partial_fch_mphf(fchf, &buflenmphf);
 				}
 					break;
@@ -516,6 +529,14 @@ static int brz_gen_mphf(cmph_config_t *mph)
 				{
 					bmz8_data_t * bmzf = NULL;
 					bmzf = (bmz8_data_t *)mphf_tmp->data;
+					if (mph->do_ordering_table) {
+					    brz->g[cur_bucket] = malloc(bmzf->n);
+					    brz->h1[cur_bucket] = malloc(sizeof(hash_state_t));
+					    brz->h2[cur_bucket] = malloc(sizeof(hash_state_t));
+					    memcpy(brz->g[cur_bucket], bmzf->g, bmzf->n);
+					    memcpy(brz->h1[cur_bucket], bmzf->hashes[0], sizeof(hash_state_t));
+					    memcpy(brz->h2[cur_bucket], bmzf->hashes[1], sizeof(hash_state_t));
+					}
 					bufmphf = brz_copy_partial_bmz8_mphf(brz, bmzf, cur_bucket,  &buflenmphf);
 				}
 					break;
@@ -566,6 +587,7 @@ static char * brz_copy_partial_fch_mphf(fch_data_t * fchf, cmph_uint32 *buflen)
 	char * bufh2 = NULL;
 	char * buf   = NULL;
 	cmph_uint32 n = fchf->b;//brz->size[index];
+
 	hash_state_dump(fchf->h1, "brz: fch->h1", &bufh1, &buflenh1);
 	hash_state_dump(fchf->h2, "brz: fch->h2", &bufh2, &buflenh2);
 	*buflen = buflenh1 + buflenh2 + n + 2U * (cmph_uint32)sizeof(cmph_uint32);
@@ -818,6 +840,7 @@ void brz_destroy(cmph_t *mphf)
 	free(data->size);
 	free(data->offset);
 	free(data);
+	free(mphf->o);
 	free(mphf);
 }
 

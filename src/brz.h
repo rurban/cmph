@@ -17,6 +17,8 @@
  *      brz_pack
  *      brz_packed_size
  *      brz_search_packed
+ * Only with -r to create the ordering keys, the full MPHF structs are
+ * filled for all buckets.
  */
 typedef struct __brz_data_t brz_data_t;
 typedef struct __brz_config_data_t brz_config_data_t;

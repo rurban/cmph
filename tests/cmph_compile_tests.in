@@ -98,7 +98,7 @@ for a in $algos; do
             [ -n "$fail" ] && exit 1
 
             case "$a" in
-                chd|bdz|bmz|fch|chd_ph|bdz_ph|bmz8)
+                chd|bdz|bmz|fch|chd_ph|bdz_ph|bmz8|brz)
                     echo "Test ordering table"
                     echo "** cmph -Cr -a $a -f $f -o $base.c $words"
                     ../src/cmph -Cr -a "$a" -f $f -o "$base.c" "$words" || \
@@ -113,7 +113,6 @@ for a in $algos; do
                     fi
                     ;;
                 chm) echo "Skip ordering table test for $a" ;;
-                # TODO brz
                 *) echo "TODO Skip ordering table test for $a NYI" ;;
             esac
         fi

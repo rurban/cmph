@@ -83,7 +83,7 @@ for a in $algos; do
             ./mphf_tests -a "$a" -f $f "$words"
 
             case "$a" in
-                chd|bdz|bmz|fch|chd_ph|bdz_ph|bmz8)
+                chd|bdz|bmz|fch|chd_ph|bdz_ph|bmz8|brz)
                     echo "Test ordering table for $a"
                     echo "** cmph -gr -a $a -f $f $words"
                     ../src/cmph -gr -a $a -f $f "$words" && \
@@ -91,7 +91,6 @@ for a in $algos; do
                           ./mphf_tests -a $a -f $f "$words" )
                     ;;
                 chm) echo "Skip ordering table test for $a" ;;
-                # TODO brz
                 *) echo "TODO Skip ordering table test for $a NYI" ;;
             esac
         fi
