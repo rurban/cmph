@@ -1,9 +1,9 @@
-#include "../src/graph.h"
+#include "graph.h"
 
 #ifndef DEBUG
 #define DEBUG
 #endif
-#include "../src/debug.h"
+#include "debug.h"
 
 int main(void)
 {

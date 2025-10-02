@@ -88,14 +88,14 @@ for a in $algos; do
 
             case "$a" in
                 chd|bdz|bmz|fch|chd_ph|bdz_ph|bmz8|brz)
-                    echo "Test ordering table for $a"
+                    echo "Test ordering table for $a $f"
                     echo "** cmph -gr -a $a -f $f $opts $words"
                     # shellcheck disable=SC2086
                     ../src/cmph -gr -a $a -f "$f" $opts "$words" && \
                         ( echo "** mphf_tests -a $a -f $f $opts $words";  \
                           ./mphf_tests -a $a -f "$f" $opts "$words" )
                     ;;
-                chm) echo "Skip ordering table test for $a" ;;
+                chm) echo "Skip ordering table test for $a $f" ;;
                 *) echo "TODO Skip ordering table test for $a NYI" ;;
             esac
         fi

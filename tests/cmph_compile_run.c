@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdint.h>
+#include <assert.h>
 
 uint32_t cmph_c_search(const char* key, uint32_t keylen);
 uint32_t cmph_c_size(void);
@@ -34,6 +35,9 @@ int main(int argc, char **argv) {
     char has_ordering_table;
 #endif
 
+    assert(hasharray);
+    assert(hashtable);
+    assert(algo);
     if ((p = strchr(algo, '_')))
         *p = '\0';
     is_order_preserving = strcmp(algo, "chm") == 0;

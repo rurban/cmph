@@ -1,11 +1,12 @@
-#include "../src/compressed_seq.h"
+#include "compressed_seq.h"
 
 #ifndef DEBUG
 #define DEBUG
 #endif
-#include "../src/debug.h"
+#include "debug.h"
 #include <stdlib.h>
 #include "cmph_xhelpers.h"
+#include <assert.h>
 
 static inline void print_values(compressed_seq_t * cs, cmph_uint32 idx)
 {
@@ -14,7 +15,6 @@ static inline void print_values(compressed_seq_t * cs, cmph_uint32 idx)
 	index = compressed_seq_query(cs, idx);
 	fprintf(stderr, "Index[%u]\t= %u\n", idx, index);
 }
-
 
 static inline void print_values_packed(char * cs_packed, cmph_uint32 idx)
 {
@@ -36,9 +36,11 @@ int main(void)
 	char * cs_packed = NULL;
 	cmph_uint32 cs_pack_size = 0;
 
+	assert(sizeof(keys_vec)/sizeof(*keys_vec) == n);
 	compressed_seq_init(&cs);
 	compressed_seq_generate(&cs, keys_vec, n);
-	fprintf(stderr, "Space usage = %u\n", compressed_seq_get_space_usage(&cs));
+	fprintf(stderr, "Compressed space: %u bits vs uncompressed: %lu\n",
+		compressed_seq_get_space_usage(&cs), 8 * sizeof(keys_vec));
 	for(i = 0; i < n; i++)
 	{
 		print_values(&cs, i);

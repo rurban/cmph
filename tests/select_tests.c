@@ -1,9 +1,10 @@
-#include "../src/select.h"
+#include "select.h"
 
 #ifndef DEBUG
 #define DEBUG
 #endif
-#include "../src/debug.h"
+#include "debug.h"
+#include "cmph_xhelpers.h"
 #include <stdlib.h>
 #include "cmph_xhelpers.h"
 

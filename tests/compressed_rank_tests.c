@@ -1,9 +1,9 @@
-#include "../src/compressed_rank.h"
+#include "compressed_rank.h"
 
 #ifndef DEBUG
 #define DEBUG
 #endif
-#include "../src/debug.h"
+#include "debug.h"
 #include <stdlib.h>
 #include "cmph_xhelpers.h"
 
@@ -45,7 +45,8 @@ int main(void)
 
 	compressed_rank_init(&cr);
 	compressed_rank_generate(&cr, keys_vec, n);
-	fprintf(stderr, "Space usage = %u\n", compressed_rank_get_space_usage(&cr));
+	fprintf(stderr, "Compressed pace: %u bits vs uncompressed: %lu\n",
+		compressed_rank_get_space_usage(&cr), 8 * sizeof(keys_vec));
 	for(i = 0; i < nIndices; i++)
 	{
 		print_values(&cr, i);
