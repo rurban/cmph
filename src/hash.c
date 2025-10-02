@@ -162,7 +162,7 @@ void hash_state_compile(int count, hash_state_t **states, char do_vector, FILE* 
 }
 void hash_state_dump(hash_state_t *state, const char *name, char **buf, cmph_uint32 *buflen)
 {
-	char *algobuf;
+	char *algobuf = NULL;
 	size_t len;
 #ifndef DEBUG
 	(void)name;
@@ -195,6 +195,7 @@ void hash_state_dump(hash_state_t *state, const char *name, char **buf, cmph_uin
 			break;
 		default:
 			assert(0);
+			goto cmph_cleanup;
 	}
         if (*buflen == UINT_MAX) {
                 goto cmph_cleanup;
