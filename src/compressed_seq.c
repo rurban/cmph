@@ -88,14 +88,9 @@ void compressed_seq_generate(compressed_seq_t * cs, cmph_uint32 * vals_table, cm
 	cs->rem_r = compressed_seq_i_log2(cs->total_length/cs->n);
 
 	if(cs->rem_r == 0)
-	{
 		cs->rem_r = 1;
-	}
-
 	if(cs->length_rems)
-	{
 		free(cs->length_rems);
-	}
 
 	cs->length_rems = (cmph_uint32 *)xcalloc(BITS_TABLE_SIZE(cs->n, cs->rem_r), sizeof(cmph_uint32));
 
@@ -239,33 +234,41 @@ void compressed_seq_dump(compressed_seq_t * cs, char ** buf, cmph_uint32 * bufle
 }
 
 // the data
-void compressed_seq_data_compile(FILE *out, const char *name, const compressed_seq_t *cs)
+void compressed_seq_data_compile(FILE *out, const char *name, const compressed_seq_t *cs, const int counter)
 {
 	cmph_uint32 length_rems_size = BITS_TABLE_SIZE(cs->n, cs->rem_r);
 	cmph_uint32 store_table_size = ((cs->total_length + 31) >> 5);
+	char sel_name[32];
+	char rems_name[32];
+	char st_name[32];
 
-	DEBUGP("sel_size = %u\n", select_packed_size(&(cs->sel)));
-	select_data_compile(out, "sel", &cs->sel);
-	fprintf(out, "/* Compressed sequence structure dump */\n");
-	uint32_compile(out, "length_rems", cs->length_rems, length_rems_size);
-	uint32_compile(out, "store_table", cs->store_table, store_table_size);
-	fprintf(out, "struct _compressed_seq_t {\n"
-		"    const uint32_t n;\n"
-		"    const uint32_t rem_r;\n"
-		"    const uint32_t total_length;\n"
-		"    const select_t sel;\n"
-		"    const uint32_t *length_rems;\n"
-		"    const uint32_t *store_table;\n"
-		"};\n"
-		"typedef struct _compressed_seq_t compressed_seq_t;\n");
+	snprintf(sel_name, sizeof(sel_name)-1, "sel%d", counter);
+	snprintf(rems_name, sizeof(rems_name)-1, "length_rems%d", counter);
+	snprintf(st_name, sizeof(st_name)-1, "store_table%d", counter);
+	DEBUGP("sel_size = %u, sel_name = %s\n", select_packed_size(&(cs->sel)), sel_name);
+	select_data_compile(out, sel_name, &cs->sel, counter);
+	fprintf(out, "/* Compressed sequence structure dump %d */\n", counter);
+	uint32_compile(out, rems_name, cs->length_rems, length_rems_size);
+	uint32_compile(out, st_name, cs->store_table, store_table_size);
+	if (!counter) {
+	    fprintf(out, "struct _compressed_seq_t {\n"
+		    "    const uint32_t n;\n"
+		    "    const uint32_t rem_r;\n"
+		    "    const uint32_t total_length;\n"
+		    "    const select_t sel;\n"
+		    "    const uint32_t *length_rems;\n"
+		    "    const uint32_t *store_table;\n"
+		    "};\n"
+		    "typedef struct _compressed_seq_t compressed_seq_t;\n");
+	}
 	// MSVC cannot do designated initializers, a C99 feature
 	fprintf(out, "const compressed_seq_t %s = {\n", name);
 	fprintf(out, "    /*.n =*/ %u,\n", cs->n);
 	fprintf(out, "    /*.rem_r =*/ %u,\n", cs->rem_r);
 	fprintf(out, "    /*.total_length =*/ %u,\n", cs->total_length);
-	fprintf(out, "    /*.sel =*/ sel,\n");
-	fprintf(out, "    /*.length_rems =*/ length_rems,\n");
-	fprintf(out, "    /*.store_table =*/ store_table\n};\n");
+	fprintf(out, "    /*.sel =*/ %s,\n", sel_name);
+	fprintf(out, "    /*.length_rems =*/ length_rems%d,\n", counter);
+	fprintf(out, "    /*.store_table =*/ store_table%d\n};\n", counter);
 }
 
 void compressed_seq_load(compressed_seq_t * cs, const char * buf)
@@ -415,10 +418,9 @@ static void get_bits_at_pos_compile(FILE *out)
 	"    uint32_t word_idx = pos >> 5;\n"
 	"    uint32_t shift1 = pos & 0x0000001f;\n"
 	"    uint32_t shift2 = 32 - shift1;\n"
-	"    uint32_t string_mask = (1U << string_length) - 1;\n"
-	"    assert(word_idx < store_table_size);\n"
+	"    uint32_t string_mask = string_length > 32 ? 0xFFFFFFFF : (1U << string_length) - 1;\n"
 	"    uint32_t bits_string = (bits_table[word_idx] >> shift1) & string_mask;\n"
-	"    if(shift2 < string_length && word_idx+1 < store_table_size)\n"
+	"    if(shift2 < string_length)\n"
 	"        bits_string |= (bits_table[word_idx+1] << shift2) & string_mask;\n"
 	"\n"
 	"    return bits_string;\n"
@@ -426,22 +428,24 @@ static void get_bits_at_pos_compile(FILE *out)
 }
 
 // the function
-void compressed_seq_query_compile(FILE *out, const compressed_seq_t *cs)
+void compressed_seq_query_compile(FILE *out, const compressed_seq_t *cs, const int counter)
 {
+  (void)cs; // we have multiple now, cannot inline it anymore
+  if (counter) // only dump the first definition
+      return;
   select_query_compile(out);
   get_bits_at_pos_compile(out);
   fprintf(out,
 	  "static uint32_t compressed_seq_query(const compressed_seq_t *cs, const uint32_t idx) {\n"
 	  "    // compressed sequence query computation\n"
 	  "    uint32_t enc_idx, enc_length;\n"
-	  //"    uint32_t rems_mask;\n"
+	  "    uint32_t rems_mask;\n"
 	  "    uint32_t stored_value;\n"
 	  "    uint32_t sel_res;\n"
 	  "\n"
-	  "    assert(idx < %uU);\n", cs->n);
-  cmph_uint32 rems_mask = (1U << cs->rem_r) - 1U;
-  //fprintf(out,
-  //	  "    rems_mask = (1U << %uU) - 1U;\n", cs->rem_r);
+	  "    assert(idx < cs->n);\n");
+  fprintf(out,
+  	  "    rems_mask = (1U << cs->rem_r) - 1U;\n");
   fprintf(out,
 	  "    if(idx == 0) {\n"
 	  "        enc_idx = 0;\n"
@@ -450,23 +454,23 @@ void compressed_seq_query_compile(FILE *out, const compressed_seq_t *cs)
 	  "    else {\n"
 	  "        sel_res = select_query(&cs->sel, idx - 1);\n");
   fprintf(out,
-	  "        enc_idx = (sel_res - (idx - 1)) << %uU;\n", cs->rem_r);
+	  "        enc_idx = (sel_res - (idx - 1)) << cs->rem_r;\n");
   fprintf(out,
-	  "        enc_idx += get_bits_value(length_rems, idx-1, %uU, %uU);\n", cs->rem_r, rems_mask);
+	  "        enc_idx += get_bits_value(cs->length_rems, idx - 1, cs->rem_r, rems_mask);\n");
   fprintf(out,
 	  "        sel_res = select_next_query(&cs->sel, sel_res);\n"
 	  "    };\n"
 	  "\n");
   fprintf(out,
-	  "    enc_length = (sel_res - idx) << %uU;\n", cs->rem_r);
+	  "    enc_length = (sel_res - idx) << cs->rem_r;\n");
   fprintf(out,
-	  "    enc_length += get_bits_value(length_rems, idx, %uU, %uU);\n", cs->rem_r, rems_mask);
+	  "    enc_length += get_bits_value(cs->length_rems, idx, cs->rem_r, rems_mask);\n");
   fprintf(out,
 	  "    enc_length -= enc_idx;\n"
 	  "    if(enc_length == 0)\n"
 	  "        return 0;\n"
 	  "\n"
-	  "    stored_value = get_bits_at_pos(store_table, enc_idx, enc_length);\n"
+	  "    stored_value = get_bits_at_pos(cs->store_table, enc_idx, enc_length);\n"
 	  "    return stored_value + ((1U << enc_length) - 1U);\n"
 	  "}\n");
 }

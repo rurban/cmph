@@ -496,6 +496,10 @@ void cmph_config_set_ordering_table(cmph_config_t *mph)
 {
 	mph->do_ordering_table = 1;
 }
+cmph_uint32 *cmph_config_ordering_table(cmph_config_t *mph)
+{
+	return mph->ordering_table;
+}
 
 void cmph_config_set_hashfuncs(cmph_config_t *mph, CMPH_HASH *hashfuncs)
 {
@@ -783,9 +787,10 @@ cmph_t *cmph_load(FILE *f)
 	return mphf;
 }
 
-cmph_uint32 *cmph_ordering_table(cmph_t *mphf)
+cmph_uint32 cmph_ordering_table(cmph_t *mphf, cmph_uint8 **packed_co)
 {
-	return mphf->o;
+    *packed_co = mphf->packed_co;
+    return mphf->packed_co_size;
 }
 
 cmph_uint32 cmph_search(cmph_t *mphf, const char *key, cmph_uint32 keylen)
@@ -833,6 +838,8 @@ cmph_uint32 cmph_size(cmph_t *mphf)
 
 void cmph_destroy(cmph_t *mphf)
 {
+        free(mphf->packed_co);
+	mphf->packed_co = NULL;
 	switch(mphf->algo)
 	{
 		case CMPH_CHM:

@@ -2,6 +2,7 @@
 #define __CMPH_STRUCTS_H__
 
 #include "cmph.h"
+#include "compressed_seq.h"
 
 /** Hash generation algorithm data
   */
@@ -17,6 +18,7 @@ struct __config_t
         char *c_prefix;
         cmph_uint8 verbosity;
         cmph_uint8 do_ordering_table;
+        cmph_uint32 *ordering_table;
 };
 
 /** Hash querying algorithm data
@@ -26,7 +28,8 @@ struct __cmph_t
         CMPH_ALGO algo;
         cmph_uint32 size;
         cmph_io_adapter_t *key_source;
-        cmph_uint32 *o; // optional ordering_table (empty for CHM)
+        cmph_uint8 *packed_co; // optional compressed ordering_table (empty for CHM)
+        cmph_uint32 packed_co_size;
         void *data; // algorithm dependent data
 };
 
@@ -34,6 +37,5 @@ cmph_config_t *__config_new(cmph_io_adapter_t *key_source);
 void __config_destroy(cmph_config_t*);
 void __cmph_dump(cmph_t *mphf, FILE *);
 cmph_t *__cmph_load(FILE *f);
-
 
 #endif

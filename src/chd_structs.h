@@ -3,6 +3,7 @@
 
 #include "chd_structs_ph.h"
 #include "chd_ph.h"
+#include "compressed_seq.h"
 #include "compressed_rank.h"
 
 struct __chd_data_t

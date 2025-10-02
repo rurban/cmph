@@ -20,6 +20,7 @@ cmph_config_t *__config_new(cmph_io_adapter_t *key_source)
 	mph->hashfuncs[1] = CMPH_HASH_JENKINS;
 	mph->hashfuncs[2] = CMPH_HASH_JENKINS;
 	mph->nhashfuncs = 1;
+	mph->ordering_table = NULL;
 	mph->c_prefix = "cmph_c";
 	return mph;
 }
@@ -75,7 +76,8 @@ cmph_t *__cmph_load(FILE *f)
 	mphf->algo = algo;
 	CHK_FREAD(&(mphf->size), sizeof(mphf->size), (size_t)1, f);
 	mphf->data = NULL;
-	mphf->o = NULL;
+	mphf->packed_co = NULL;
+	mphf->packed_co_size = 0;
 	DEBUGP("Algorithm is %s and mphf is sized %u\n", cmph_names[algo],  mphf->size);
 
 	return mphf;

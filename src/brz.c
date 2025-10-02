@@ -50,8 +50,9 @@ brz_config_data_t *brz_config_new(void)
 void brz_config_destroy(cmph_config_t *mph)
 {
 	brz_config_data_t *data = (brz_config_data_t *)mph->data;
-	free(data->tmp_dir);
+	free(mph->ordering_table);
 	DEBUGP("Destroying algorithm dependent data\n");
+	free(data->tmp_dir);
 	free(data);
 }
 
@@ -140,7 +141,6 @@ cmph_t *brz_new(cmph_config_t *mph, double c)
 	brz_data_t *brzf = NULL;
 	cmph_uint32 i;
 	cmph_uint32 iterations = 20;
-	cmph_uint32 *ordering_table = NULL;
 	brz_config_data_t *brz = (brz_config_data_t *)mph->data;
 	DEBUGP("c: %f\n", c);
 
@@ -214,7 +214,8 @@ cmph_t *brz_new(cmph_config_t *mph, double c)
 	// Generating a mphf
 	mphf = (cmph_t *)xmalloc(sizeof(cmph_t));
 	mphf->algo = mph->algo;
-	mphf->o = ordering_table;
+	mphf->packed_co_size = 0;
+	mphf->packed_co = NULL;
 	brzf = (brz_data_t *)xmalloc(sizeof(brz_data_t));
 	brzf->g = brz->g;
 	brz->g = NULL; //transfer memory ownership
@@ -237,8 +238,8 @@ cmph_t *brz_new(cmph_config_t *mph, double c)
 	mphf->size = brz->m;
 
 	if (mph->do_ordering_table) {
-	    ordering_table = (cmph_uint32 *)xcalloc((size_t)mphf->size, sizeof(cmph_uint32));
-	    assert(ordering_table);
+	    compressed_seq_t co;
+	    mph->ordering_table = (cmph_uint32 *)xcalloc((size_t)mphf->size, sizeof(cmph_uint32));
 	    if (mph->verbosity)
 		fprintf(stderr, "Create ordering table\n");
 	    mph->key_source->rewind(mph->key_source->data);
@@ -247,10 +248,15 @@ cmph_t *brz_new(cmph_config_t *mph, double c)
 		char *key = NULL;
 		mph->key_source->read(mph->key_source->data, &key, &keylen);
 		h = brz_search(mphf, key, keylen);
-		ordering_table[h] = i;
+		mph->ordering_table[h] = i;
 		mph->key_source->dispose(key);
 	    }
-	    mphf->o = ordering_table;
+	    compressed_seq_init(&co);
+	    compressed_seq_generate(&co, mph->ordering_table, mphf->size);
+	    mphf->packed_co_size = compressed_seq_packed_size(&co);
+	    mphf->packed_co = (cmph_uint8 *)calloc(mphf->packed_co_size, sizeof(cmph_uint8));
+	    compressed_seq_pack(&co, mphf->packed_co);
+	    compressed_seq_destroy(&co);
 	}
 
 	DEBUGP("Successfully generated minimal perfect hash\n");
@@ -300,7 +306,8 @@ static int brz_gen_mphf(cmph_config_t *mph)
 			buckets_size[0]   = 0;
 			for(i = 1; i < brz->k; i++)
 			{
-				if(buckets_size[i] == 0) continue;
+				if(buckets_size[i] == 0)
+				    continue;
 				sum += value;
 				value = buckets_size[i];
 				buckets_size[i] = sum;
@@ -656,12 +663,16 @@ int brz_compile(cmph_t *mphf, cmph_config_t *mph, FILE *out)
 	hashes[2] = data->h0;
 	hash_state_compile(3, hashes, do_vector, out);
 	fprintf(out, "// NYI\n");
-	if (mphf->o) {
-		uint32_compile(out, "ordering_table", mphf->o, data->m);
-		fprintf(out, "uint32_t %s_order(uint32_t id) {\n", mph->c_prefix);
-		fprintf(out, "    assert(id < %u);\n", data->m);
-		fprintf(out, "    return ordering_table[id];\n");
-		fprintf(out, "}\n");
+	if (mph->ordering_table) {
+	    compressed_seq_t co = {0};
+	    compressed_seq_unpack((uint32_t *)mphf->packed_co, &co);
+	    compressed_seq_data_compile(out, "ordering_seq", &co, 0);
+	    compressed_seq_query_compile(out, &co, 0); // the function
+	    //uint32_compile(out, "ordering_table", mph->ordering_table, data->m);
+	    fprintf(out, "uint32_t %s_order(uint32_t id) {\n", mph->c_prefix);
+	    fprintf(out, "    assert(id < %u);\n", data->m);
+	    fprintf(out, "    return compressed_seq_query(&ordering_seq, id);\n");
+	    fprintf(out, "}\n");
 	}
 	fprintf(out, "uint32_t %s_size(void) {\n", mph->c_prefix);
 	fprintf(out, "    return %u;\n}\n", data->m);
@@ -686,14 +697,11 @@ int brz_dump(cmph_t *mphf, FILE *fd)
 	// Dumping m and the vector offset.
 	CHK_FWRITE(&(data->m), sizeof(cmph_uint32), (size_t)1, fd);
 	CHK_FWRITE(data->offset, sizeof(cmph_uint32)*(data->k), (size_t)1, fd);
-	if (mphf->o) {
-	    DEBUGP("Dumping ordering table with %u entries\n", data->m);
-	    CHK_FWRITE(mphf->o, sizeof(cmph_uint32) * (data->m), (size_t)1, fd);
-#ifdef DEBUG
-	    fprintf(stderr, "O: ");
-	    for (cmph_uint32 i = 0; i < data->m; ++i) fprintf(stderr, "%u ", mphf->o[i]);
-	    fprintf(stderr, "\n");
-#endif
+	// version 2.1 extension
+	if (mphf->packed_co_size) {
+	    DEBUGP("Dumping packed ordering table\n");
+	    CHK_FWRITE(&(mphf->packed_co_size), sizeof(cmph_uint32), (size_t)1, fd);
+	    CHK_FWRITE(mphf->packed_co, mphf->packed_co_size,(size_t)1, fd);
 	}
 	return 1;
 }
@@ -763,24 +771,18 @@ void brz_load(FILE *f, cmph_t *mphf)
 
 	//loading c, m, and the vector offset.
 	CHK_FREAD(&(brz->m), sizeof(cmph_uint32), (size_t)1, f);
-	brz->offset = (cmph_uint32 *)xmalloc(sizeof(cmph_uint32)*brz->k);
+	brz->offset = (cmph_uint32 *)xmalloc(sizeof(cmph_uint32) * brz->k);
 	CHK_FREAD(brz->offset, sizeof(cmph_uint32)*(brz->k), (size_t)1, f);
-	//loading the optional ordering table.
-	mphf->o = (cmph_uint32 *)xmalloc(sizeof(cmph_uint32) * brz->m);
+
+	//loading the optional ordering table. since version 2.1
 	cmph_uint32 nread =
-	    fread(mphf->o, sizeof(cmph_uint32), (size_t)brz->m, f);
-	if (nread != brz->m) {
-	    free(mphf->o);
-	    mphf->o = NULL;
+	    fread(&(mphf->packed_co_size), sizeof(cmph_uint32), (size_t)1, f);
+	if (nread == 1) {
+	    mphf->packed_co = (cmph_uint8 *)xmalloc(mphf->packed_co_size);
+	    CHK_FREAD(mphf->packed_co, mphf->packed_co_size, (size_t)1, f);
+	} else {
+	    mphf->packed_co_size = 0;
 	}
-#ifdef DEBUG
-	if (mphf->o) {
-	    fprintf(stderr, "O: ");
-	    for (cmph_uint32 i = 0; i < brz->m; ++i)
-		fprintf(stderr, "%u ", mphf->o[i]);
-	    fprintf(stderr, "\n");
-	}
-#endif
 	return;
 }
 
@@ -859,7 +861,6 @@ void brz_destroy(cmph_t *mphf)
 	free(data->size);
 	free(data->offset);
 	free(data);
-	free(mphf->o);
 	free(mphf);
 }
 

@@ -56,7 +56,7 @@ void compressed_rank_unpack(const uint8_t *cr_packed, compressed_rank_t *cr,
 
 /* compile to C support */
 void compressed_rank_data_compile(FILE *out, const char *name,
-				  const compressed_rank_t *cr);
+				  const compressed_rank_t *cr, const int counter);
 void compressed_rank_query_compile(FILE *out, const compressed_rank_t *cr);
 void compressed_rank_query_packed_compile(FILE *out);
 

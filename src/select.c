@@ -243,20 +243,21 @@ void select_dump(select_t *sel, char **buf, cmph_uint32 *buflen)
 	DEBUGP("Dumped select structure with size %u bytes\n", *buflen);
 }
 
-void select_data_compile(FILE* out, const char *name, const select_t *sel)
+void select_data_compile(FILE* out, const char *name, const select_t *sel, const int counter)
 {
         cmph_uint32 nbits = sel->n + sel->m;
 	cmph_uint32 vec_size = ((nbits + 31) >> 5);
 	cmph_uint32 sel_table_size = ((sel->n >> NBITS_STEP_SELECT_TABLE) + 1);
 	char field[24];
 
-	if (strcmp(name, "sel") == 0) // skip for 2x rsel decl
+	if (!counter) { // skip for 2nd rsel or ordering_sel decl
 	    fprintf(out, "struct _select_t {\n"
 		    "    const uint32_t n, m;\n"
 		    "    const uint32_t *bits_vec;\n"
 		    "    const uint32_t *select_table;\n"
 		    "};\n"
 		    "typedef struct _select_t select_t;\n");
+	}
 	snprintf(field, sizeof(field)-1, "%s_bits_vec", name);
 	uint32_compile(out, field, sel->bits_vec, vec_size);
 	snprintf(field, sizeof(field)-1, "%s_select_table", name);
@@ -362,11 +363,11 @@ void select_unpack(const uint32_t *sel_packed, select_t *sel)
     sel->select_table = ptr + vec_size;
 }
 
-void select_unpack_compile(FILE *out, const uint32_t *sel_packed)
+void select_unpack_compile(FILE *out, const uint32_t *sel_packed, const int counter)
 {
     select_t sel;
     select_unpack(sel_packed, &sel);
-    select_data_compile(out, "sel", &sel);
+    select_data_compile(out, "sel", &sel, counter);
 }
 
 void select_load(select_t * sel, const char *buf)

@@ -428,7 +428,7 @@ int main(int argc, char **argv)
 			return -1;
 		}
 		if (do_ordering_table || do_reorder_keyfile)
-			ordering_table = cmph_ordering_table(mphf);
+			ordering_table = cmph_config_ordering_table(config);
 
 		if (generate && mphf_fd == NULL)
 		{
@@ -438,6 +438,7 @@ int main(int argc, char **argv)
 			if (do_reorder_keyfile)
 				free(reordered_keyfile);
 			free(source);
+			cmph_destroy(mphf);
 			return -1;
 		}
 		if (compile)
@@ -457,6 +458,7 @@ int main(int argc, char **argv)
 				if (do_reorder_keyfile)
 					free(reordered_keyfile);
 				cmph_io_nlfile_adapter_destroy(source);
+				cmph_destroy(mphf);
 				return -1;
 			}
 			int errs = reorder_keyfile(source, ordering_table, reordered_fd);
@@ -488,6 +490,7 @@ int main(int argc, char **argv)
 			if (do_reorder_keyfile)
 				free(reordered_keyfile);
 			cmph_io_nlfile_adapter_destroy(source);
+			cmph_destroy(mphf);
 			return -1;
 		}
 		mphf = cmph_load(mphf_fd);
@@ -502,7 +505,7 @@ int main(int argc, char **argv)
 				cmph_io_nlfile_adapter_destroy(source);
 				return -1;
 			}
-			ordering_table = cmph_ordering_table(mphf);
+			ordering_table = cmph_config_ordering_table(config);
 			int err = reorder_keyfile(source, ordering_table, reordered_fd);
 			if (verbosity && !err)
 				printf("Wrote %s\n", reordered_keyfile);
@@ -516,7 +519,7 @@ int main(int argc, char **argv)
 			cmph_config_destroy(config);
 			FREE_STRDUP_ARGS;
 			cmph_io_nlfile_adapter_destroy(source);
-			//free(source);
+			cmph_destroy(mphf);
 			return -1;
 		}
 		cmph_uint32 siz = cmph_size(mphf);

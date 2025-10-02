@@ -334,10 +334,10 @@ void compressed_rank_unpack(const uint8_t *cr_packed, compressed_rank_t *cr,
     cr->vals_rems = (ptr += (buflen_sel >> 2));
 }
 
-void compressed_rank_data_compile(FILE *out, const char *name, const compressed_rank_t *cr)
+void compressed_rank_data_compile(FILE *out, const char *name, const compressed_rank_t *cr, const int counter)
 {
     const cmph_uint32 vals_rems_size = BITS_TABLE_SIZE(cr->n, cr->rem_r);
-    select_data_compile(out, "rsel", &cr->sel);
+    select_data_compile(out, "rsel", &cr->sel, counter);
     uint32_compile(out, "vals_rems", cr->vals_rems, vals_rems_size);
     fprintf(out, "struct _compressed_rank_t {\n"
 	    "    const uint32_t max_val;\n"

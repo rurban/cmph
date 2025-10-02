@@ -32,10 +32,12 @@ chd_config_data_t *chd_config_new(cmph_config_t *mph) {
 void chd_config_destroy(cmph_config_t *mph) {
   chd_config_data_t *data = (chd_config_data_t *)mph->data;
   DEBUGP("Destroying algorithm dependent data\n");
-  if (data->chd_ph) {
+  if(data->chd_ph) {
     cmph_config_destroy(data->chd_ph);
     data->chd_ph = NULL;
   }
+  if(mph->ordering_table)
+    free(mph->ordering_table);
   free(data);
 }
 
@@ -66,6 +68,7 @@ cmph_t *chd_new(cmph_config_t *mph, double c) {
   chd_data_t *chdf = NULL;
   chd_config_data_t *chd = (chd_config_data_t *)mph->data;
   chd_ph_config_data_t *chd_ph = (chd_ph_config_data_t *)chd->chd_ph->data;
+  //compressed_seq_t co;
   compressed_rank_t cr;
 
   cmph_t *chd_phf = NULL;
@@ -74,6 +77,8 @@ cmph_t *chd_new(cmph_config_t *mph, double c) {
 
   cmph_uint32 packed_cr_size = 0;
   cmph_uint8 *packed_cr = NULL;
+  cmph_uint32 packed_co_size = 0;
+  cmph_uint8 *packed_co = NULL;
 
   cmph_uint32 i, idx, nkeys, nvals, nbins;
   cmph_uint32 *vals_table = NULL;
@@ -134,13 +139,12 @@ cmph_t *chd_new(cmph_config_t *mph, double c) {
   compressed_rank_pack(&cr, packed_cr);
   compressed_rank_destroy(&cr);
 
-  mphf = (cmph_t *)xmalloc(sizeof(cmph_t));
-  mphf->algo = mph->algo;
   if (mph->do_ordering_table) {
+    compressed_seq_t co;
     if (mph->verbosity)
       fprintf(stderr, "Create ordering table\n");
-    mphf->o = (cmph_uint32 *)xmalloc(nkeys * sizeof(cmph_uint32));
-    memset(mphf->o, 0xFF, nkeys * sizeof(cmph_uint32));
+    mph->ordering_table = (cmph_uint32 *)xmalloc(nkeys * sizeof(cmph_uint32));
+    memset(mph->ordering_table, 0xFF, nkeys * sizeof(cmph_uint32));
     mph->key_source->rewind(mph->key_source->data);
     for (i = 0; i < nkeys; ++i) // all edges
     {
@@ -149,14 +153,23 @@ cmph_t *chd_new(cmph_config_t *mph, double c) {
       mph->key_source->read(mph->key_source->data, &key, &keylen);
       bin_idx = cmph_search_packed(packed_chd_phf, key, keylen);
       rank = compressed_rank_query_packed(packed_cr, bin_idx);
-      mphf->o[bin_idx - rank] = i;
+      mph->ordering_table[bin_idx - rank] = i;
       mph->key_source->dispose(key);
     }
+    compressed_seq_init(&co);
+    compressed_seq_generate(&co, mph->ordering_table, nkeys);
+    packed_co_size = compressed_seq_packed_size(&co);
+    packed_co = (cmph_uint8 *)calloc(packed_co_size, sizeof(cmph_uint8));
+    compressed_seq_pack(&co, packed_co);
+    compressed_seq_destroy(&co);
   }
-  else
-    mphf->o = NULL;
 
   chdf = (chd_data_t *)xmalloc(sizeof(chd_data_t));
+  mphf = (cmph_t *)xmalloc(sizeof(cmph_t));
+  mphf->algo = mph->algo;
+  mphf->packed_co = packed_co;
+  packed_co = NULL;
+  mphf->packed_co_size = packed_co_size;
 
   chdf->packed_cr = packed_cr;
   packed_cr = NULL; // transfer memory ownership
@@ -204,23 +217,20 @@ void chd_load(FILE *fd, cmph_t *mphf) {
   chd->packed_cr = (cmph_uint8 *)xcalloc((size_t)chd->packed_cr_size, (size_t)1);
   CHK_FREAD(chd->packed_cr, chd->packed_cr_size, (size_t)1, fd);
 
-  // if more room in f than current position, TODO use fstat and ftell instead
-  mphf->o = (cmph_uint32 *)xmalloc(sizeof(cmph_uint32) * mphf->size);
-  cmph_uint32 nread = fread(mphf->o, sizeof(cmph_uint32), (size_t)mphf->size, fd);
-  if (nread != mphf->size){
-	  free(mphf->o);
-	  mphf->o = NULL;
+  //loading the optional ordering table. since version 2.1
+  cmph_uint32 nread =
+    fread(&(mphf->packed_co_size), sizeof(cmph_uint32), (size_t)1, fd);
+  if (nread == 1) {
+    mphf->packed_co = (cmph_uint8 *)xmalloc(mphf->packed_co_size);
+    CHK_FREAD(mphf->packed_co, mphf->packed_co_size, (size_t)1, fd);
+  } else {
+    mphf->packed_co_size = 0;
   }
-#ifdef DEBUG
-  if (mphf->o) {
-	  fprintf(stderr, "O: ");
-	  for (cmph_uint32 i = 0; i < mphf->size; ++i) fprintf(stderr, "%u ", mphf->o[i]);
-	  fprintf(stderr, "\n");
-  }
-#endif
 }
 
 //void chd_ph_search_packed_compile(FILE *out, hash_state_t *state);
+
+#define COMPRESSED_O
 
 int chd_compile(cmph_t *mphf, cmph_config_t *mph, FILE *out) {
     chd_data_t *data = (chd_data_t *)mphf->data;
@@ -245,9 +255,9 @@ int chd_compile(cmph_t *mphf, cmph_config_t *mph, FILE *out) {
 #endif
     hash_state_compile(1, (hash_state_t **)&states, 1, out);
 
-    compressed_seq_data_compile(out, "cs", &cs);
-    compressed_seq_query_compile(out, &cs);
-    compressed_rank_data_compile(out, "cr", &cr);
+    compressed_seq_data_compile(out, "cs", &cs, 0);
+    compressed_seq_query_compile(out, &cs, 0);
+    compressed_rank_data_compile(out, "cr", &cr, 1);
     compressed_rank_query_compile(out, &cr);
 
     fprintf(out, "\nuint32_t %s_search(const char* key, uint32_t keylen) {\n", mph->c_prefix);
@@ -289,12 +299,23 @@ int chd_compile(cmph_t *mphf, cmph_config_t *mph, FILE *out) {
 #endif
     fprintf(out, "    return bin_idx - rank;\n");
     fprintf(out, "};\n");
-    if (mphf->o) {
-      uint32_compile(out, "ordering_table", mphf->o, chd_ph->m);
-      fprintf(out, "uint32_t %s_order(uint32_t id) {\n", mph->c_prefix);
-      fprintf(out, "    assert(id < %u);\n", chd_ph->m);
-      fprintf(out, "    return ordering_table[id];\n");
-      fprintf(out, "}\n");
+    if (mph->ordering_table) {
+#ifdef COMPRESSED_O
+        compressed_seq_t co = {0};
+        compressed_seq_unpack((uint32_t *)mphf->packed_co, &co);
+        fprintf(out, "\n/* compressed ordering_seq */\n");
+        compressed_seq_data_compile(out, "ordering_seq", &co, 2);
+        compressed_seq_query_compile(out, &co, 2); // the function
+        fprintf(out, "uint32_t %s_order(uint32_t id) {\n", mph->c_prefix);
+        fprintf(out, "    assert(id < %u);\n", chd_ph->m);
+        fprintf(out, "    return compressed_seq_query(&ordering_seq, id);\n");
+#else
+        uint32_compile(out, "ordering_table", mph->ordering_table, data->m);
+        fprintf(out, "uint32_t %s_order(uint32_t id) {\n", mph->c_prefix);
+        fprintf(out, "    assert(id < %u);\n", bdz->m);
+        fprintf(out, "    return ordering_table[id];\n");
+#endif
+        fprintf(out, "}\n");
     }
     fprintf(out, "uint32_t %s_size(void) {\n", mph->c_prefix);
     fprintf(out, "    return %u;\n}\n", chd_ph->m);
@@ -316,15 +337,11 @@ int chd_dump(cmph_t *mphf, FILE *fd) {
   DEBUGP("Dumping compressed rank structure with %u bytes to disk\n", 1);
   CHK_FWRITE(&data->packed_cr_size, sizeof(cmph_uint32), (size_t)1, fd);
   CHK_FWRITE(data->packed_cr, data->packed_cr_size, (size_t)1, fd);
-
-  if (mphf->o) {
-    DEBUGP("Dumping ordering_table\n");
-    CHK_FWRITE(mphf->o, (size_t)mphf->size, sizeof(cmph_uint32), fd);
-#ifdef DEBUG
-    fprintf(stderr, "O: ");
-    for (cmph_uint32 i = 0; i < mphf->size; ++i) fprintf(stderr, "%u ", mphf->o[i]);
-    fprintf(stderr, "\n");
-#endif
+  // version 2.1 extension
+  if (mphf->packed_co_size) {
+    DEBUGP("Dumping packed ordering table\n");
+    CHK_FWRITE(&(mphf->packed_co_size), sizeof(cmph_uint32), (size_t)1, fd);
+    CHK_FWRITE(mphf->packed_co, mphf->packed_co_size,(size_t)1, fd);
   }
 
   return 1;
@@ -335,8 +352,8 @@ void chd_destroy(cmph_t *mphf) {
   free(data->packed_chd_phf);
   free(data->packed_cr);
   free(data);
-  if(mphf->o)
-    free(mphf->o);
+  if(mphf->packed_co)
+    free(mphf->packed_co);
   free(mphf);
 }
 

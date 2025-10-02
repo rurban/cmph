@@ -149,7 +149,8 @@ cmph_t *chm_new(cmph_config_t *mph, double c)
 
 	mphf = (cmph_t *)xmalloc(sizeof(cmph_t));
 	mphf->algo = mph->algo;
-	mphf->o = NULL;
+	mphf->packed_co = NULL;
+	mphf->packed_co_size = 0;
 	chmf = (chm_data_t *)xmalloc(sizeof(chm_data_t));
 	chmf->g = chm->g;
 	chm->g = NULL; //transfer memory ownership

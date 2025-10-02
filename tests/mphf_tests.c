@@ -13,6 +13,7 @@
 
 #include "cmph.h"
 #include "cmph_structs.h"
+#include "compressed_seq.h"
 #ifdef WIN32
 #define VERSION "0.8"
 #else
@@ -204,8 +205,14 @@ int main(int argc, char **argv)
 	}
 	cmph_uint32 siz = cmph_size(mphf);
 	cmph_uint32 *hasharray = (cmph_uint32*)xcalloc(siz, sizeof(cmph_uint32));
-	cmph_uint32 *o = cmph_ordering_table(mphf);
-	if (o && !o[0] && !o[1]) {
+	cmph_uint32 *o = NULL;
+	cmph_uint8 *packed_co;
+	cmph_uint32 packed_co_size = cmph_ordering_table(mphf, &packed_co);
+	compressed_seq_t co = {0};
+	if (packed_co_size) {
+		compressed_seq_unpack((uint32_t *)packed_co, &co);
+	}
+	if (o && !compressed_seq_query(&co, 0) && !compressed_seq_query(&co, 1)) {
 		fprintf(stderr, "TODO empty ordering table with %s\n", cmph_names[mph_algo]);
 		o = NULL;
 	}
@@ -235,9 +242,9 @@ int main(int argc, char **argv)
 				ret = 1;
 			}
 		} else {
-			if (o && o[h] != i) {
+			if (o && compressed_seq_query(&co, h) != i) {
 				fprintf(stderr, "Keys are not in the right order: %d for %u, "
-					"expected %u\n", (int32_t)o[h], h, i);
+					"expected %u\n", (int32_t)compressed_seq_query(&co, h), h, i);
 				ret = 1;
 			}
 		}

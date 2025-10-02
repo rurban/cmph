@@ -56,8 +56,8 @@ cmph_uint32 compressed_seq_query(compressed_seq_t * cs, cmph_uint32 idx);
 cmph_uint32 compressed_seq_get_space_usage(compressed_seq_t * cs);
 
 void compressed_seq_dump(compressed_seq_t * cs, char ** buf, cmph_uint32 * buflen);
-void compressed_seq_data_compile(FILE *out, const char *name, const compressed_seq_t *cs);
-void compressed_seq_query_compile(FILE *out, const compressed_seq_t *cs);
+void compressed_seq_data_compile(FILE *out, const char *name, const compressed_seq_t *cs, const int counter);
+void compressed_seq_query_compile(FILE *out, const compressed_seq_t *cs, const int counter);
 /** \fn void compressed_seq_unpack(const uint32_t *cs_packed, compressed_seq_t *cs);
  *  \brief The reverse of compressed_seq_pack.
  */

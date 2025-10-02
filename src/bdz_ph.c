@@ -223,6 +223,7 @@ void bdz_ph_config_destroy(cmph_config_t *mph)
 {
 	bdz_ph_config_data_t *data = (bdz_ph_config_data_t *)mph->data;
 	DEBUGP("Destroying algorithm dependent data\n");
+	free(mph->ordering_table);
 	free(data);
 }
 
@@ -246,10 +247,11 @@ cmph_t *bdz_ph_new(cmph_config_t *mph, double c)
 	cmph_t *mphf = NULL;
 	bdz_ph_data_t *bdz_phf = NULL;
 	cmph_uint32 iterations;
-	cmph_uint32 *ordering_table = NULL;
 	bdz_ph_queue_t edges;
 	bdz_ph_graph3_t graph3;
 	bdz_ph_config_data_t *bdz_ph = (bdz_ph_config_data_t *)mph->data;
+	cmph_uint32 packed_co_size = 0;
+	cmph_uint8 *packed_co = NULL;
 #ifdef CMPH_TIMING
 	double construction_time_begin = 0.0;
 	double construction_time = 0.0;
@@ -320,10 +322,10 @@ cmph_t *bdz_ph_new(cmph_config_t *mph, double c)
 	bdz_ph_optimization(bdz_ph);
 
 	if (mph->do_ordering_table) {
+	    compressed_seq_t co;
 	    // nvertices
-	    ordering_table = (cmph_uint32 *)xmalloc(bdz_ph->n * sizeof(cmph_uint32));
-	    assert(ordering_table);
-	    memset(ordering_table, 0xFF, bdz_ph->n * sizeof(cmph_uint32));
+	    mph->ordering_table = (cmph_uint32 *)xmalloc(bdz_ph->n * sizeof(cmph_uint32));
+	    memset(mph->ordering_table, 0xFF, bdz_ph->n * sizeof(cmph_uint32));
 	    DEBUGP("Create ordering table\n");
 	    mph->key_source->rewind(mph->key_source->data);
 
@@ -348,10 +350,16 @@ cmph_t *bdz_ph_new(cmph_config_t *mph, double c)
 		byte2 = lookup_table[hl[2] % 5][byte2];
 		h = hl[(byte0 + byte1 + byte2)%3];
 
-		ordering_table[h] = i;
+		mph->ordering_table[h] = i;
 		mph->key_source->dispose(key);
 		//DEBUGP("O: %u => %i\n", h, i);
 	    }
+	    compressed_seq_init(&co);
+	    compressed_seq_generate(&co, mph->ordering_table, bdz_ph->n);
+	    packed_co_size = compressed_seq_packed_size(&co);
+	    packed_co = (cmph_uint8 *)xcalloc(packed_co_size, sizeof(cmph_uint8));
+	    compressed_seq_pack(&co, packed_co);
+	    compressed_seq_destroy(&co);
 	}
 
 #ifdef CMPH_TIMING
@@ -359,7 +367,9 @@ cmph_t *bdz_ph_new(cmph_config_t *mph, double c)
 #endif
 	mphf = (cmph_t *)xmalloc(sizeof(cmph_t));
 	mphf->algo = mph->algo;
-	mphf->o = ordering_table;
+	mphf->packed_co = packed_co;
+	packed_co = NULL;
+	mphf->packed_co_size = packed_co_size;
 	bdz_phf = (bdz_ph_data_t *)xmalloc(sizeof(bdz_ph_data_t));
 	bdz_phf->g = bdz_ph->g;
 	bdz_ph->g = NULL; //transfer memory ownership
@@ -532,12 +542,16 @@ int bdz_ph_compile(cmph_t *mphf, cmph_config_t *mph, FILE *out)
 #endif
 	fprintf(out, "    return vertex;\n");
 	fprintf(out, "};\n");
-	if (mphf->o) {
-		uint32_compile(out, "ordering_table", mphf->o, bdz->n);
-		fprintf(out, "uint32_t %s_order(uint32_t id) {\n", mph->c_prefix);
-		fprintf(out, "    assert(id < %u);\n", bdz->n);
-		fprintf(out, "    return ordering_table[id];\n");
-		fprintf(out, "}\n");
+	if (mph->ordering_table) {
+	    compressed_seq_t co = {0};
+	    compressed_seq_unpack((uint32_t *)mphf->packed_co, &co);
+	    compressed_seq_data_compile(out, "ordering_seq", &co, 0);
+	    compressed_seq_query_compile(out, &co, 0); // the function
+	    //uint32_compile(out, "ordering_table", mph->ordering_table, data->m);
+	    fprintf(out, "uint32_t %s_order(uint32_t id) {\n", mph->c_prefix);
+	    fprintf(out, "    assert(id < %u);\n", bdz->n);
+	    fprintf(out, "    return compressed_seq_query(&ordering_seq, id);\n");
+	    fprintf(out, "}\n");
 	}
 	fprintf(out, "uint32_t %s_size(void) {\n", mph->c_prefix);
 	fprintf(out, "    return %u;\n}\n", bdz->n);
@@ -571,16 +585,11 @@ int bdz_ph_dump(cmph_t *mphf, FILE *fd)
 	    fprintf(stderr, "%u ", GETVALUE(data->g, i));
 	fprintf(stderr, "\n");
 #endif
-	if (mphf->o) {
-		DEBUGP("Dumping ordering_table\n");
-		CHK_FWRITE(mphf->o, sizeof(cmph_uint32), data->n, fd);
-#ifdef DEBUG
-		fprintf(stderr, "O: ");
-		for (cmph_uint32 i = 0; i < data->n; ++i) fprintf(stderr, "%d ", mphf->o[i]);
-		fprintf(stderr, "\n");
-#endif
+	if (mphf->packed_co_size) {
+	    DEBUGP("Dumping packed ordering table\n");
+	    CHK_FWRITE(&(mphf->packed_co_size), sizeof(cmph_uint32), (size_t)1, fd);
+	    CHK_FWRITE(mphf->packed_co, mphf->packed_co_size,(size_t)1, fd);
 	}
-
 	return 1;
 }
 
@@ -609,23 +618,15 @@ void bdz_ph_load(FILE *f, cmph_t *mphf)
 	bdz_ph->g = (cmph_uint8 *)xcalloc((size_t)sizeg, sizeof(cmph_uint8));
 	CHK_FREAD(bdz_ph->g, sizeg*sizeof(cmph_uint8), (size_t)1, f);
 
-	//loading the optional ordering table.
-	mphf->o = (cmph_uint32 *)xmalloc(sizeof(cmph_uint32) * bdz_ph->n);
+	//loading the optional ordering table. since version 2.1
 	cmph_uint32 nread =
-	    fread(mphf->o, sizeof(cmph_uint32), (size_t)bdz_ph->n, f);
-	if (nread != bdz_ph->n) {
-	    free(mphf->o);
-	    mphf->o = NULL;
+	    fread(&(mphf->packed_co_size), sizeof(cmph_uint32), (size_t)1, f);
+	if (nread == 1) {
+	    mphf->packed_co = (cmph_uint8 *)xmalloc(mphf->packed_co_size);
+	    CHK_FREAD(mphf->packed_co, mphf->packed_co_size, (size_t)1, f);
+	} else {
+	    mphf->packed_co_size = 0;
 	}
-#ifdef DEBUG
-	if (mphf->o) {
-	    fprintf(stderr, "O: ");
-	    for (cmph_uint32 i = 0; i < bdz_ph->n; ++i)
-		fprintf(stderr, "%d ", mphf->o[i]);
-	    fprintf(stderr, "\n");
-	}
-#endif
-
 	return;
 }
 
@@ -661,8 +662,6 @@ void bdz_ph_destroy(cmph_t *mphf)
 	free(data->g);
 	hash_state_destroy(data->hl);
 	free(data);
-	if (mphf->o)
-	    free(mphf->o);
 	free(mphf);
 }
 

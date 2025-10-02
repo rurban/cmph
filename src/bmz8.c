@@ -37,6 +37,7 @@ void bmz8_config_destroy(cmph_config_t *mph)
 {
 	bmz8_config_data_t *data = (bmz8_config_data_t *)mph->data;
 	DEBUGP("Destroying algorithm dependent data\n");
+	free(mph->ordering_table);
 	free(data);
 }
 
@@ -64,7 +65,8 @@ cmph_t *bmz8_new(cmph_config_t *mph, double c)
 	cmph_uint8 *used_edges = NULL;
 	cmph_uint8 restart_mapping = 0;
 	cmph_uint8 *visited = NULL;
-	cmph_uint32 *ordering_table = NULL;
+	cmph_uint32 packed_co_size = 0;
+	cmph_uint8 *packed_co = NULL;
 
 	bmz8_config_data_t *bmz8 = (bmz8_config_data_t *)mph->data;
 	if (mph->key_source->nkeys >= 256)
@@ -200,9 +202,9 @@ cmph_t *bmz8_new(cmph_config_t *mph, double c)
 	}
 
 	if (mph->do_ordering_table) {
-	    ordering_table = (cmph_uint32 *)xmalloc((size_t)bmz8->m * sizeof(cmph_uint32));
-	    memset(ordering_table, 0xFF, (size_t)bmz8->m * sizeof(cmph_uint32));
-	    assert(ordering_table);
+	    compressed_seq_t co;
+	    mph->ordering_table = (cmph_uint32 *)xmalloc((size_t)bmz8->m * sizeof(cmph_uint32));
+	    memset(mph->ordering_table, 0xFF, (size_t)bmz8->m * sizeof(cmph_uint32));
 	    if (mph->verbosity)
 		fprintf(stderr, "Create ordering table\n");
 	    mph->key_source->rewind(mph->key_source->data);
@@ -222,14 +224,22 @@ cmph_t *bmz8_new(cmph_config_t *mph, double c)
 //#endif
 		DEBUGP("%u: %u\n", i, h);
 		assert(h < bmz8->m);
-		ordering_table[h] = i;
+		mph->ordering_table[h] = i;
 		mph->key_source->dispose(key);
 	    }
+	    compressed_seq_init(&co);
+	    compressed_seq_generate(&co, mph->ordering_table, bmz8->m);
+	    packed_co_size = compressed_seq_packed_size(&co);
+	    packed_co = (cmph_uint8 *)calloc(packed_co_size, sizeof(cmph_uint8));
+	    compressed_seq_pack(&co, packed_co);
+	    compressed_seq_destroy(&co);
 	}
 
 	mphf = (cmph_t *)xmalloc(sizeof(cmph_t));
 	mphf->algo = mph->algo;
-	mphf->o = ordering_table;
+	mphf->packed_co = packed_co;
+	packed_co = NULL;
+	mphf->packed_co_size = packed_co_size;
 	bmz8f = (bmz8_data_t *)xmalloc(sizeof(bmz8_data_t));
 	bmz8f->g = bmz8->g;
 	bmz8->g = NULL; //transfer memory ownership
@@ -539,11 +549,15 @@ int bmz8_compile(cmph_t *mphf, cmph_config_t *mph, FILE *out)
 	printf("    if (h1 == h2 && ++h2 >= %u) h2 = 0;\n", data->n);
 	printf("    return (g[h1] + g[h2]) & 0xFF;\n");
 	printf("};\n");
-	if (mphf->o) {
-		uint32_compile(out, "ordering_table", mphf->o, data->m);
+	if (mph->ordering_table) {
+		compressed_seq_t co = {0};
+		compressed_seq_unpack((uint32_t *)mphf->packed_co, &co);
+		compressed_seq_data_compile(out, "ordering_seq", &co, 0);
+		compressed_seq_query_compile(out, &co, 0); // the function
+	        //uint32_compile(out, "ordering_table", mph->ordering_table, data->m);
 		fprintf(out, "uint32_t %s_order(uint32_t id) {\n", mph->c_prefix);
 		fprintf(out, "    assert(id < %u);\n", data->m);
-		fprintf(out, "    return ordering_table[id];\n");
+		fprintf(out, "    return compressed_seq_query(&ordering_seq, id);\n");
 		fprintf(out, "}\n");
 	}
 	printf("uint32_t %s_size(void) {\n", mph->c_prefix);
@@ -582,14 +596,11 @@ int bmz8_dump(cmph_t *mphf, FILE *fd)
 	for (int i = 0; i < data->n; ++i) fprintf(stderr, "%u ", data->g[i]);
 	fprintf(stderr, "\n");
 #endif
-	if (mphf->o) {
-	    DEBUGP("Dumping ordering table with %u entries\n", data->m);
-	    CHK_FWRITE(mphf->o, sizeof(cmph_uint32) * (data->m), (size_t)1, fd);
-#ifdef DEBUG
-	    fprintf(stderr, "O: ");
-	    for (cmph_uint32 i = 0; i < data->m; ++i) fprintf(stderr, "%d ", (int32_t)mphf->o[i]);
-	    fprintf(stderr, "\n");
-#endif
+	// version 2.1 extension
+	if (mphf->packed_co_size) {
+	    DEBUGP("Dumping packed ordering table\n");
+	    CHK_FWRITE(&(mphf->packed_co_size), sizeof(cmph_uint32), (size_t)1, fd);
+	    CHK_FWRITE(mphf->packed_co, mphf->packed_co_size,(size_t)1, fd);
 	}
 	return 1;
 }
@@ -633,21 +644,15 @@ void bmz8_load(FILE *f, cmph_t *mphf)
 	for (i = 0; i < bmz8->n; ++i) fprintf(stderr, "%u ", bmz8->g[i]);
 	fprintf(stderr, "\n");
 #endif
-	mphf->o = (cmph_uint32 *)xmalloc(sizeof(cmph_uint32) * bmz8->m);
+	//loading the optional ordering table. since version 2.1
 	cmph_uint32 nread =
-	    fread(mphf->o, sizeof(cmph_uint32), (size_t)bmz8->m, f);
-	if (nread != bmz8->m) {
-	    free(mphf->o);
-	    mphf->o = NULL;
+	    fread(&(mphf->packed_co_size), sizeof(cmph_uint32), (size_t)1, f);
+	if (nread == 1) {
+	    mphf->packed_co = (cmph_uint8 *)xmalloc(mphf->packed_co_size);
+	    CHK_FREAD(mphf->packed_co, mphf->packed_co_size, (size_t)1, f);
+	} else {
+	    mphf->packed_co_size = 0;
 	}
-#ifdef DEBUG
-	if (mphf->o) {
-	    fprintf(stderr, "O: ");
-	    for (cmph_uint32 i = 0; i < bmz8->m; ++i)
-		fprintf(stderr, "%d ", (int32_t)mphf->o[i]);
-	    fprintf(stderr, "\n");
-	}
-#endif
 	return;
 }
 
@@ -671,7 +676,6 @@ void bmz8_destroy(cmph_t *mphf)
 	hash_state_destroy(data->hashes[1]);
 	free(data->hashes);
 	free(data);
-	free(mphf->o);
 	free(mphf);
 }
 
