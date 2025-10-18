@@ -11,5 +11,10 @@ pkgconfigdir = $(libdir)/pkgconfig
 #README: docs/README.t2t
 #	cd docs && $(MAKE) -C docs index.html
 
+pre-commit:
+	if command -v pre-commit; then cd @srcdir@ && pre-commit run -a; fi
+.PHONY: pre-commit
+check-local: pre-commit
+
 CLEANFILES = TAGS
 DISTCLEANFILES = README
