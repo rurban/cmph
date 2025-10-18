@@ -1,5 +1,5 @@
 import os
-import ycm_core
+# import ycm_core
 
 flags = [
     "-Wall",
