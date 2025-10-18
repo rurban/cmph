@@ -5,6 +5,7 @@
 #endif
 #include "../src/debug.h"
 #include <stdlib.h>
+#include "cmph_xhelpers.h"
 
 static inline void print_values(compressed_rank_t * cr, cmph_uint32 idx)
 {
@@ -65,7 +66,7 @@ int main(void)
 
 	cr_pack_size = compressed_rank_packed_size(&cr);
 
-	cr_packed = (char *) calloc(cr_pack_size, sizeof(char));
+	cr_packed = (char *)xcalloc(cr_pack_size, sizeof(char));
 	compressed_rank_pack(&cr, cr_packed);
 	compressed_rank_destroy(&cr);
 

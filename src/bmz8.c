@@ -24,7 +24,7 @@ static void bmz8_traverse_non_critical_nodes(bmz8_config_data_t *bmz8, cmph_uint
 bmz8_config_data_t *bmz8_config_new(void)
 {
 	bmz8_config_data_t *bmz8;
-	bmz8 = (bmz8_config_data_t *)malloc(sizeof(bmz8_config_data_t));
+	bmz8 = (bmz8_config_data_t *)xmalloc(sizeof(bmz8_config_data_t));
         if (!bmz8) return NULL;
 	memset(bmz8, 0, sizeof(bmz8_config_data_t));
 	//bmz8->g = NULL;
@@ -86,7 +86,7 @@ cmph_t *bmz8_new(cmph_config_t *mph, double c)
 	bmz8->graph = graph_new(bmz8->n, bmz8->m);
 	DEBUGP("Created graph\n");
 
-	bmz8->hashes = (hash_state_t **)calloc(2, sizeof(hash_state_t *));
+	bmz8->hashes = (hash_state_t **)xcalloc(2, sizeof(hash_state_t *));
 
 	do
 	{
@@ -154,12 +154,12 @@ cmph_t *bmz8_new(cmph_config_t *mph, double c)
 		fprintf(stderr, "\tTraversing critical vertices.\n");
 	  }
 	  DEBUGP("Searching step\n");
-	  visited = (cmph_uint8 *)malloc((size_t)bmz8->n/8 + 1);
+	  visited = (cmph_uint8 *)xmalloc((size_t)bmz8->n/8 + 1);
 	  memset(visited, 0, (size_t)bmz8->n/8 + 1);
-	  used_edges = (cmph_uint8 *)malloc((size_t)bmz8->m/8 + 1);
+	  used_edges = (cmph_uint8 *)xmalloc((size_t)bmz8->m/8 + 1);
 	  memset(used_edges, 0, (size_t)bmz8->m/8 + 1);
 	  free(bmz8->g);
-	  bmz8->g = (cmph_uint8 *)calloc((size_t)bmz8->n, sizeof(cmph_uint8));
+	  bmz8->g = (cmph_uint8 *)xcalloc((size_t)bmz8->n, sizeof(cmph_uint8));
 	  assert(bmz8->g);
 	  for (i = 0; i < bmz8->n; ++i) // critical nodes
 	  {
@@ -200,7 +200,7 @@ cmph_t *bmz8_new(cmph_config_t *mph, double c)
 	}
 
 	if (mph->do_ordering_table) {
-	    ordering_table = (cmph_uint32 *)malloc((size_t)bmz8->m * sizeof(cmph_uint32));
+	    ordering_table = (cmph_uint32 *)xmalloc((size_t)bmz8->m * sizeof(cmph_uint32));
 	    memset(ordering_table, 0xFF, (size_t)bmz8->m * sizeof(cmph_uint32));
 	    assert(ordering_table);
 	    if (mph->verbosity)
@@ -222,10 +222,10 @@ cmph_t *bmz8_new(cmph_config_t *mph, double c)
 	    }
 	}
 
-	mphf = (cmph_t *)malloc(sizeof(cmph_t));
+	mphf = (cmph_t *)xmalloc(sizeof(cmph_t));
 	mphf->algo = mph->algo;
 	mphf->o = ordering_table;
-	bmz8f = (bmz8_data_t *)malloc(sizeof(bmz8_data_t));
+	bmz8f = (bmz8_data_t *)xmalloc(sizeof(bmz8_data_t));
 	bmz8f->g = bmz8->g;
 	bmz8->g = NULL; //transfer memory ownership
 	bmz8f->hashes = bmz8->hashes;
@@ -600,12 +600,12 @@ void bmz8_load(FILE *f, cmph_t *mphf)
 	char *buf = NULL;
 	cmph_uint32 buflen;
 	cmph_uint8 i;
-	bmz8_data_t *bmz8 = (bmz8_data_t *)malloc(sizeof(bmz8_data_t));
+	bmz8_data_t *bmz8 = (bmz8_data_t *)xmalloc(sizeof(bmz8_data_t));
 
 	DEBUGP("Loading bmz8 mphf\n");
 	mphf->data = bmz8;
 	CHK_FREAD(&nhashes, sizeof(cmph_uint8), (size_t)1, f);
-	bmz8->hashes = (hash_state_t **)malloc(sizeof(hash_state_t *)*(size_t)(nhashes + 1));
+	bmz8->hashes = (hash_state_t **)xmalloc(sizeof(hash_state_t *)*(size_t)(nhashes + 1));
 	bmz8->hashes[nhashes] = NULL;
 	DEBUGP("Reading %u hashes\n", nhashes);
 	for (i = 0; i < nhashes; ++i)
@@ -615,7 +615,7 @@ void bmz8_load(FILE *f, cmph_t *mphf)
 		snprintf(name, sizeof(name)-1, "bmz8->hashes[%u]", i & 0xff);
 		CHK_FREAD(&buflen, sizeof(cmph_uint32), (size_t)1, f);
 		DEBUGP("Hash state has %u bytes\n", buflen);
-		buf = (char *)malloc((size_t)buflen);
+		buf = (char *)xmalloc((size_t)buflen);
 		CHK_FREAD(buf, (size_t)buflen, (size_t)1, f);
 		state = hash_state_load(buf, name);
 		bmz8->hashes[i] = state;
@@ -626,14 +626,14 @@ void bmz8_load(FILE *f, cmph_t *mphf)
 	CHK_FREAD(&(bmz8->m), sizeof(cmph_uint8), (size_t)1, f)
 	DEBUGP("Read n %u and m %u\n", bmz8->n, bmz8->m);
 
-	bmz8->g = (cmph_uint8 *)malloc(sizeof(cmph_uint8)*bmz8->n);
+	bmz8->g = (cmph_uint8 *)xmalloc(sizeof(cmph_uint8)*bmz8->n);
 	CHK_FREAD(bmz8->g, bmz8->n*sizeof(cmph_uint8), (size_t)1, f);
 #ifdef DEBUG
 	fprintf(stderr, "G: ");
 	for (i = 0; i < bmz8->n; ++i) fprintf(stderr, "%u ", bmz8->g[i]);
 	fprintf(stderr, "\n");
 #endif
-	mphf->o = (cmph_uint32 *)malloc(sizeof(cmph_uint32) * bmz8->m);
+	mphf->o = (cmph_uint32 *)xmalloc(sizeof(cmph_uint32) * bmz8->m);
 	cmph_uint32 nread =
 	    fread(mphf->o, sizeof(cmph_uint32), (size_t)bmz8->m, f);
 	if (nread != bmz8->m) {

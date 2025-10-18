@@ -53,7 +53,7 @@ static void fch_bucket_reserve(fch_bucket_t *bucket, cmph_uint32 size)
 		{
 			new_capacity *= 2;
 		}
-		bucket->entries = (fch_bucket_entry_t *)realloc(bucket->entries, sizeof(fch_bucket_entry_t)*new_capacity);
+		bucket->entries = (fch_bucket_entry_t *)xrealloc(bucket->entries, sizeof(fch_bucket_entry_t)*new_capacity);
 		assert(bucket->entries);
 		bucket->capacity = new_capacity;
 		DEBUGP("Increased\n");
@@ -117,9 +117,9 @@ struct __fch_buckets_t
 fch_buckets_t * fch_buckets_new(cmph_uint32 nbuckets)
 {
 	cmph_uint32 i;
-	fch_buckets_t *buckets = (fch_buckets_t *)malloc(sizeof(fch_buckets_t));
+	fch_buckets_t *buckets = (fch_buckets_t *)xmalloc(sizeof(fch_buckets_t));
         if (!buckets) return NULL;
-	buckets->values = (fch_bucket_t *)calloc((size_t)nbuckets, sizeof(fch_bucket_t));
+	buckets->values = (fch_bucket_t *)xcalloc((size_t)nbuckets, sizeof(fch_bucket_t));
 	for (i = 0; i < nbuckets; i++) fch_bucket_new(buckets->values + i);
 	assert(buckets->values);
 	buckets->nbuckets = nbuckets;
@@ -176,8 +176,8 @@ cmph_uint32 * fch_buckets_get_indexes_sorted_by_size(fch_buckets_t * buckets)
 {
 	cmph_int32 i = 0;
 	cmph_uint32 sum = 0, value;
-	cmph_uint32 *nbuckets_size = (cmph_uint32 *) calloc((size_t)buckets->max_size + 1, sizeof(cmph_uint32));
-	cmph_uint32 * sorted_indexes = (cmph_uint32 *) calloc((size_t)buckets->nbuckets, sizeof(cmph_uint32));
+	cmph_uint32 *nbuckets_size = (cmph_uint32 *)xcalloc((size_t)buckets->max_size + 1, sizeof(cmph_uint32));
+	cmph_uint32 * sorted_indexes = (cmph_uint32 *)xcalloc((size_t)buckets->nbuckets, sizeof(cmph_uint32));
 
 	// collect how many buckets for each size.
 	for(i = 0; i < (int)buckets->nbuckets; i++) nbuckets_size[fch_bucket_size(buckets->values + i)] ++;

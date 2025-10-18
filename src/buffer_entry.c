@@ -1,4 +1,5 @@
 #include "buffer_entry.h"
+#include "cmph_xhelpers.h"
 #include <stdio.h>
 #include <assert.h>
 #include <stdlib.h>
@@ -16,7 +17,7 @@ struct __buffer_entry_t
 
 buffer_entry_t * buffer_entry_new(cmph_uint32 capacity)
 {
-	buffer_entry_t *buff_entry = (buffer_entry_t *)malloc(sizeof(buffer_entry_t));
+	buffer_entry_t *buff_entry = (buffer_entry_t *)xmalloc(sizeof(buffer_entry_t));
         if (!buff_entry) return NULL;
 	buff_entry->fd = NULL;
 	buff_entry->buff = NULL;
@@ -46,7 +47,7 @@ cmph_uint32 buffer_entry_get_capacity(buffer_entry_t * buffer_entry)
 static void buffer_entry_load(buffer_entry_t * buffer_entry)
 {
 	free(buffer_entry->buff);
-	buffer_entry->buff = (cmph_uint8 *)calloc((size_t)buffer_entry->capacity, sizeof(cmph_uint8));
+	buffer_entry->buff = (cmph_uint8 *)xcalloc((size_t)buffer_entry->capacity, sizeof(cmph_uint8));
 	buffer_entry->nbytes = (cmph_uint32)fread(buffer_entry->buff, (size_t)1, (size_t)buffer_entry->capacity, buffer_entry->fd);
 	if (buffer_entry->nbytes != buffer_entry->capacity) buffer_entry->eof = 1;
 	buffer_entry->pos = 0;
@@ -74,7 +75,7 @@ cmph_uint8 * buffer_entry_read_key(buffer_entry_t * buffer_entry, cmph_uint32 * 
 
 	lacked_bytes = *keylen;
 	copied_bytes = 0;
-	buf = (cmph_uint8 *)malloc(*keylen + sizeof(*keylen));
+	buf = (cmph_uint8 *)xmalloc(*keylen + sizeof(*keylen));
         memcpy(buf, keylen, sizeof(*keylen));
 	if((buffer_entry->pos + lacked_bytes) > buffer_entry->nbytes) {
 		copied_bytes = buffer_entry->nbytes - buffer_entry->pos;

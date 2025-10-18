@@ -16,6 +16,7 @@
 #include <assert.h>
 
 #include "cmph.h"
+#include "cmph_xhelpers.h"
 #include "hash.h"
 #include "debug.h"
 
@@ -211,16 +212,16 @@ int main(int argc, char **argv)
 				}
 				break;
 			case 'm':
-				mphf_file = strdup(optarg);
+				mphf_file = xstrdup(optarg);
 				break;
 			case 'd':
-				tmp_dir = strdup(optarg);
+				tmp_dir = xstrdup(optarg);
 				break;
 			case 'o':
-				c_file = strdup(optarg);
+				c_file = xstrdup(optarg);
 				break;
 			case 'p':
-				c_prefix = strdup(optarg);
+				c_prefix = xstrdup(optarg);
 				break;
 			case 'M':
 				{
@@ -296,18 +297,10 @@ int main(int argc, char **argv)
 				{
 					if (strcmp(cmph_hash_names[i], optarg) == 0)
 					{
-						if (hashes) {
-							CMPH_HASH *new_hashes = (CMPH_HASH *)realloc(hashes, sizeof(CMPH_HASH) * ( nhashes + 2 ));
-							if (!new_hashes)
-							{
-								perror("realloc");
-								return -1;
-							}
-							else
-								hashes = new_hashes;
-						}
+						if (hashes)
+							hashes = (CMPH_HASH *)xrealloc(hashes, sizeof(CMPH_HASH) * ( nhashes + 2 ));
 						else
-							hashes = (CMPH_HASH *)calloc(2, sizeof(CMPH_HASH));
+							hashes = (CMPH_HASH *)xcalloc(2, sizeof(CMPH_HASH));
 						hashes[nhashes] = (CMPH_HASH)i;
 						hashes[nhashes + 1] = CMPH_HASH_COUNT;
 						++nhashes;
@@ -344,14 +337,14 @@ int main(int argc, char **argv)
 
 	if (mphf_file == NULL)
 	{
-		mphf_file = (char *)malloc(strlen(keys_file) + 5);
+		mphf_file = (char *)xmalloc(strlen(keys_file) + 5);
 		memcpy(mphf_file, keys_file, strlen(keys_file));
 		memcpy(mphf_file + strlen(keys_file), ".mph\0", (size_t)5);
 	}
 	if (do_reorder_keyfile)
 	{
 		size_t sz = strlen(keys_file) + strlen(cmph_names[mph_algo]) + 6;
-		reordered_keyfile = (char *)malloc(sz+1);
+		reordered_keyfile = (char *)xmalloc(sz+1);
 		if (snprintf(reordered_keyfile, sz, "%s_%s.ord", keys_file, cmph_names[mph_algo]) <= 0) {
 			perror("snprintf");
 			FREE_STRDUP_ARGS;
@@ -527,7 +520,7 @@ int main(int argc, char **argv)
 			return -1;
 		}
 		cmph_uint32 siz = cmph_size(mphf);
-		hashtable = (cmph_uint8*)calloc(siz, sizeof(cmph_uint8));
+		hashtable = (cmph_uint8*)xcalloc(siz, sizeof(cmph_uint8));
 		// check all keys
 		for (i = 0; i < source->nkeys; ++i)
 		{

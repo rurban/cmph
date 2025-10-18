@@ -24,7 +24,7 @@ static void bmz_traverse_non_critical_nodes(bmz_config_data_t *bmz, cmph_uint8 *
 bmz_config_data_t *bmz_config_new(void)
 {
 	bmz_config_data_t *bmz = NULL;
-	bmz = (bmz_config_data_t *)malloc(sizeof(bmz_config_data_t));
+	bmz = (bmz_config_data_t *)xmalloc(sizeof(bmz_config_data_t));
         if (!bmz) return NULL;
 	memset(bmz, 0, sizeof(bmz_config_data_t));
 	return bmz;
@@ -92,7 +92,7 @@ cmph_t *bmz_new(cmph_config_t *mph, double c)
 	bmz->graph = graph_new(bmz->n, bmz->m);
 	DEBUGP("Created graph\n");
 
-	bmz->hashes = (hash_state_t **)calloc(2, sizeof(hash_state_t *));
+	bmz->hashes = (hash_state_t **)xcalloc(2, sizeof(hash_state_t *));
 
 	do
 	{
@@ -153,12 +153,12 @@ cmph_t *bmz_new(cmph_config_t *mph, double c)
 		fprintf(stderr, "Starting Searching step.\n"
 			"\tTraversing critical vertices.\n");
 	  DEBUGP("Searching step\n");
-	  visited = (cmph_uint8 *)malloc((size_t)bmz->n/8 + 1);
+	  visited = (cmph_uint8 *)xmalloc((size_t)bmz->n/8 + 1);
 	  memset(visited, 0, (size_t)bmz->n/8 + 1);
-	  used_edges = (cmph_uint8 *)malloc((size_t)bmz->m/8 + 1);
+	  used_edges = (cmph_uint8 *)xmalloc((size_t)bmz->m/8 + 1);
 	  memset(used_edges, 0, (size_t)bmz->m/8 + 1);
 	  free(bmz->g);
-	  bmz->g = (cmph_uint32 *)calloc((size_t)bmz->n, sizeof(cmph_uint32));
+	  bmz->g = (cmph_uint32 *)xcalloc((size_t)bmz->n, sizeof(cmph_uint32));
 	  assert(bmz->g);
 	  for (i = 0; i < bmz->n; ++i) // critical nodes
 	  {
@@ -198,7 +198,7 @@ cmph_t *bmz_new(cmph_config_t *mph, double c)
 	}
 
 	if (mph->do_ordering_table) {
-	    ordering_table = (cmph_uint32 *)calloc((size_t)bmz->m, sizeof(cmph_uint32));
+	    ordering_table = (cmph_uint32 *)xcalloc((size_t)bmz->m, sizeof(cmph_uint32));
 	    assert(ordering_table);
 	    if (mph->verbosity)
 		fprintf(stderr, "Create ordering table\n");
@@ -235,10 +235,10 @@ cmph_t *bmz_new(cmph_config_t *mph, double c)
 	}
 #endif
 
-	mphf = (cmph_t *)malloc(sizeof(cmph_t));
+	mphf = (cmph_t *)xmalloc(sizeof(cmph_t));
 	mphf->algo = mph->algo;
 	mphf->o = ordering_table;
-	bmzf = (bmz_data_t *)malloc(sizeof(bmz_data_t));
+	bmzf = (bmz_data_t *)xmalloc(sizeof(bmz_data_t));
 	bmzf->g = bmz->g;
 	bmz->g = NULL; //transfer memory ownership
 	bmzf->nhashes = mph->nhashfuncs;
@@ -613,7 +613,7 @@ void bmz_load(FILE *f, cmph_t *mphf)
 	char *buf = NULL;
 	cmph_uint32 buflen;
 	cmph_uint32 i;
-	bmz_data_t *bmz = (bmz_data_t *)malloc(sizeof(bmz_data_t));
+	bmz_data_t *bmz = (bmz_data_t *)xmalloc(sizeof(bmz_data_t));
 	DEBUGP("Loading bmz mphf\n");
 	mphf->data = bmz;
 	CHK_FREAD(&nhashes, sizeof(cmph_uint32), (size_t)1, f);
@@ -623,7 +623,7 @@ void bmz_load(FILE *f, cmph_t *mphf)
 	    mphf->size = 0;
 	    return;
 	}
-	bmz->hashes = (hash_state_t **)malloc(sizeof(hash_state_t *)*(nhashes + 1));
+	bmz->hashes = (hash_state_t **)xmalloc(sizeof(hash_state_t *)*(nhashes + 1));
 	bmz->hashes[nhashes] = NULL;
 	bmz->nhashes = nhashes;
 	DEBUGP("Reading %u hashes\n", nhashes);
@@ -634,7 +634,7 @@ void bmz_load(FILE *f, cmph_t *mphf)
 		snprintf(name, sizeof(name)-1, "bmz->hashes[%u]", i & 0xff);
 		CHK_FREAD(&buflen, sizeof(cmph_uint32), (size_t)1, f);
 		DEBUGP("Hash state has %u bytes\n", buflen);
-		buf = (char *)malloc((size_t)buflen);
+		buf = (char *)xmalloc((size_t)buflen);
 		CHK_FREAD(buf, (size_t)buflen, (size_t)1, f);
 		state = hash_state_load(buf, name);
 		bmz->hashes[i] = state;
@@ -645,7 +645,7 @@ void bmz_load(FILE *f, cmph_t *mphf)
 	CHK_FREAD(&(bmz->m), sizeof(cmph_uint32), (size_t)1, f);
 	DEBUGP("Read n %u and m %u\n", bmz->n, bmz->m);
 
-	bmz->g = (cmph_uint32 *)malloc(sizeof(cmph_uint32)*bmz->n);
+	bmz->g = (cmph_uint32 *)xmalloc(sizeof(cmph_uint32)*bmz->n);
 	CHK_FREAD(bmz->g, bmz->n*sizeof(cmph_uint32), (size_t)1, f);
 #ifdef DEBUG
 	fprintf(stderr, "G: ");
@@ -653,7 +653,7 @@ void bmz_load(FILE *f, cmph_t *mphf)
 	fprintf(stderr, "\n");
 #endif
 	//free(mphf->o);
-	mphf->o = (cmph_uint32 *)malloc(sizeof(cmph_uint32) * bmz->m);
+	mphf->o = (cmph_uint32 *)xmalloc(sizeof(cmph_uint32) * bmz->m);
 	cmph_uint32 nread =
 	    fread(mphf->o, sizeof(cmph_uint32), (size_t)bmz->m, f);
 	if (nread != bmz->m) {

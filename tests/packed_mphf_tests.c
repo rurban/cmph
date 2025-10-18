@@ -67,7 +67,7 @@ int main(int argc, char **argv)
 				}
 				break;
 			case 'm':
-				mphf_file = strdup(optarg);
+				mphf_file = xstrdup(optarg);
 				break;
 			case 'v':
 				++verbosity;
@@ -104,7 +104,7 @@ int main(int argc, char **argv)
 	int ret = 0;
 	if (mphf_file == NULL)
 	{
-		mphf_file = (char *)malloc(strlen(keys_file) + 5);
+		mphf_file = (char *)xmalloc(strlen(keys_file) + 5);
 		memcpy(mphf_file, keys_file, strlen(keys_file));
 		memcpy(mphf_file + strlen(keys_file), ".mph\0", (size_t)5);
 	}
@@ -137,7 +137,7 @@ int main(int argc, char **argv)
 		return -1;
 	}
 	cmph_uint32 siz = cmph_size(mphf);
-	hashtable = (cmph_uint8*)calloc(siz, sizeof(cmph_uint8));
+	hashtable = (cmph_uint8*)xcalloc(siz, sizeof(cmph_uint8));
 	memset(hashtable, 0, (size_t)siz);
 
 	// packing the function
@@ -146,7 +146,7 @@ int main(int argc, char **argv)
 	fprintf(stderr, "packed_size = %u\n", packed_size);
 
 	/* Make sure that we have enough space to pack the mphf. */
-	cmph_uint8 * packed_mphf = (cmph_uint8 *)calloc((size_t)packed_size,(size_t)1);
+	cmph_uint8 * packed_mphf = (cmph_uint8 *)xcalloc((size_t)packed_size,(size_t)1);
 
 	/* Pack the mphf. */
 	cmph_pack(mphf, packed_mphf);

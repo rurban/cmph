@@ -1,8 +1,10 @@
 #include "buffer_manager.h"
 #include "buffer_entry.h"
+#include "cmph_xhelpers.h"
 #include <stdio.h>
 #include <assert.h>
 #include <stdlib.h>
+
 struct __buffer_manager_t
 {
 	cmph_uint32 memory_avail;         // memory available
@@ -15,11 +17,11 @@ struct __buffer_manager_t
 buffer_manager_t * buffer_manager_new(cmph_uint32 memory_avail, cmph_uint32 nentries)
 {
 	cmph_uint32 memory_avail_entry, i;
-	buffer_manager_t *buff_manager = (buffer_manager_t *)malloc(sizeof(buffer_manager_t));
+	buffer_manager_t *buff_manager = (buffer_manager_t *)xmalloc(sizeof(buffer_manager_t));
         if (!buff_manager) return NULL;
 	buff_manager->memory_avail = memory_avail;
-	buff_manager->buffer_entries = (buffer_entry_t **)calloc((size_t)nentries, sizeof(buffer_entry_t *));
-	buff_manager->memory_avail_list = (cmph_uint32 *)calloc((size_t)nentries, sizeof(cmph_uint32));
+	buff_manager->buffer_entries = (buffer_entry_t **)xcalloc((size_t)nentries, sizeof(buffer_entry_t *));
+	buff_manager->memory_avail_list = (cmph_uint32 *)xcalloc((size_t)nentries, sizeof(cmph_uint32));
 	buff_manager->pos_avail_list = -1;
 	buff_manager->nentries = nentries;
 	memory_avail_entry = buff_manager->memory_avail/buff_manager->nentries + 1;

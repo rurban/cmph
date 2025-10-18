@@ -5,6 +5,7 @@
 #endif
 #include "../src/debug.h"
 #include <stdlib.h>
+#include "cmph_xhelpers.h"
 
 static inline void print_values(compressed_seq_t * cs, cmph_uint32 idx)
 {
@@ -58,7 +59,7 @@ int main(void)
 
 	cs_pack_size = compressed_seq_packed_size(&cs);
 
-	cs_packed = (char *) calloc(cs_pack_size, sizeof(char));
+	cs_packed = (char *)xcalloc(cs_pack_size, sizeof(char));
 	compressed_seq_pack(&cs, cs_packed);
 	compressed_seq_destroy(&cs);
 

@@ -68,7 +68,7 @@ int main(int argc, char **argv)
 				}
 				break;
 			case 'm':
-				mphf_file = strdup(optarg);
+				mphf_file = xstrdup(optarg);
 				break;
 			case 'v':
 				++verbosity;
@@ -95,7 +95,7 @@ int main(int argc, char **argv)
 	int ret = 0;
 	if (mphf_file == NULL)
 	{
-		mphf_file = (char *)malloc(strlen(keys_file) + 5);
+		mphf_file = (char *)xmalloc(strlen(keys_file) + 5);
 		memcpy(mphf_file, keys_file, strlen(keys_file));
 		memcpy(mphf_file + strlen(keys_file), ".mph\0", (size_t)5);
 	}
@@ -133,8 +133,8 @@ int main(int argc, char **argv)
 		return -1;
 	}
 	cmph_uint32 sz = cmph_size(mphf);
-	cmph_uint32 *o = (cmph_uint32*)malloc(sz * sizeof(cmph_uint32));
-	cmph_uint32 *n = (cmph_uint32*)calloc(sz, sizeof(cmph_uint32));
+	cmph_uint32 *o = (cmph_uint32*)xmalloc(sz * sizeof(cmph_uint32));
+	cmph_uint32 *n = (cmph_uint32*)xcalloc(sz, sizeof(cmph_uint32));
 	memset(o, 0xFF, sz * sizeof(cmph_uint32));
 	// check all keys
 	for (cmph_uint32 i = 0; i < source->nkeys; ++i)

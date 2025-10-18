@@ -65,7 +65,7 @@ static int key_nlfile_read(void *data, char **key, cmph_uint32 *keylen)
 		char *c = fgets(buf, BUFSIZ, fd);
 		if (c == NULL) return -1;
 		if (feof(fd)) return -1;
-		*key = (char *)realloc(*key, *keylen + strlen(buf) + 1);
+		*key = (char *)xrealloc(*key, *keylen + strlen(buf) + 1);
 		memcpy(*key + *keylen, buf, strlen(buf));
 		*keylen += (cmph_uint32)strlen(buf);
 		if (buf[strlen(buf) - 1] != '\n') continue;
@@ -86,7 +86,7 @@ static int key_byte_vector_read(void *data, char **key, cmph_uint32 *keylen)
 	size_t size;
 	memcpy(keylen, keys_vd[cmph_vector->position], sizeof(*keylen));
 	size = *keylen;
-	*key = (char *)malloc(size);
+	*key = (char *)xmalloc(size);
 	memcpy(*key, keys_vd[cmph_vector->position] + sizeof(*keylen), size);
 	cmph_vector->position = cmph_vector->position + 1;
 	return (int)(*keylen);
@@ -101,7 +101,7 @@ static int key_struct_vector_read(void *data, char **key, cmph_uint32 *keylen)
     size_t size;
     *keylen = cmph_struct_vector->key_len;
     size = *keylen;
-    *key = (char *)malloc(size);
+    *key = (char *)xmalloc(size);
     keys_vd_offset = ((cmph_uint64)cmph_struct_vector->position *
                       (cmph_uint64)cmph_struct_vector->struct_size) +
                      (cmph_uint64)cmph_struct_vector->key_offset;
@@ -117,7 +117,7 @@ static int key_vector_read(void *data, char **key, cmph_uint32 *keylen)
 	size_t size;
         *keylen = (cmph_uint32)strlen(keys_vd[cmph_vector->position]);
 	size = *keylen;
-        *key = (char *)malloc(size + 1);
+        *key = (char *)xmalloc(size + 1);
         strcpy(*key, keys_vd[cmph_vector->position]);
         cmph_vector->position = cmph_vector->position + 1;
 	return (int)(*keylen);
@@ -184,7 +184,7 @@ static cmph_uint32 count_nlfile_keys(FILE *fd)
 
 cmph_io_adapter_t *cmph_io_nlfile_adapter(FILE * keys_fd)
 {
-  cmph_io_adapter_t * key_source = (cmph_io_adapter_t *)malloc(sizeof(cmph_io_adapter_t));
+  cmph_io_adapter_t * key_source = (cmph_io_adapter_t *)xmalloc(sizeof(cmph_io_adapter_t));
   assert(key_source);
   key_source->data = (void *)keys_fd;
   key_source->nkeys = count_nlfile_keys(keys_fd);
@@ -201,7 +201,7 @@ void cmph_io_nlfile_adapter_destroy(cmph_io_adapter_t * key_source)
 
 cmph_io_adapter_t *cmph_io_nlnkfile_adapter(FILE * keys_fd, cmph_uint32 nkeys)
 {
-  cmph_io_adapter_t * key_source = (cmph_io_adapter_t *)malloc(sizeof(cmph_io_adapter_t));
+  cmph_io_adapter_t * key_source = (cmph_io_adapter_t *)xmalloc(sizeof(cmph_io_adapter_t));
   assert(key_source);
   key_source->data = (void *)keys_fd;
   key_source->nkeys = nkeys;
@@ -219,8 +219,8 @@ void cmph_io_nlnkfile_adapter_destroy(cmph_io_adapter_t * key_source)
 
 static cmph_io_adapter_t *cmph_io_struct_vector_new(void * vector, cmph_uint32 struct_size, cmph_uint32 key_offset, cmph_uint32 key_len, cmph_uint32 nkeys)
 {
-	cmph_io_adapter_t * key_source = (cmph_io_adapter_t *)malloc(sizeof(cmph_io_adapter_t));
-	cmph_struct_vector_t * cmph_struct_vector = (cmph_struct_vector_t *)malloc(sizeof(cmph_struct_vector_t));
+	cmph_io_adapter_t * key_source = (cmph_io_adapter_t *)xmalloc(sizeof(cmph_io_adapter_t));
+	cmph_struct_vector_t * cmph_struct_vector = (cmph_struct_vector_t *)xmalloc(sizeof(cmph_struct_vector_t));
 	assert(key_source);
 	assert(cmph_struct_vector);
 	cmph_struct_vector->vector = vector;
@@ -243,8 +243,8 @@ static void cmph_io_struct_vector_destroy(cmph_io_adapter_t * key_source)
 
 static cmph_io_adapter_t *cmph_io_vector_new(void * vector, cmph_uint32 nkeys)
 {
-	cmph_io_adapter_t * key_source = (cmph_io_adapter_t *)malloc(sizeof(cmph_io_adapter_t));
-	cmph_vector_t * cmph_vector = (cmph_vector_t *)malloc(sizeof(cmph_vector_t));
+	cmph_io_adapter_t * key_source = (cmph_io_adapter_t *)xmalloc(sizeof(cmph_io_adapter_t));
+	cmph_vector_t * cmph_vector = (cmph_vector_t *)xmalloc(sizeof(cmph_vector_t));
 	assert(key_source);
 	assert(cmph_vector);
 	cmph_vector->vector = vector;

@@ -1,12 +1,13 @@
+#include "compressed_rank.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <limits.h>
 #include <string.h>
-#include"compressed_rank.h"
-#include"bitbool.h"
-#include"compile.h"
+#include "cmph_xhelpers.h"
+#include "bitbool.h"
+#include "compile.h"
 // #define DEBUG
-#include"debug.h"
+#include "debug.h"
 
 static inline cmph_uint32 compressed_rank_i_log2(cmph_uint32 x)
 {
@@ -48,8 +49,8 @@ void compressed_rank_generate(compressed_rank_t * cr, cmph_uint32 * vals_table, 
 	{
 		cr->rem_r = 1;
 	}
-	select_vec = (cmph_uint32 *) calloc(cr->max_val >> cr->rem_r, sizeof(cmph_uint32));
-	cr->vals_rems = (cmph_uint32 *) calloc(BITS_TABLE_SIZE(cr->n, cr->rem_r), sizeof(cmph_uint32));
+	select_vec = (cmph_uint32 *)xcalloc(cr->max_val >> cr->rem_r, sizeof(cmph_uint32));
+	cr->vals_rems = (cmph_uint32 *)xcalloc(BITS_TABLE_SIZE(cr->n, cr->rem_r), sizeof(cmph_uint32));
 	rems_mask = (1U << cr->rem_r) - 1U;
 
 	for(i = 0; i < cr->n; i++)
@@ -134,7 +135,7 @@ void compressed_rank_dump(compressed_rank_t * cr, char **buf, cmph_uint32 *bufle
 	DEBUGP("sel_size = %u\n", sel_size);
 	DEBUGP("vals_rems_size = %u\n", vals_rems_size);
 
-	*buf = (char *)calloc(*buflen, sizeof(char));
+	*buf = (char *)xcalloc(*buflen, sizeof(char));
 
 	if (!*buf)
 	{
@@ -227,7 +228,7 @@ void compressed_rank_load(compressed_rank_t * cr, const char *buf)
 		free(cr->vals_rems);
 	}
 	vals_rems_size = BITS_TABLE_SIZE(cr->n, cr->rem_r);
-	cr->vals_rems = (cmph_uint32 *) calloc(vals_rems_size, sizeof(cmph_uint32));
+	cr->vals_rems = (cmph_uint32 *)xcalloc(vals_rems_size, sizeof(cmph_uint32));
 	vals_rems_size *= 4;
 	memcpy(cr->vals_rems, buf + pos, vals_rems_size);
 

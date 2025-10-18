@@ -10,6 +10,7 @@ extern "C"
 #endif
 
 #include "cmph_types.h"
+#include "cmph_xhelpers.h"
 
 typedef struct __config_t cmph_config_t;
 typedef struct __cmph_t cmph_t;

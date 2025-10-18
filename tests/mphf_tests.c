@@ -73,7 +73,7 @@ int main(int argc, char **argv)
 				}
 				break;
 			case 'm':
-				mphf_file = strdup(optarg);
+				mphf_file = xstrdup(optarg);
 				break;
 			case 's':
 				{
@@ -113,14 +113,7 @@ int main(int argc, char **argv)
 				{
 					if (strcmp(cmph_hash_names[i], optarg) == 0)
 					{
-						CMPH_HASH *new_hashes = (CMPH_HASH *)realloc(hashes, sizeof(CMPH_HASH) * ( nhashes + 2 ));
-						if (!new_hashes)
-						{
-							perror("realloc");
-							free(hashes);
-							return -1;
-						} else
-							hashes = new_hashes;
+						hashes = (CMPH_HASH *)xrealloc(hashes, sizeof(CMPH_HASH) * ( nhashes + 2 ));
 						hashes[nhashes] = (CMPH_HASH)i;
 						hashes[nhashes + 1] = CMPH_HASH_COUNT;
 						++nhashes;
@@ -164,7 +157,7 @@ int main(int argc, char **argv)
 	int ret = 0;
 	if (mphf_file == NULL)
 	{
-		mphf_file = (char *)malloc(strlen(keys_file) + 5);
+		mphf_file = (char *)xmalloc(strlen(keys_file) + 5);
 		memcpy(mphf_file, keys_file, strlen(keys_file));
 		memcpy(mphf_file + strlen(keys_file), ".mph\0", (size_t)5);
 	}
@@ -208,7 +201,7 @@ int main(int argc, char **argv)
 		return -1;
 	}
 	cmph_uint32 siz = cmph_size(mphf);
-	cmph_uint32 *hasharray = (cmph_uint32*)calloc(siz, sizeof(cmph_uint32));
+	cmph_uint32 *hasharray = (cmph_uint32*)xcalloc(siz, sizeof(cmph_uint32));
 	cmph_uint32 *o = cmph_ordering_table(mphf);
 	if (o && !o[0] && !o[1]) {
 		fprintf(stderr, "TODO empty ordering table with %s\n", cmph_names[mph_algo]);

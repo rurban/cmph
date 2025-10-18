@@ -21,7 +21,7 @@ static void chm_traverse(chm_config_data_t *chm, cmph_uint8 *visited, cmph_uint3
 chm_config_data_t *chm_config_new(void)
 {
 	chm_config_data_t *chm = NULL;
-	chm = (chm_config_data_t *)malloc(sizeof(chm_config_data_t));
+	chm = (chm_config_data_t *)xmalloc(sizeof(chm_config_data_t));
         if (!chm) return NULL;
 	memset(chm, 0, sizeof(chm_config_data_t));
 	//chm->hashfuncs[0] = CMPH_HASH_JENKINS;
@@ -94,7 +94,7 @@ cmph_t *chm_new(cmph_config_t *mph, double c)
 	chm->graph = graph_new(chm->n, chm->m);
 	DEBUGP("Created graph\n");
 
-	chm->hashes = (hash_state_t **)malloc(sizeof(hash_state_t *)*3);
+	chm->hashes = (hash_state_t **)xmalloc(sizeof(hash_state_t *)*3);
 
 	for(i = 0; i < 3; ++i) chm->hashes[i] = NULL;
 	//Mapping step
@@ -130,10 +130,10 @@ cmph_t *chm_new(cmph_config_t *mph, double c)
 	if (mph->verbosity)
 		fprintf(stderr, "Starting assignment step\n");
 	DEBUGP("Assignment step\n");
- 	visited = (cmph_uint8 *)malloc((size_t)(chm->n/8 + 1));
+ 	visited = (cmph_uint8 *)xmalloc((size_t)(chm->n/8 + 1));
 	memset(visited, 0, (size_t)(chm->n/8 + 1));
 	free(chm->g);
-	chm->g = (cmph_uint32 *)malloc(chm->n * sizeof(cmph_uint32));
+	chm->g = (cmph_uint32 *)xmalloc(chm->n * sizeof(cmph_uint32));
 	assert(chm->g);
 	for (i = 0; i < chm->n; ++i)
 	{
@@ -147,10 +147,10 @@ cmph_t *chm_new(cmph_config_t *mph, double c)
 	free(visited);
 	chm->graph = NULL;
 
-	mphf = (cmph_t *)malloc(sizeof(cmph_t));
+	mphf = (cmph_t *)xmalloc(sizeof(cmph_t));
 	mphf->algo = mph->algo;
 	mphf->o = NULL;
-	chmf = (chm_data_t *)malloc(sizeof(chm_data_t));
+	chmf = (chm_data_t *)xmalloc(sizeof(chm_data_t));
 	chmf->g = chm->g;
 	chm->g = NULL; //transfer memory ownership
 	chmf->hashes = chm->hashes;
@@ -320,7 +320,7 @@ void chm_load(FILE *f, cmph_t *mphf)
 	char *buf = NULL;
 	cmph_uint32 buflen;
 	cmph_uint32 i;
-	chm_data_t *chm = (chm_data_t *)calloc(1, sizeof(chm_data_t));
+	chm_data_t *chm = (chm_data_t *)xcalloc(1, sizeof(chm_data_t));
 	size_t nread;
 	DEBUGP("Loading chm mphf\n");
 	mphf->data = chm;
@@ -332,7 +332,7 @@ void chm_load(FILE *f, cmph_t *mphf)
 		mphf->size = 0;
 		return;
 	}
-	chm->hashes = (hash_state_t **)malloc(sizeof(hash_state_t *)*(nhashes + 1));
+	chm->hashes = (hash_state_t **)xmalloc(sizeof(hash_state_t *)*(nhashes + 1));
 	chm->hashes[nhashes] = NULL;
 	chm->nhashes = nhashes;
 	DEBUGP("Reading %u hashes\n", nhashes);
@@ -344,7 +344,7 @@ void chm_load(FILE *f, cmph_t *mphf)
 		nread = fread(&buflen, sizeof(cmph_uint32), (size_t)1, f);
                 CHECK_FREAD(nread, 1);
 		DEBUGP("Hash state has %u bytes\n", buflen);
-		buf = (char *)malloc((size_t)buflen);
+		buf = (char *)xmalloc((size_t)buflen);
 		nread = fread(buf, (size_t)buflen, (size_t)1, f);
                 CHECK_FREAD(nread, 1);
 		state = hash_state_load(buf, name);
@@ -358,7 +358,7 @@ void chm_load(FILE *f, cmph_t *mphf)
 	nread = fread(&(chm->m), sizeof(cmph_uint32), (size_t)1, f);
         CHECK_FREAD(nread, 1);
 
-	chm->g = (cmph_uint32 *)malloc(sizeof(cmph_uint32)*chm->n);
+	chm->g = (cmph_uint32 *)xmalloc(sizeof(cmph_uint32)*chm->n);
 	nread = fread(chm->g, chm->n*sizeof(cmph_uint32), (size_t)1, f);
         CHECK_FREAD(nread, 1);
 #ifdef DEBUG

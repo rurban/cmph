@@ -49,7 +49,7 @@ void compressed_seq_generate(compressed_seq_t * cs, cmph_uint32 * vals_table, cm
 {
 	cmph_uint32 i;
 	// lengths: represents lengths of encoded values
-	cmph_uint32 * lengths = (cmph_uint32 *)calloc(n, sizeof(cmph_uint32));
+	cmph_uint32 * lengths = (cmph_uint32 *)xcalloc(n, sizeof(cmph_uint32));
 	cmph_uint32 rems_mask;
 	cmph_uint32 stored_value;
 
@@ -73,7 +73,7 @@ void compressed_seq_generate(compressed_seq_t * cs, cmph_uint32 * vals_table, cm
 	{
 		free(cs->store_table);
 	}
-	cs->store_table = (cmph_uint32 *) calloc(((cs->total_length + 31) >> 5), sizeof(cmph_uint32));
+	cs->store_table = (cmph_uint32 *)xcalloc(((cs->total_length + 31) >> 5), sizeof(cmph_uint32));
 	cs->total_length = 0;
 
 	for(i = 0; i < cs->n; i++)
@@ -97,7 +97,7 @@ void compressed_seq_generate(compressed_seq_t * cs, cmph_uint32 * vals_table, cm
 		free(cs->length_rems);
 	}
 
-	cs->length_rems = (cmph_uint32 *) calloc(BITS_TABLE_SIZE(cs->n, cs->rem_r), sizeof(cmph_uint32));
+	cs->length_rems = (cmph_uint32 *)xcalloc(BITS_TABLE_SIZE(cs->n, cs->rem_r), sizeof(cmph_uint32));
 
 	rems_mask = (1U << cs->rem_r) - 1U;
 	cs->total_length = 0;
@@ -176,7 +176,7 @@ void compressed_seq_dump(compressed_seq_t * cs, char ** buf, cmph_uint32 * bufle
 	DEBUGP("sel_size = %u\n", sel_size);
 	DEBUGP("length_rems_size = %u\n", length_rems_size);
 	DEBUGP("store_table_size = %u\n", store_table_size);
-	*buf = (char *)calloc(*buflen, sizeof(char));
+	*buf = (char *)xcalloc(*buflen, sizeof(char));
 
 	if (!*buf)
 	{
@@ -309,7 +309,7 @@ void compressed_seq_load(compressed_seq_t * cs, const char * buf)
 		free(cs->length_rems);
 	}
 	length_rems_size = BITS_TABLE_SIZE(cs->n, cs->rem_r);
-	cs->length_rems = (cmph_uint32 *) calloc(length_rems_size, sizeof(cmph_uint32));
+	cs->length_rems = (cmph_uint32 *)xcalloc(length_rems_size, sizeof(cmph_uint32));
 	length_rems_size *= 4;
 	memcpy(cs->length_rems, buf + pos, length_rems_size);
 
@@ -327,7 +327,7 @@ void compressed_seq_load(compressed_seq_t * cs, const char * buf)
 	{
 		free(cs->store_table);
 	}
-	cs->store_table = (cmph_uint32 *) calloc(store_table_size, sizeof(cmph_uint32));
+	cs->store_table = (cmph_uint32 *)xcalloc(store_table_size, sizeof(cmph_uint32));
         store_table_size *= 4;
 	memcpy(cs->store_table, buf + pos, store_table_size);
 

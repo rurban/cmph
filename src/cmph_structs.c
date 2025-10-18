@@ -8,7 +8,7 @@
 
 cmph_config_t *__config_new(cmph_io_adapter_t *key_source)
 {
-	cmph_config_t *mph = (cmph_config_t *)malloc(sizeof(cmph_config_t));
+	cmph_config_t *mph = (cmph_config_t *)xmalloc(sizeof(cmph_config_t));
 	if (mph == NULL) return NULL;
 	memset(mph, 0, sizeof(cmph_config_t));
 	mph->key_source = key_source;
@@ -71,7 +71,7 @@ cmph_t *__cmph_load(FILE *f)
 		DEBUGP("Algorithm %s not found\n", algo_name);
 		return NULL;
 	}
-	mphf = (cmph_t *)malloc(sizeof(cmph_t));
+	mphf = (cmph_t *)xmalloc(sizeof(cmph_t));
 	mphf->algo = algo;
 	CHK_FREAD(&(mphf->size), sizeof(mphf->size), (size_t)1, f);
 	mphf->data = NULL;

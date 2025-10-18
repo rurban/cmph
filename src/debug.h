@@ -25,7 +25,7 @@ static void debugprintf(const char *format, ...)
     const char *p="%s:%d ";
     size_t plen = strlen(p);
     va_start(ap, format);
-    f = (char *)malloc(plen + strlen(format) + 1);
+    f = (char *)xmalloc(plen + strlen(format) + 1);
     if (!f) {
 	va_end(ap);
 	return;

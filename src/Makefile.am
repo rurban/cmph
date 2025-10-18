@@ -12,6 +12,7 @@ libcmph_la_SOURCES =  hash.h hash.c hash_state.h \
 		      graph.h graph.c bitbool.h \
 	              compile.h compile.c \
 		      cmph.h cmph.c cmph_structs.h cmph_structs.c\
+		      cmph_xhelpers.h cmph_xhelpers.c\
 		      chm.h chm.c chm_structs.h \
 		      bmz.h bmz.c bmz_structs.h \
                       bmz8.h bmz8.c bmz8_structs.h \

@@ -1,8 +1,10 @@
+#include "linear_string_map.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 
-#include "linear_string_map.h"
+#include "cmph_xhelpers.h"
+#include "compressed_rank.h"
 
 struct __linear_string_map_t {
   const char *key;
@@ -11,7 +13,7 @@ struct __linear_string_map_t {
 };
 
 lsmap_t *lsmap_new() {
-  lsmap_t* lsmap = (lsmap_t*)malloc(sizeof(lsmap_t));
+  lsmap_t* lsmap = (lsmap_t*)xmalloc(sizeof(lsmap_t));
   if (!lsmap) return NULL;
   lsmap->key = "dummy node";
   lsmap->next = NULL;
@@ -26,7 +28,7 @@ int lsmap_size(lsmap_t *lsmap) {
 
 void lsmap_append(lsmap_t *lsmap, const char *key, void *value) {
   while (lsmap->next != NULL) lsmap = lsmap->next;
-  lsmap->next = (lsmap_t*)malloc(sizeof(lsmap_t));
+  lsmap->next = (lsmap_t*)xmalloc(sizeof(lsmap_t));
   lsmap->key = key;
   lsmap->value = value;
   lsmap = lsmap->next;

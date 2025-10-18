@@ -7,6 +7,7 @@
 #include <sys/resource.h>
 
 #include "cmph_benchmark.h"
+#include "cmph_xhelpers.h"
 
 typedef struct {
   const char* name;
@@ -70,13 +71,9 @@ void bm_register(const char* name, int (*func)(int), int iters) {
   benchmark.func = func;
   benchmark.iters = iters;
   assert(!find_benchmark(name));
-  benchmark_t* benchmarks = (benchmark_t *)realloc(
+  benchmark_t* benchmarks = (benchmark_t *)xrealloc(
       global_benchmarks, (length + 2)*sizeof(benchmark_t));
-  if (!benchmarks) {
-    perror("realloc");
-    exit(-1);
-  } else
-    global_benchmarks = benchmarks;
+  global_benchmarks = benchmarks;
   global_benchmarks[length] = benchmark;
   memset(&benchmark, 0, sizeof(benchmark_t));  // pivot
   global_benchmarks[length + 1] = benchmark;

@@ -200,7 +200,7 @@ void hash_state_dump(hash_state_t *state, const char *name, char **buf, cmph_uin
         if (*buflen == UINT_MAX) {
                 goto cmph_cleanup;
         }
-	*buf = (char *)malloc(strlen(cmph_hash_names[state->hashfunc]) + 1 + *buflen);
+	*buf = (char *)xmalloc(strlen(cmph_hash_names[state->hashfunc]) + 1 + *buflen);
 	memcpy(*buf, cmph_hash_names[state->hashfunc], strlen(cmph_hash_names[state->hashfunc]) + 1);
 	DEBUGP("hash state is %u, len %u\n", *(cmph_uint32 *)algobuf, *buflen);
 	len = *buflen;

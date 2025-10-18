@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <assert.h>
 
+#include "cmph_xhelpers.h"
 //#define DEBUG
 #include "debug.h"
 
@@ -15,7 +16,7 @@ struct __vstack_t
 
 vstack_t *vstack_new(void)
 {
-	vstack_t *stack = (vstack_t *)malloc(sizeof(vstack_t));
+	vstack_t *stack = (vstack_t *)xmalloc(sizeof(vstack_t));
 	assert(stack);
 	stack->pointer = 0;
 	stack->values = NULL;
@@ -70,7 +71,7 @@ void vstack_reserve(vstack_t *stack, cmph_uint32 size)
 		{
 			new_capacity *= 2;
 		}
-		stack->values = (cmph_uint32 *)realloc(stack->values, sizeof(cmph_uint32)*new_capacity);
+		stack->values = (cmph_uint32 *)xrealloc(stack->values, sizeof(cmph_uint32)*new_capacity);
 		assert(stack->values);
 		stack->capacity = new_capacity;
 		DEBUGP("Increased\n");

@@ -7,6 +7,7 @@
 #include <string.h>
 #include "vstack.h"
 #include "bitbool.h"
+#include "cmph_xhelpers.h"
 
 // #define DEBUG
 #include "debug.h"
@@ -35,12 +36,12 @@ static cmph_uint32 EMPTY = UINT_MAX;
 
 graph_t *graph_new(cmph_uint32 nnodes, cmph_uint32 nedges)
 {
-	graph_t *graph = (graph_t *)malloc(sizeof(graph_t));
+	graph_t *graph = (graph_t *)xmalloc(sizeof(graph_t));
 	if (!graph) return NULL;
 
-	graph->edges = (cmph_uint32 *)malloc(sizeof(cmph_uint32) * 2 * nedges);
-	graph->next =  (cmph_uint32 *)malloc(sizeof(cmph_uint32) * 2 * nedges);
-	graph->first = (cmph_uint32 *)malloc(sizeof(cmph_uint32) * nnodes);
+	graph->edges = (cmph_uint32 *)xmalloc(sizeof(cmph_uint32) * 2 * nedges);
+	graph->next =  (cmph_uint32 *)xmalloc(sizeof(cmph_uint32) * 2 * nedges);
+	graph->first = (cmph_uint32 *)xmalloc(sizeof(cmph_uint32) * nnodes);
         graph->critical_nodes = NULL; /* included -- Fabiano*/
 	graph->ncritical_nodes = 0;   /* included -- Fabiano*/
 	graph->nnodes = nnodes;
@@ -228,7 +229,7 @@ int graph_is_cyclic(graph_t *g)
 {
 	cmph_uint32 i;
 	cmph_uint32 v;
-	cmph_uint8 *deleted = (cmph_uint8 *)malloc((g->nedges*sizeof(cmph_uint8))/8 + 1);
+	cmph_uint8 *deleted = (cmph_uint8 *)xmalloc((g->nedges*sizeof(cmph_uint8))/8 + 1);
 	size_t deleted_len = g->nedges/8 + 1;
 	memset(deleted, 0, deleted_len);
 
@@ -259,11 +260,11 @@ void graph_obtain_critical_nodes(graph_t *g) /* included -- Fabiano*/
 {
         cmph_uint32 i;
 	cmph_uint32 v;
-	cmph_uint8 *deleted = (cmph_uint8 *)malloc((g->nedges*sizeof(cmph_uint8))/8+1);
+	cmph_uint8 *deleted = (cmph_uint8 *)xmalloc((g->nedges*sizeof(cmph_uint8))/8+1);
 	size_t deleted_len = g->nedges/8 + 1;
 	memset(deleted, 0, deleted_len);
 	free(g->critical_nodes);
-	g->critical_nodes = (cmph_uint8 *)malloc((g->nnodes*sizeof(cmph_uint8))/8 + 1);
+	g->critical_nodes = (cmph_uint8 *)xmalloc((g->nnodes*sizeof(cmph_uint8))/8 + 1);
 	g->ncritical_nodes = 0;
 	memset(g->critical_nodes, 0, (g->nnodes*sizeof(cmph_uint8))/8 + 1);
 	DEBUGP("Looking for the 2-core in graph with %u vertices and %u edges\n", g->nnodes, g->nedges);

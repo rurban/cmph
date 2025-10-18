@@ -22,8 +22,8 @@
 cmph_uint32* random_numbers_vector_new(cmph_uint32 size) {
   cmph_uint32 i = 0;
   cmph_uint32 dup_bits = sizeof(cmph_uint32)*size*8;
-  char* dup = (char*)malloc(dup_bits/8);
-  cmph_uint32* vec = (cmph_uint32 *)malloc(sizeof(cmph_uint32)*size);
+  char* dup = (char*)xmalloc(dup_bits/8);
+  cmph_uint32* vec = (cmph_uint32 *)xmalloc(sizeof(cmph_uint32)*size);
   memset(dup, 0, dup_bits/8);
   for (i = 0; i < size; ++i) {
     cmph_uint32 v = random();
@@ -44,7 +44,7 @@ char* create_lsmap_key(CMPH_ALGO algo, CMPH_HASH hash, int iters) {
   assert(algo < CMPH_COUNT);
   assert(hash < CMPH_HASH_COUNT);
   snprintf(mphf_name, 128, "%s:%s:%u", cmph_names[algo], cmph_hash_names[hash], iters);
-  return strdup(mphf_name);
+  return xstrdup(mphf_name);
 }
 
 #ifdef COMPILED
@@ -185,9 +185,9 @@ int bm_search(CMPH_ALGO algo, CMPH_HASH *hashes, int iters) {
   }
 #endif
 
-  cmph_uint32* count = (cmph_uint32*)calloc(iters, sizeof(cmph_uint32));
+  cmph_uint32* count = (cmph_uint32*)xcalloc(iters, sizeof(cmph_uint32));
   cmph_uint32 size = cmph_size(mphf);
-  cmph_uint32* hash_count = (cmph_uint32*)calloc(size, sizeof(cmph_uint32));
+  cmph_uint32* hash_count = (cmph_uint32*)xcalloc(size, sizeof(cmph_uint32));
 
   for (i = 0; i < iters * 100; ++i) {
     cmph_uint32 pos = random() % iters;

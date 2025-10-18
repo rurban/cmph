@@ -111,11 +111,11 @@ void select_generate(select_t * sel, cmph_uint32 * keys_vec, cmph_uint32 n, cmph
 
 	if(sel->bits_vec)
 		free(sel->bits_vec);
-	sel->bits_vec = (cmph_uint32 *)calloc(vec_size, sizeof(cmph_uint32));
+	sel->bits_vec = (cmph_uint32 *)xcalloc(vec_size, sizeof(cmph_uint32));
 
 	if(sel->select_table)
 		free(sel->select_table);
-	sel->select_table = (cmph_uint32 *)calloc(sel_table_size, sizeof(cmph_uint32));
+	sel->select_table = (cmph_uint32 *)xcalloc(sel_table_size, sizeof(cmph_uint32));
 
 
 
@@ -224,7 +224,7 @@ void select_dump(select_t *sel, char **buf, cmph_uint32 *buflen)
 
 	*buflen = 2*(cmph_uint32)sizeof(cmph_uint32) + vec_size + sel_table_size;
 
-	*buf = (char *)calloc(*buflen, sizeof(char));
+	*buf = (char *)xcalloc(*buflen, sizeof(char));
 
 	if (!*buf)
 	{
@@ -387,11 +387,11 @@ void select_load(select_t * sel, const char *buf)
 
 	if(sel->bits_vec)
 		free(sel->bits_vec);
-	sel->bits_vec = (cmph_uint32 *)calloc(vec_size/sizeof(cmph_uint32), sizeof(cmph_uint32));
+	sel->bits_vec = (cmph_uint32 *)xcalloc(vec_size/sizeof(cmph_uint32), sizeof(cmph_uint32));
 
 	if(sel->select_table)
 		free(sel->select_table);
-	sel->select_table = (cmph_uint32 *)calloc(sel_table_size/sizeof(cmph_uint32), sizeof(cmph_uint32));
+	sel->select_table = (cmph_uint32 *)xcalloc(sel_table_size/sizeof(cmph_uint32), sizeof(cmph_uint32));
 
 	memcpy(sel->bits_vec, buf + pos, vec_size);
 	pos += vec_size;

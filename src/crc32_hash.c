@@ -9,7 +9,7 @@
 
 hash_state_t *crc32_state_new(cmph_uint32 size)
 {
-	hash_state_t *state = (hash_state_t *)malloc(sizeof(hash_state_t));
+	hash_state_t *state = (hash_state_t *)xmalloc(sizeof(hash_state_t));
 #ifdef DEBUG
 #ifdef HAVE_CRC32_HW
 	const char hw[] = "HW";
@@ -177,7 +177,7 @@ void crc32_hash_vector(hash_state_t *state, const char *key, cmph_uint32 keylen,
 void crc32_state_dump(hash_state_t *state, char **buf, cmph_uint32 *buflen)
 {
 	*buflen = sizeof(cmph_uint32);
-	*buf = (char *)malloc(sizeof(cmph_uint32));
+	*buf = (char *)xmalloc(sizeof(cmph_uint32));
 	if (!*buf)
 	{
 		*buflen = UINT_MAX;
@@ -194,14 +194,14 @@ void crc32_state_dump(hash_state_t *state, char **buf, cmph_uint32 *buflen)
 
 //hash_state_t *crc32_state_copy(hash_state_t *src_state)
 //{
-//	hash_state_t *dest_state = (hash_state_t *)malloc(sizeof(hash_state_t));
+//	hash_state_t *dest_state = (hash_state_t *)xmalloc(sizeof(hash_state_t));
 //	dest_state->hashfunc = src_state->hashfunc;
 //	return dest_state;
 //}
 
 hash_state_t *crc32_state_load(const char *buf)
 {
-	hash_state_t *state = (hash_state_t *)malloc(sizeof(hash_state_t));
+	hash_state_t *state = (hash_state_t *)xmalloc(sizeof(hash_state_t));
         const unsigned char *p = (const unsigned char *)buf;
         if ((long)buf % 4)
                 state->seed = (p[3] << 24) | (p[2] << 16) | (p[1] << 8) | p[0];

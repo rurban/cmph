@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <assert.h>
 #include <stdlib.h>
+#include "cmph_xhelpers.h"
 struct __vqueue_t
 {
   cmph_uint32 * values;
@@ -11,9 +12,9 @@ struct __vqueue_t
 vqueue_t * vqueue_new(cmph_uint32 capacity)
 {
   size_t capacity_plus_one = capacity + 1;
-  vqueue_t *q = (vqueue_t *)malloc(sizeof(vqueue_t));
+  vqueue_t *q = (vqueue_t *)xmalloc(sizeof(vqueue_t));
   if (!q) return NULL;
-  q->values = (cmph_uint32 *)calloc(capacity_plus_one, sizeof(cmph_uint32));
+  q->values = (cmph_uint32 *)xcalloc(capacity_plus_one, sizeof(cmph_uint32));
   q->beg = q->end = 0;
   q->capacity = (cmph_uint32) capacity_plus_one;
   return q;

@@ -26,7 +26,7 @@ initval : can be any 4-byte value
  */
 hash_state_t *wyhash_state_new(cmph_uint32 size) //size of hash table
 {
-	hash_state_t *state = (hash_state_t *)malloc(sizeof(hash_state_t));
+	hash_state_t *state = (hash_state_t *)xmalloc(sizeof(hash_state_t));
         if (!state) return NULL;
 	if (size > 0) state->seed = ((cmph_uint32)rand() % size);
 	else state->seed = 0;
@@ -94,7 +94,7 @@ void wyhash_hash_vector_(hash_state_t *state, const char *k, cmph_uint32 keylen,
 void wyhash_state_dump(hash_state_t *state, char **buf, cmph_uint32 *buflen)
 {
 	*buflen = sizeof(cmph_uint32);
-	*buf = (char *)malloc(sizeof(cmph_uint32));
+	*buf = (char *)xmalloc(sizeof(cmph_uint32));
 	if (!*buf)
 	{
 		*buflen = UINT_MAX;
@@ -107,7 +107,7 @@ void wyhash_state_dump(hash_state_t *state, char **buf, cmph_uint32 *buflen)
 
 //hash_state_t *wyhash_state_copy(hash_state_t *src_state)
 //{
-//	hash_state_t *dest_state = (hash_state_t *)malloc(sizeof(hash_state_t));
+//	hash_state_t *dest_state = (hash_state_t *)xmalloc(sizeof(hash_state_t));
 //	dest_state->hashfunc = src_state->hashfunc;
 //	dest_state->seed = src_state->seed;
 //	return dest_state;
@@ -115,7 +115,7 @@ void wyhash_state_dump(hash_state_t *state, char **buf, cmph_uint32 *buflen)
 
 hash_state_t *wyhash_state_load(const char *buf)
 {
-	hash_state_t *state = (hash_state_t *)malloc(sizeof(hash_state_t));
+	hash_state_t *state = (hash_state_t *)xmalloc(sizeof(hash_state_t));
         const unsigned char *p = (const unsigned char *)buf;
         if ((long)buf % 4)
                 state->seed = (p[3] << 24) | (p[2] << 16) | (p[1] << 8) | p[0];

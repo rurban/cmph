@@ -17,7 +17,7 @@
 hashtree_config_data_t *hashtree_config_new()
 {
 	hashtree_config_data_t *hashtree;
-	hashtree = (hashtree_config_data_t *)malloc(sizeof(hashtree_config_data_t));
+	hashtree = (hashtree_config_data_t *)xmalloc(sizeof(hashtree_config_data_t));
 	if (!hashtree) return NULL;
 	memset(hashtree, 0, sizeof(hashtree_config_data_t));
 	hashtree->hashfuncs[0] = CMPH_HASH_JENKINS;
@@ -61,7 +61,7 @@ cmph_t *hashtree_new(cmph_config_t *mph, double c)
 	hashtree->graph = graph_new(hashtree->n, hashtree->m);
 	DEBUGP("Created graph\n");
 
-	hashtree->hashes = (hash_state_t **)malloc(sizeof(hash_state_t *)*3);
+	hashtree->hashes = (hash_state_t **)xmalloc(sizeof(hash_state_t *)*3);
 	for(i = 0; i < 3; ++i) hashtree->hashes[i] = NULL;
 	//Mapping step
 	if (mph->verbosity)
@@ -102,10 +102,10 @@ cmph_t *hashtree_new(cmph_config_t *mph, double c)
 		fprintf(stderr, "Starting assignment step\n");
 	}
 	DEBUGP("Assignment step\n");
- 	visited = (char *)malloc(hashtree->n/8 + 1);
+ 	visited = (char *)xmalloc(hashtree->n/8 + 1);
 	memset(visited, 0, hashtree->n/8 + 1);
 	free(hashtree->g);
-	hashtree->g = (cmph_uint32 *)malloc(hashtree->n * sizeof(cmph_uint32));
+	hashtree->g = (cmph_uint32 *)xmalloc(hashtree->n * sizeof(cmph_uint32));
 	assert(hashtree->g);
 	for (i = 0; i < hashtree->n; ++i)
 	{
@@ -119,9 +119,9 @@ cmph_t *hashtree_new(cmph_config_t *mph, double c)
 	free(visited);
 	hashtree->graph = NULL;
 
-	mphf = (cmph_t *)malloc(sizeof(cmph_t));
+	mphf = (cmph_t *)xmalloc(sizeof(cmph_t));
 	mphf->algo = mph->algo;
-	hashtreef = (hashtree_data_t *)malloc(sizeof(hashtree_data_t));
+	hashtreef = (hashtree_data_t *)xmalloc(sizeof(hashtree_data_t));
 	hashtreef->g = hashtree->g;
 	hashtree->g = NULL; //transfer memory ownership
 	hashtreef->hashes = hashtree->hashes;
@@ -232,12 +232,12 @@ void hashtree_load(FILE *f, cmph_t *mphf)
 	char *buf = NULL;
 	cmph_uint32 buflen;
 	cmph_uint32 i;
-	hashtree_data_t *hashtree = (hashtree_data_t *)malloc(sizeof(hashtree_data_t));
+	hashtree_data_t *hashtree = (hashtree_data_t *)xmalloc(sizeof(hashtree_data_t));
 
 	DEBUGP("Loading hashtree mphf\n");
 	mphf->data = hashtree;
 	fread(&nhashes, sizeof(cmph_uint32), 1, f);
-	hashtree->hashes = (hash_state_t **)malloc(sizeof(hash_state_t *)*(nhashes + 1));
+	hashtree->hashes = (hash_state_t **)xmalloc(sizeof(hash_state_t *)*(nhashes + 1));
 	hashtree->hashes[nhashes] = NULL;
 	DEBUGP("Reading %u hashes\n", nhashes);
 	for (i = 0; i < nhashes; ++i)
@@ -247,7 +247,7 @@ void hashtree_load(FILE *f, cmph_t *mphf)
 		snprintf(name, sizeof(name)-1, "hashtree->hashes[%u]", i & 0xff);
 		fread(&buflen, sizeof(cmph_uint32), 1, f);
 		DEBUGP("Hash state has %u bytes\n", buflen);
-		buf = (char *)malloc(buflen);
+		buf = (char *)xmalloc(buflen);
 		fread(buf, buflen, 1, f);
 		state = hash_state_load(buf, name);
 		hashtree->hashes[i] = state;
@@ -258,7 +258,7 @@ void hashtree_load(FILE *f, cmph_t *mphf)
 	fread(&(hashtree->n), sizeof(cmph_uint32), 1, f);
 	fread(&(hashtree->m), sizeof(cmph_uint32), 1, f);
 
-	hashtree->g = (cmph_uint32 *)malloc(sizeof(cmph_uint32)*hashtree->n);
+	hashtree->g = (cmph_uint32 *)xmalloc(sizeof(cmph_uint32)*hashtree->n);
 	fread(hashtree->g, hashtree->n*sizeof(cmph_uint32), 1, f);
 #ifdef DEBUG
 	fprintf(stderr, "G: ");

@@ -18,7 +18,7 @@
 chd_config_data_t *chd_config_new(cmph_config_t *mph) {
   cmph_io_adapter_t *key_source = mph->key_source;
   chd_config_data_t *chd;
-  chd = (chd_config_data_t *)malloc(sizeof(chd_config_data_t));
+  chd = (chd_config_data_t *)xmalloc(sizeof(chd_config_data_t));
   if (!chd)
     return NULL;
   memset(chd, 0, sizeof(chd_config_data_t));
@@ -102,7 +102,7 @@ cmph_t *chd_new(cmph_config_t *mph, double c) {
   DEBUGP("packed_chd_phf_size = %u\n", packed_chd_phf_size);
 
   /* Make sure that we have enough space to pack the mphf. */
-  packed_chd_phf = (cmph_uint8 *)calloc((size_t)packed_chd_phf_size, (size_t)1);
+  packed_chd_phf = (cmph_uint8 *)xcalloc((size_t)packed_chd_phf_size, (size_t)1);
 
   /* Pack the chd_ph */
   cmph_pack(chd_phf, packed_chd_phf);
@@ -117,7 +117,7 @@ cmph_t *chd_new(cmph_config_t *mph, double c) {
   nkeys = chd_ph->m;
   nvals = nbins - nkeys;
 
-  vals_table = (cmph_uint32 *)calloc(nvals, sizeof(cmph_uint32));
+  vals_table = (cmph_uint32 *)xcalloc(nvals, sizeof(cmph_uint32));
   occup_table = (cmph_uint32 *)chd_ph->occup_table;
 
   for (i = 0, idx = 0; i < nbins; i++) {
@@ -130,16 +130,16 @@ cmph_t *chd_new(cmph_config_t *mph, double c) {
   free(vals_table);
 
   packed_cr_size = compressed_rank_packed_size(&cr);
-  packed_cr = (cmph_uint8 *)calloc(packed_cr_size, sizeof(cmph_uint8));
+  packed_cr = (cmph_uint8 *)xcalloc(packed_cr_size, sizeof(cmph_uint8));
   compressed_rank_pack(&cr, packed_cr);
   compressed_rank_destroy(&cr);
 
-  mphf = (cmph_t *)malloc(sizeof(cmph_t));
+  mphf = (cmph_t *)xmalloc(sizeof(cmph_t));
   mphf->algo = mph->algo;
   if (mph->do_ordering_table) {
     if (mph->verbosity)
       fprintf(stderr, "Create ordering table\n");
-    mphf->o = (cmph_uint32 *)malloc(nkeys * sizeof(cmph_uint32));
+    mphf->o = (cmph_uint32 *)xmalloc(nkeys * sizeof(cmph_uint32));
     memset(mphf->o, 0xFF, nkeys * sizeof(cmph_uint32));
     mph->key_source->rewind(mph->key_source->data);
     for (i = 0; i < nkeys; ++i) // all edges
@@ -156,7 +156,7 @@ cmph_t *chd_new(cmph_config_t *mph, double c) {
   else
     mphf->o = NULL;
 
-  chdf = (chd_data_t *)malloc(sizeof(chd_data_t));
+  chdf = (chd_data_t *)xmalloc(sizeof(chd_data_t));
 
   chdf->packed_cr = packed_cr;
   packed_cr = NULL; // transfer memory ownership
@@ -186,7 +186,7 @@ cmph_t *chd_new(cmph_config_t *mph, double c) {
 }
 
 void chd_load(FILE *fd, cmph_t *mphf) {
-  chd_data_t *chd = (chd_data_t *)malloc(sizeof(chd_data_t));
+  chd_data_t *chd = (chd_data_t *)xmalloc(sizeof(chd_data_t));
 
   DEBUGP("Loading chd mphf\n");
   mphf->data = chd;
@@ -195,17 +195,17 @@ void chd_load(FILE *fd, cmph_t *mphf) {
   DEBUGP("Loading CHD_PH perfect hash function with %u bytes from disk\n",
          chd->packed_chd_phf_size);
   chd->packed_chd_phf =
-      (cmph_uint8 *)calloc((size_t)chd->packed_chd_phf_size, (size_t)1);
+      (cmph_uint8 *)xcalloc((size_t)chd->packed_chd_phf_size, (size_t)1);
   CHK_FREAD(chd->packed_chd_phf, chd->packed_chd_phf_size, (size_t)1, fd);
 
   CHK_FREAD(&chd->packed_cr_size, sizeof(cmph_uint32), (size_t)1, fd);
   DEBUGP("Loading Compressed rank structure, which has %u bytes\n",
          chd->packed_cr_size);
-  chd->packed_cr = (cmph_uint8 *)calloc((size_t)chd->packed_cr_size, (size_t)1);
+  chd->packed_cr = (cmph_uint8 *)xcalloc((size_t)chd->packed_cr_size, (size_t)1);
   CHK_FREAD(chd->packed_cr, chd->packed_cr_size, (size_t)1, fd);
 
   // if more room in f than current position, TODO use fstat and ftell instead
-  mphf->o = (cmph_uint32 *)malloc(sizeof(cmph_uint32) * mphf->size);
+  mphf->o = (cmph_uint32 *)xmalloc(sizeof(cmph_uint32) * mphf->size);
   cmph_uint32 nread = fread(mphf->o, sizeof(cmph_uint32), (size_t)mphf->size, fd);
   if (nread != mphf->size){
 	  free(mphf->o);

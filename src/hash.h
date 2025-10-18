@@ -3,6 +3,7 @@
 
 #include <stdio.h>
 #include "cmph_types.h"
+#include "cmph_xhelpers.h"
 #include "hash_state.h"
 
 hash_state_t *hash_state_new(CMPH_HASH, cmph_uint32 hashsize);

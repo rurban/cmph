@@ -29,7 +29,7 @@ static char * brz_copy_partial_bmz8_mphf(brz_config_data_t *brz, bmz8_data_t * b
 brz_config_data_t *brz_config_new(void)
 {
 	brz_config_data_t *brz = NULL;
-        brz = (brz_config_data_t *)malloc(sizeof(brz_config_data_t));
+        brz = (brz_config_data_t *)xmalloc(sizeof(brz_config_data_t));
         if (!brz) return NULL;
         brz->algo = CMPH_FCH;
 	brz->b = 128;
@@ -40,7 +40,7 @@ brz_config_data_t *brz_config_new(void)
 	brz->h2 = NULL;
 	//brz->h0 = NULL;
 	brz->memory_availability = 1024*1024;
-	brz->tmp_dir = (cmph_uint8 *)calloc((size_t)10, sizeof(cmph_uint8));
+	brz->tmp_dir = (cmph_uint8 *)xcalloc((size_t)10, sizeof(cmph_uint8));
 	brz->mphf_fd = NULL;
 	strcpy((char *)(brz->tmp_dir), "/var/tmp/");
 	assert(brz);
@@ -92,12 +92,12 @@ void brz_config_set_tmp_dir(cmph_config_t *mph, cmph_uint8 *tmp_dir)
 		free(brz->tmp_dir);
 		if(tmp_dir[len-1] != '/')
 		{
-			brz->tmp_dir = (cmph_uint8 *)calloc((size_t)len+2, sizeof(cmph_uint8));
+			brz->tmp_dir = (cmph_uint8 *)xcalloc((size_t)len+2, sizeof(cmph_uint8));
 			sprintf((char *)(brz->tmp_dir), "%s/", (char *)tmp_dir);
 		}
 		else
 		{
-			brz->tmp_dir = (cmph_uint8 *)calloc((size_t)len+1, sizeof(cmph_uint8));
+			brz->tmp_dir = (cmph_uint8 *)xcalloc((size_t)len+1, sizeof(cmph_uint8));
 			sprintf((char *)(brz->tmp_dir), "%s", (char *)tmp_dir);
 		}
 
@@ -171,7 +171,7 @@ cmph_t *brz_new(cmph_config_t *mph, double c)
 	DEBUGP("m: %u\n", brz->m);
         brz->k = (cmph_uint32)ceil(brz->m/((double)brz->b));
 	DEBUGP("k: %u\n", brz->k);
-	brz->size = (cmph_uint8 *) calloc((size_t)brz->k, sizeof(cmph_uint8));
+	brz->size = (cmph_uint8 *)xcalloc((size_t)brz->k, sizeof(cmph_uint8));
 
 	// Clustering the keys by graph id.
 	if (mph->verbosity)
@@ -207,15 +207,15 @@ cmph_t *brz_new(cmph_config_t *mph, double c)
 	}
 	DEBUGP("Graphs generated\n");
 
-	brz->offset = (cmph_uint32 *)calloc((size_t)brz->k, sizeof(cmph_uint32));
+	brz->offset = (cmph_uint32 *)xcalloc((size_t)brz->k, sizeof(cmph_uint32));
 	for (i = 1; i < brz->k; ++i)
 		brz->offset[i] = brz->size[i-1] + brz->offset[i-1];
 
 	// Generating a mphf
-	mphf = (cmph_t *)malloc(sizeof(cmph_t));
+	mphf = (cmph_t *)xmalloc(sizeof(cmph_t));
 	mphf->algo = mph->algo;
 	mphf->o = ordering_table;
-	brzf = (brz_data_t *)malloc(sizeof(brz_data_t));
+	brzf = (brz_data_t *)xmalloc(sizeof(brz_data_t));
 	brzf->g = brz->g;
 	brz->g = NULL; //transfer memory ownership
 	// FIXME h1 and h2 are empty, just dumped to disc. need to fill them
@@ -237,7 +237,7 @@ cmph_t *brz_new(cmph_config_t *mph, double c)
 	mphf->size = brz->m;
 
 	if (mph->do_ordering_table) {
-	    ordering_table = (cmph_uint32 *)calloc((size_t)mphf->size, sizeof(cmph_uint32));
+	    ordering_table = (cmph_uint32 *)xcalloc((size_t)mphf->size, sizeof(cmph_uint32));
 	    assert(ordering_table);
 	    if (mph->verbosity)
 		fprintf(stderr, "Create ordering table\n");
@@ -265,8 +265,8 @@ static int brz_gen_mphf(cmph_config_t *mph)
 	brz_config_data_t *brz = (brz_config_data_t *)mph->data;
 	cmph_uint32 memory_usage = 0;
 	cmph_uint32 nkeys_in_buffer = 0;
-	cmph_uint8 *buffer = (cmph_uint8 *)malloc((size_t)brz->memory_availability);
-	cmph_uint32 *buckets_size = (cmph_uint32 *)calloc((size_t)brz->k, sizeof(cmph_uint32));
+	cmph_uint8 *buffer = (cmph_uint8 *)xmalloc((size_t)brz->memory_availability);
+	cmph_uint32 *buckets_size = (cmph_uint32 *)xcalloc((size_t)brz->k, sizeof(cmph_uint32));
 	cmph_uint32 *keys_index = NULL;
 	cmph_uint8 **buffer_merge = NULL;
 	cmph_uint32 *buffer_h0 = NULL;
@@ -306,7 +306,7 @@ static int brz_gen_mphf(cmph_config_t *mph)
 				buckets_size[i] = sum;
 			}
 			memory_usage = 0;
-			keys_index = (cmph_uint32 *)calloc((size_t)nkeys_in_buffer, sizeof(cmph_uint32));
+			keys_index = (cmph_uint32 *)xcalloc((size_t)nkeys_in_buffer, sizeof(cmph_uint32));
 			for(i = 0; i < nkeys_in_buffer; i++)
 			{
 				memcpy(&keylen1, buffer + memory_usage, sizeof(keylen1));
@@ -315,7 +315,7 @@ static int brz_gen_mphf(cmph_config_t *mph)
 				buckets_size[h0]++;
 				memory_usage +=  keylen1 + (cmph_uint32)sizeof(keylen1);
 			}
-			filename = (char *)calloc(strlen((char *)(brz->tmp_dir)) + 11, sizeof(char));
+			filename = (char *)xcalloc(strlen((char *)(brz->tmp_dir)) + 11, sizeof(char));
 			sprintf(filename, "%s%u.cmph", brz->tmp_dir, nflushes);
 			tmp_fd = fopen(filename, "wb");
 			free(filename);
@@ -370,7 +370,7 @@ static int brz_gen_mphf(cmph_config_t *mph)
 			buckets_size[i] = sum;
 		}
 		memory_usage = 0;
-		keys_index = (cmph_uint32 *)calloc((size_t)nkeys_in_buffer, sizeof(cmph_uint32));
+		keys_index = (cmph_uint32 *)xcalloc((size_t)nkeys_in_buffer, sizeof(cmph_uint32));
 		for(i = 0; i < nkeys_in_buffer; i++)
 		{
 			memcpy(&keylen1, buffer + memory_usage, sizeof(keylen1));
@@ -379,7 +379,7 @@ static int brz_gen_mphf(cmph_config_t *mph)
 			buckets_size[h0]++;
 			memory_usage += keylen1 + (cmph_uint32)sizeof(keylen1);
 		}
-		filename = (char *)calloc(strlen((char *)(brz->tmp_dir)) + 11, sizeof(char));
+		filename = (char *)xcalloc(strlen((char *)(brz->tmp_dir)) + 11, sizeof(char));
 		sprintf(filename, "%s%u.cmph", brz->tmp_dir, nflushes);
 		tmp_fd = fopen(filename, "wb");
 		free(filename);
@@ -411,20 +411,20 @@ static int brz_gen_mphf(cmph_config_t *mph)
 	CHK_FWRITE(&(brz->k), sizeof(cmph_uint32), (size_t)1, brz->mphf_fd); // number of MPHFs
 	CHK_FWRITE(brz->size, sizeof(cmph_uint8)*(brz->k), (size_t)1, brz->mphf_fd);
 
-	//tmp_fds = (FILE **)calloc(nflushes, sizeof(FILE *));
+	//tmp_fds = (FILE **)xcalloc(nflushes, sizeof(FILE *));
 	buff_manager = buffer_manager_new(brz->memory_availability, nflushes);
-	buffer_merge = (cmph_uint8 **)calloc((size_t)nflushes, sizeof(cmph_uint8 *));
-	buffer_h0    = (cmph_uint32 *)calloc((size_t)nflushes, sizeof(cmph_uint32));
+	buffer_merge = (cmph_uint8 **)xcalloc((size_t)nflushes, sizeof(cmph_uint8 *));
+	buffer_h0    = (cmph_uint32 *)xcalloc((size_t)nflushes, sizeof(cmph_uint32));
 	if (mph->do_ordering_table) {
-	    brz->g  = (cmph_uint8 **)  calloc((size_t)brz->k, sizeof(cmph_uint8 *));
-	    brz->h1 = (hash_state_t **)calloc(brz->k, sizeof(hash_state_t*)*2);
-	    brz->h2 = (hash_state_t **)calloc(brz->k, sizeof(hash_state_t*)*2);
+	    brz->g  = (cmph_uint8 **)xcalloc((size_t)brz->k, sizeof(cmph_uint8 *));
+	    brz->h1 = (hash_state_t **)xcalloc(brz->k, sizeof(hash_state_t*)*2);
+	    brz->h2 = (hash_state_t **)xcalloc(brz->k, sizeof(hash_state_t*)*2);
 	}
 
 	memory_usage = 0;
 	for(i = 0; i < nflushes; i++)
 	{
-		filename = (char *)calloc(strlen((char *)(brz->tmp_dir)) + 11, sizeof(char));
+		filename = (char *)xcalloc(strlen((char *)(brz->tmp_dir)) + 11, sizeof(char));
 		sprintf(filename, "%s%u.cmph", brz->tmp_dir, i);
 		buffer_manager_open(buff_manager, i, filename);
 		free(filename);
@@ -436,7 +436,7 @@ static int brz_gen_mphf(cmph_config_t *mph)
                 key = NULL; //transfer memory ownership
 	}
 	e = 0;
-	keys_vd = (cmph_uint8 **)calloc((size_t)MAX_BUCKET_SIZE, sizeof(cmph_uint8 *));
+	keys_vd = (cmph_uint8 **)xcalloc((size_t)MAX_BUCKET_SIZE, sizeof(cmph_uint8 *));
 	nkeys_vd = 0;
 	error = 0;
 	while(e < brz->m)
@@ -515,9 +515,9 @@ static int brz_gen_mphf(cmph_config_t *mph)
 					fch_data_t * fchf = NULL;
 					fchf = (fch_data_t *)mphf_tmp->data;
 					if (mph->do_ordering_table) {
-					    brz->g[cur_bucket] = malloc(fchf->b);
-					    brz->h1[cur_bucket] = malloc(sizeof(hash_state_t) * 2);
-					    brz->h2[cur_bucket] = malloc(sizeof(hash_state_t) * 2);
+					    brz->g[cur_bucket] = xmalloc(fchf->b);
+					    brz->h1[cur_bucket] = xmalloc(sizeof(hash_state_t) * 2);
+					    brz->h2[cur_bucket] = xmalloc(sizeof(hash_state_t) * 2);
 					    memcpy(brz->g[cur_bucket], fchf->g, fchf->b);
 					    memcpy(brz->h1[cur_bucket], fchf->h1, sizeof(hash_state_t) * 2);
 					    memcpy(brz->h2[cur_bucket], fchf->h2, sizeof(hash_state_t) * 2);
@@ -530,9 +530,9 @@ static int brz_gen_mphf(cmph_config_t *mph)
 					bmz8_data_t * bmzf = NULL;
 					bmzf = (bmz8_data_t *)mphf_tmp->data;
 					if (mph->do_ordering_table) {
-					    brz->g[cur_bucket] = malloc(bmzf->n);
-					    brz->h1[cur_bucket] = malloc(sizeof(hash_state_t));
-					    brz->h2[cur_bucket] = malloc(sizeof(hash_state_t));
+					    brz->g[cur_bucket] = xmalloc(bmzf->n);
+					    brz->h1[cur_bucket] = xmalloc(sizeof(hash_state_t));
+					    brz->h2[cur_bucket] = xmalloc(sizeof(hash_state_t));
 					    memcpy(brz->g[cur_bucket], bmzf->g, bmzf->n);
 					    memcpy(brz->h1[cur_bucket], bmzf->hashes[0], sizeof(hash_state_t));
 					    memcpy(brz->h2[cur_bucket], bmzf->hashes[1], sizeof(hash_state_t));
@@ -591,7 +591,7 @@ static char * brz_copy_partial_fch_mphf(fch_data_t * fchf, cmph_uint32 *buflen)
 	hash_state_dump(fchf->h1, "brz: fch->h1", &bufh1, &buflenh1);
 	hash_state_dump(fchf->h2, "brz: fch->h2", &bufh2, &buflenh2);
 	*buflen = buflenh1 + buflenh2 + n + 2U * (cmph_uint32)sizeof(cmph_uint32);
-	buf = (char *)malloc((size_t)(*buflen));
+	buf = (char *)xmalloc((size_t)(*buflen));
 	memcpy(buf, &buflenh1, sizeof(cmph_uint32));
 	memcpy(buf+sizeof(cmph_uint32), bufh1, (size_t)buflenh1);
 	memcpy(buf+sizeof(cmph_uint32)+buflenh1, &buflenh2, sizeof(cmph_uint32));
@@ -613,7 +613,7 @@ static char * brz_copy_partial_bmz8_mphf(brz_config_data_t *brz, bmz8_data_t * b
 	hash_state_dump(bmzf->hashes[0], "brz: bmz8->hashes[0]", &bufh1, &buflenh1);
 	hash_state_dump(bmzf->hashes[1], "brz: bmz8->hashes[1]", &bufh2, &buflenh2);
 	*buflen = buflenh1 + buflenh2 + n + 2U * (cmph_uint32)sizeof(cmph_uint32);
-	buf = (char *)malloc((size_t)(*buflen));
+	buf = (char *)xmalloc((size_t)(*buflen));
 	memcpy(buf, &buflenh1, sizeof(cmph_uint32));
 	memcpy(buf+sizeof(cmph_uint32), bufh1, (size_t)buflenh1);
 	memcpy(buf+sizeof(cmph_uint32)+buflenh1, &buflenh2, sizeof(cmph_uint32));
@@ -685,7 +685,7 @@ void brz_load(FILE *f, cmph_t *mphf)
 	char *buf = NULL;
 	cmph_uint32 buflen;
 	cmph_uint32 i, n;
-	brz_data_t *brz = (brz_data_t *)malloc(sizeof(brz_data_t));
+	brz_data_t *brz = (brz_data_t *)xmalloc(sizeof(brz_data_t));
 
 	DEBUGP("Loading brz mphf\n");
 	mphf->data = brz;
@@ -693,11 +693,11 @@ void brz_load(FILE *f, cmph_t *mphf)
 	CHK_FREAD(&(brz->algo), sizeof(brz->algo), (size_t)1, f); // Reading algo.
 	assert(brz->algo < CMPH_COUNT);
 	CHK_FREAD(&(brz->k), sizeof(cmph_uint32), (size_t)1, f);
-	brz->size = (cmph_uint8 *) malloc(sizeof(cmph_uint8)*brz->k);
+	brz->size = (cmph_uint8 *)xmalloc(sizeof(cmph_uint8)*brz->k);
 	CHK_FREAD(brz->size, sizeof(cmph_uint8)*(brz->k), (size_t)1, f);
-	brz->h1 = (hash_state_t **)malloc(sizeof(hash_state_t *)*brz->k);
-	brz->h2 = (hash_state_t **)malloc(sizeof(hash_state_t *)*brz->k);
-	brz->g  = (cmph_uint8 **)  calloc((size_t)brz->k, sizeof(cmph_uint8 *));
+	brz->h1 = (hash_state_t **)xmalloc(sizeof(hash_state_t *)*brz->k);
+	brz->h2 = (hash_state_t **)xmalloc(sizeof(hash_state_t *)*brz->k);
+	brz->g  = (cmph_uint8 **)xcalloc((size_t)brz->k, sizeof(cmph_uint8 *));
 	DEBUGP("Reading c = %f   k = %u   algo = %u (%s)\n", brz->c, brz->k, brz->algo,
 	       cmph_names[brz->algo]);
 	//loading h_i1, h_i2 and g_i.
@@ -708,14 +708,14 @@ void brz_load(FILE *f, cmph_t *mphf)
 		// h1
 		CHK_FREAD(&buflen, sizeof(cmph_uint32), (size_t)1, f);
 		DEBUGP("Hash state 1 has %u bytes\n", buflen);
-		buf = (char *)malloc((size_t)buflen);
+		buf = (char *)xmalloc((size_t)buflen);
 		CHK_FREAD(buf, (size_t)buflen, (size_t)1, f);
 		brz->h1[i] = hash_state_load(buf, name);
 		free(buf);
 		//h2
 		CHK_FREAD(&buflen, sizeof(cmph_uint32), (size_t)1, f);
 		DEBUGP("Hash state 2 has %u bytes\n", buflen);
-		buf = (char *)malloc((size_t)buflen);
+		buf = (char *)xmalloc((size_t)buflen);
 		CHK_FREAD(buf, (size_t)buflen, (size_t)1, f);
 		snprintf(name, sizeof(name)-1, "brz->h2[%u]", i & 0xff);
 		brz->h2[i] = hash_state_load(buf, name);
@@ -731,23 +731,23 @@ void brz_load(FILE *f, cmph_t *mphf)
 			default: assert(0);
 		}
 		DEBUGP("g[] has %u bytes\n", n);
-		brz->g[i] = (cmph_uint8 *)calloc((size_t)n, sizeof(cmph_uint8));
+		brz->g[i] = (cmph_uint8 *)xcalloc((size_t)n, sizeof(cmph_uint8));
 		CHK_FREAD(brz->g[i], sizeof(cmph_uint8)*n, (size_t)1, f);
 	}
 	//loading h0
 	CHK_FREAD(&buflen, sizeof(cmph_uint32), (size_t)1, f);
 	DEBUGP("Hash state has %u bytes\n", buflen);
-	buf = (char *)malloc((size_t)buflen);
+	buf = (char *)xmalloc((size_t)buflen);
 	CHK_FREAD(buf, (size_t)buflen, (size_t)1, f);
 	brz->h0 = hash_state_load(buf, "brz->h0");
 	free(buf);
 
 	//loading c, m, and the vector offset.
 	CHK_FREAD(&(brz->m), sizeof(cmph_uint32), (size_t)1, f);
-	brz->offset = (cmph_uint32 *)malloc(sizeof(cmph_uint32)*brz->k);
+	brz->offset = (cmph_uint32 *)xmalloc(sizeof(cmph_uint32)*brz->k);
 	CHK_FREAD(brz->offset, sizeof(cmph_uint32)*(brz->k), (size_t)1, f);
 	//loading the optional ordering table.
-	mphf->o = (cmph_uint32 *)malloc(sizeof(cmph_uint32) * brz->m);
+	mphf->o = (cmph_uint32 *)xmalloc(sizeof(cmph_uint32) * brz->m);
 	cmph_uint32 nread =
 	    fread(mphf->o, sizeof(cmph_uint32), (size_t)brz->m, f);
 	if (nread != brz->m) {

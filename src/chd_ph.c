@@ -69,7 +69,7 @@ static inline void chd_ph_bucket_destroy(chd_ph_bucket_t * buckets);
 
 chd_ph_bucket_t * chd_ph_bucket_new(cmph_uint32 nbuckets)
 {
-    chd_ph_bucket_t * buckets = (chd_ph_bucket_t *) calloc(nbuckets, sizeof(chd_ph_bucket_t));
+    chd_ph_bucket_t * buckets = (chd_ph_bucket_t *)xcalloc(nbuckets, sizeof(chd_ph_bucket_t));
     return buckets;
 }
 
@@ -128,7 +128,7 @@ static inline double chd_ph_space_lower_bound(cmph_uint32 _n, cmph_uint32 _r)
 /* computes the entropy of non empty buckets.*/
 static inline double chd_ph_get_entropy(cmph_uint32 * disp_table, cmph_uint32 n, cmph_uint32 max_probes)
 {
-	cmph_uint32 * probe_counts = (cmph_uint32 *) calloc(max_probes, sizeof(cmph_uint32));
+	cmph_uint32 * probe_counts = (cmph_uint32 *)xcalloc(max_probes, sizeof(cmph_uint32));
 	cmph_uint32 i;
 	double entropy = 0;
 
@@ -148,7 +148,7 @@ static inline double chd_ph_get_entropy(cmph_uint32 * disp_table, cmph_uint32 n,
 chd_ph_config_data_t *chd_ph_config_new(void)
 {
 	chd_ph_config_data_t *chd_ph;
-	chd_ph = (chd_ph_config_data_t *)malloc(sizeof(chd_ph_config_data_t));
+	chd_ph = (chd_ph_config_data_t *)xmalloc(sizeof(chd_ph_config_data_t));
         if (!chd_ph)
 	    return NULL;
 	memset(chd_ph, 0, sizeof(chd_ph_config_data_t));
@@ -224,7 +224,7 @@ cmph_uint8 chd_ph_mapping(cmph_config_t *mph, chd_ph_bucket_t * buckets, chd_ph_
 	char * key = NULL;
 	cmph_uint32 keylen = 0;
 	chd_ph_map_item_t * map_item;
-	chd_ph_map_item_t * map_items = (chd_ph_map_item_t *)malloc(chd_ph->m*sizeof(chd_ph_map_item_t));
+	chd_ph_map_item_t * map_items = (chd_ph_map_item_t *)xmalloc(chd_ph->m*sizeof(chd_ph_map_item_t));
 	cmph_uint32 mapping_iterations = 1000;
 	*max_bucket_size = 0;
 	while(1)
@@ -294,7 +294,7 @@ error:
 chd_ph_sorted_list_t * chd_ph_ordering(chd_ph_bucket_t ** _buckets, chd_ph_item_t ** _items,
 	cmph_uint32 nbuckets, cmph_uint32 nitems, cmph_uint32 max_bucket_size)
 {
-	chd_ph_sorted_list_t * sorted_lists = (chd_ph_sorted_list_t *) calloc(max_bucket_size + 1, sizeof(chd_ph_sorted_list_t));
+	chd_ph_sorted_list_t * sorted_lists = (chd_ph_sorted_list_t *)xcalloc(max_bucket_size + 1, sizeof(chd_ph_sorted_list_t));
 
 	chd_ph_bucket_t * input_buckets = (*_buckets);
 	chd_ph_bucket_t * output_buckets;
@@ -320,7 +320,7 @@ chd_ph_sorted_list_t * chd_ph_ordering(chd_ph_bucket_t ** _buckets, chd_ph_item_
 	};
 	sorted_lists[i-1].size = 0;
 	// Store the buckets in a new array which is sorted by bucket sizes
-	output_buckets = (chd_ph_bucket_t *)calloc(nbuckets, sizeof(chd_ph_bucket_t)); // everything is initialized with zero
+	output_buckets = (chd_ph_bucket_t *)xcalloc(nbuckets, sizeof(chd_ph_bucket_t)); // everything is initialized with zero
 //  	non_empty_buckets = nbuckets;
 
 	for(i = 0; i < nbuckets; i++)
@@ -343,7 +343,7 @@ chd_ph_sorted_list_t * chd_ph_ordering(chd_ph_bucket_t ** _buckets, chd_ph_item_
 	(*_buckets) = output_buckets;
 
 	// Store the items according to the new order of buckets.
-	output_items = (chd_ph_item_t*)calloc(nitems, sizeof(chd_ph_item_t));
+	output_items = (chd_ph_item_t*)xcalloc(nitems, sizeof(chd_ph_item_t));
 	position = 0;
 	i = 0;
 	for(bucket_size = 1; bucket_size <= max_bucket_size; bucket_size++)
@@ -674,7 +674,7 @@ cmph_t *chd_ph_new(cmph_config_t *mph, double c)
 
        	// We allocate the working tables
 	buckets = chd_ph_bucket_new(chd_ph->nbuckets);
-	items   = (chd_ph_item_t *) calloc(chd_ph->m, sizeof(chd_ph_item_t));
+	items   = (chd_ph_item_t *)xcalloc(chd_ph->m, sizeof(chd_ph_item_t));
 
 	max_probes = (cmph_uint32)((log(chd_ph->m)/log(2))/20);
 
@@ -684,11 +684,11 @@ cmph_t *chd_ph_new(cmph_config_t *mph, double c)
 	    max_probes = max_probes * max_probes_default;
 
 	if(chd_ph->keys_per_bin == 1)
-		chd_ph->occup_table = (cmph_uint8 *) calloc(((chd_ph->n + 31)/32), sizeof(cmph_uint32));
+		chd_ph->occup_table = (cmph_uint8 *)xcalloc(((chd_ph->n + 31)/32), sizeof(cmph_uint32));
 	else
-		chd_ph->occup_table = (cmph_uint8 *) calloc(chd_ph->n, sizeof(cmph_uint8));
+		chd_ph->occup_table = (cmph_uint8 *)xcalloc(chd_ph->n, sizeof(cmph_uint8));
 
-	disp_table = (cmph_uint32 *) calloc(chd_ph->nbuckets, sizeof(cmph_uint32));
+	disp_table = (cmph_uint32 *)xcalloc(chd_ph->nbuckets, sizeof(cmph_uint32));
 //
 // 	init_genrand(time(0));
 
@@ -753,7 +753,7 @@ cmph_t *chd_ph_new(cmph_config_t *mph, double c)
 
 	if(chd_ph->cs)
 		free(chd_ph->cs);
-	chd_ph->cs = (compressed_seq_t *) calloc(1, sizeof(compressed_seq_t));
+	chd_ph->cs = (compressed_seq_t *)xcalloc(1, sizeof(compressed_seq_t));
 	compressed_seq_init(chd_ph->cs);
 	compressed_seq_generate(chd_ph->cs, disp_table, chd_ph->nbuckets);
 
@@ -780,7 +780,7 @@ cleanup:
 	if (mph->do_ordering_table) {
 	    if (mph->verbosity)
 		fprintf(stderr, "Create ordering table\n");
-	    ordering = (cmph_uint32 *)malloc(chd_ph->n * sizeof(cmph_uint32));
+	    ordering = (cmph_uint32 *)xmalloc(chd_ph->n * sizeof(cmph_uint32));
 	    assert(ordering);
 	    memset(ordering, 0xFF, chd_ph->n * sizeof(cmph_uint32));
 	    DEBUGP("Create ordering table:\n");
@@ -811,10 +811,10 @@ cleanup:
 #endif
 	}
 
-	mphf = (cmph_t *)malloc(sizeof(cmph_t));
+	mphf = (cmph_t *)xmalloc(sizeof(cmph_t));
 	mphf->algo = mph->algo;
 	mphf->o = ordering;
-	chd_phf = (chd_ph_data_t *)malloc(sizeof(chd_ph_data_t));
+	chd_phf = (chd_ph_data_t *)xmalloc(sizeof(chd_ph_data_t));
 
 	chd_phf->cs = chd_ph->cs;
 	chd_ph->cs = NULL; //transfer memory ownership from config to data
@@ -843,23 +843,23 @@ void chd_ph_load(FILE *fd, cmph_t *mphf)
 {
 	char *buf = NULL;
 	cmph_uint32 buflen;
-	chd_ph_data_t *chd_ph = (chd_ph_data_t *)malloc(sizeof(chd_ph_data_t));
+	chd_ph_data_t *chd_ph = (chd_ph_data_t *)xmalloc(sizeof(chd_ph_data_t));
 
 	DEBUGP("Loading chd_ph mphf\n");
 	mphf->data = chd_ph;
 
 	CHK_FREAD(&buflen, sizeof(cmph_uint32), (size_t)1, fd);
 	DEBUGP("Hash state has %u bytes\n", buflen);
-	buf = (char *)malloc((size_t)buflen);
+	buf = (char *)xmalloc((size_t)buflen);
 	CHK_FREAD(buf, (size_t)buflen, (size_t)1, fd);
 	chd_ph->hl = hash_state_load(buf, "chd_ph->hl");
 	free(buf);
 
 	CHK_FREAD(&buflen, sizeof(cmph_uint32), (size_t)1, fd);
 	DEBUGP("Compressed sequence structure has %u bytes\n", buflen);
-	buf = (char *)malloc((size_t)buflen);
+	buf = (char *)xmalloc((size_t)buflen);
 	CHK_FREAD(buf, (size_t)buflen, (size_t)1, fd);
-	chd_ph->cs = (compressed_seq_t *) calloc(1, sizeof(compressed_seq_t));
+	chd_ph->cs = (compressed_seq_t *)xcalloc(1, sizeof(compressed_seq_t));
 	compressed_seq_load(chd_ph->cs, buf);
 	free(buf);
 
@@ -868,7 +868,7 @@ void chd_ph_load(FILE *fd, cmph_t *mphf)
 	CHK_FREAD(&(chd_ph->nbuckets), sizeof(cmph_uint32), (size_t)1, fd);
 	DEBUGP("Read n %u and nbuckets %u\n", chd_ph->n, chd_ph->nbuckets);
 	// if more room in f than current position, TODO use fstat and ftell instead
-	mphf->o = (cmph_uint32 *)malloc(sizeof(cmph_uint32) * mphf->size);
+	mphf->o = (cmph_uint32 *)xmalloc(sizeof(cmph_uint32) * mphf->size);
 	cmph_uint32 nread = fread(mphf->o, sizeof(cmph_uint32), (size_t)mphf->size, fd);
 	if (nread != mphf->size){
 	    free(mphf->o);

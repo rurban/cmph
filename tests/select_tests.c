@@ -5,6 +5,7 @@
 #endif
 #include "../src/debug.h"
 #include <stdlib.h>
+#include "cmph_xhelpers.h"
 
 static inline void print_values(select_t * sel)
 {
@@ -87,7 +88,7 @@ int main(void)
 
 	select_pack_size = select_packed_size(&sel);
 
-	select_packed = (char *) calloc(select_pack_size, sizeof(char));
+	select_packed = (char *)xcalloc(select_pack_size, sizeof(char));
 	select_pack(&sel, select_packed);
 	select_destroy(&sel);
 

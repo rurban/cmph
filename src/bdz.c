@@ -48,7 +48,7 @@ typedef cmph_uint32 * bdz_queue_t;
 
 static void bdz_alloc_queue(bdz_queue_t * queuep, cmph_uint32 nedges)
 {
-	(*queuep) = (cmph_uint32 *)malloc(nedges*sizeof(cmph_uint32));
+	(*queuep) = (cmph_uint32 *)xmalloc(nedges*sizeof(cmph_uint32));
 };
 static void bdz_free_queue(bdz_queue_t * queue)
 {
@@ -69,9 +69,9 @@ static void bdz_alloc_graph3(bdz_graph3_t * graph3, cmph_uint32 nedges, cmph_uin
 {
 	graph3->nedges = nedges;
 	graph3->nvertices = nvertices;
-	graph3->edges = (bdz_edge_t *)calloc(nedges, sizeof(bdz_edge_t));
-	graph3->first_edge = (cmph_uint32 *)calloc(nvertices, sizeof(cmph_uint32));
-	graph3->vert_degree = (cmph_uint8 *)calloc((size_t)nvertices, 1);
+	graph3->edges = (bdz_edge_t *)xcalloc(nedges, sizeof(bdz_edge_t));
+	graph3->first_edge = (cmph_uint32 *)xcalloc(nvertices, sizeof(cmph_uint32));
+	graph3->vert_degree = (cmph_uint8 *)xcalloc((size_t)nvertices, 1);
 };
 static void bdz_init_graph3(bdz_graph3_t * graph3, cmph_uint32 nvertices)
 {
@@ -167,7 +167,7 @@ static int bdz_generate_queue(cmph_uint32 nedges, bdz_queue_t queue, bdz_graph3_
 	cmph_uint32 queue_head=0,queue_tail=0;
 	cmph_uint32 curr_edge;
 	cmph_uint32 tmp_edge;
-	cmph_uint8 * marked_edge = (cmph_uint8 *)malloc((size_t)(nedges >> 3) + 1);
+	cmph_uint8 * marked_edge = (cmph_uint8 *)xmalloc((size_t)(nedges >> 3) + 1);
 
 	memset(marked_edge, 0, (size_t)(nedges >> 3) + 1);
 
@@ -231,7 +231,7 @@ static cmph_uint32 rank(cmph_uint32 b, cmph_uint32 * ranktable, cmph_uint8 * g, 
 bdz_config_data_t *bdz_config_new(void)
 {
 	bdz_config_data_t *bdz;
-	bdz = (bdz_config_data_t *)calloc(1, sizeof(bdz_config_data_t));
+	bdz = (bdz_config_data_t *)xcalloc(1, sizeof(bdz_config_data_t));
         if (!bdz) return NULL;
 	//memset(bdz, 0, sizeof(bdz_config_data_t));
 	//bdz->hashfunc = CMPH_HASH_JENKINS;
@@ -354,7 +354,7 @@ cmph_t *bdz_new(cmph_config_t *mph, double c)
 	ranking(bdz);
 
 	if (mph->do_ordering_table) {
-	    ordering_table = (cmph_uint32 *)malloc(bdz->m * sizeof(cmph_uint32));
+	    ordering_table = (cmph_uint32 *)xmalloc(bdz->m * sizeof(cmph_uint32));
 	    assert(ordering_table);
 	    DEBUGP("Create ordering table\n");
 	    mph->key_source->rewind(mph->key_source->data);
@@ -377,10 +377,10 @@ cmph_t *bdz_new(cmph_config_t *mph, double c)
 #ifdef CMPH_TIMING
 	ELAPSED_TIME_IN_SECONDS(&construction_time);
 #endif
-	mphf = (cmph_t *)malloc(sizeof(cmph_t));
+	mphf = (cmph_t *)xmalloc(sizeof(cmph_t));
 	mphf->algo = mph->algo;
 	mphf->o = ordering_table;
-	bdzf = (bdz_data_t *)malloc(sizeof(bdz_data_t));
+	bdzf = (bdz_data_t *)xmalloc(sizeof(bdz_data_t));
 	bdzf->g = bdz->g;
 	bdz->g = NULL; //transfer memory ownership
 	bdzf->hl = bdz->hl;
@@ -445,9 +445,9 @@ static void assigning(bdz_config_data_t *bdz, bdz_graph3_t* graph3, bdz_queue_t 
 	cmph_uint32 curr_edge;
 	cmph_uint32 v0,v1,v2;
         const size_t sizemv = (size_t)(bdz->n >> 3) + 1;
-	cmph_uint8 * marked_vertices = (cmph_uint8 *)calloc(sizemv, 1);
+	cmph_uint8 * marked_vertices = (cmph_uint8 *)xcalloc(sizemv, 1);
         cmph_uint32 sizeg = (cmph_uint32)ceil(bdz->n/4.0); // 2bit per vertex
-	bdz->g = (cmph_uint8 *)malloc(sizeg * sizeof(cmph_uint8));
+	bdz->g = (cmph_uint8 *)xmalloc(sizeg * sizeof(cmph_uint8));
 	memset(bdz->g, 0xff, (size_t)sizeg);
 
 	for(i=nedges-1; i+1 >= 1; i--){
@@ -492,7 +492,7 @@ static void ranking(bdz_config_data_t *bdz)
 {
 	cmph_uint32 j, offset = 0U, count = 0U, size = (bdz->k >> 2U),
                 nbytes_total = (cmph_uint32)ceil(bdz->n/4.0), nbytes;
-	bdz->ranktable = (cmph_uint32 *)calloc((size_t)bdz->ranktablesize, sizeof(cmph_uint32));
+	bdz->ranktable = (cmph_uint32 *)xcalloc((size_t)bdz->ranktablesize, sizeof(cmph_uint32));
 	// ranktable computation (number of bits in g)
 	bdz->ranktable[0] = 0;
 	for (cmph_uint32 i=1; i < bdz->ranktablesize; i++) {
@@ -636,14 +636,14 @@ void bdz_load(FILE *f, cmph_t *mphf)
 {
 	char *buf = NULL;
 	cmph_uint32 buflen, sizeg;
-	bdz_data_t *bdz = (bdz_data_t *)malloc(sizeof(bdz_data_t));
+	bdz_data_t *bdz = (bdz_data_t *)xmalloc(sizeof(bdz_data_t));
 
 	DEBUGP("Loading bdz mphf\n");
 	mphf->data = bdz;
 
 	CHK_FREAD(&buflen, sizeof(cmph_uint32), (size_t)1, f);
 	DEBUGP("Hash state has %u bytes\n", buflen);
-	buf = (char *)malloc((size_t)buflen);
+	buf = (char *)xmalloc((size_t)buflen);
 	CHK_FREAD(buf, (size_t)buflen, (size_t)1, f);
 	bdz->hl = hash_state_load(buf, "bdz->hl");
 	free(buf);
@@ -653,14 +653,14 @@ void bdz_load(FILE *f, cmph_t *mphf)
 	CHK_FREAD(&(bdz->m), sizeof(cmph_uint32), (size_t)1, f);
 	CHK_FREAD(&(bdz->r), sizeof(cmph_uint32), (size_t)1, f);
 	sizeg = (cmph_uint32)ceil(bdz->n/4.0);
-	bdz->g = (cmph_uint8 *)calloc((size_t)(sizeg), sizeof(cmph_uint8));
+	bdz->g = (cmph_uint8 *)xcalloc((size_t)(sizeg), sizeof(cmph_uint8));
 	CHK_FREAD(bdz->g, sizeg*sizeof(cmph_uint8), (size_t)1, f);
 
 	CHK_FREAD(&(bdz->k), sizeof(cmph_uint32), (size_t)1, f);
 	CHK_FREAD(&(bdz->b), sizeof(cmph_uint8), (size_t)1, f);
 	CHK_FREAD(&(bdz->ranktablesize), sizeof(cmph_uint32), (size_t)1, f);
 
-	bdz->ranktable = (cmph_uint32 *)calloc((size_t)bdz->ranktablesize, sizeof(cmph_uint32));
+	bdz->ranktable = (cmph_uint32 *)xcalloc((size_t)bdz->ranktablesize, sizeof(cmph_uint32));
 	CHK_FREAD(bdz->ranktable, sizeof(cmph_uint32)*(bdz->ranktablesize), (size_t)1, f);
 #ifdef DEBUG
 	cmph_uint32  i = 0;
@@ -670,7 +670,7 @@ void bdz_load(FILE *f, cmph_t *mphf)
 	fprintf(stderr, "\n");
 #endif
 	//loading the optional ordering table.
-	mphf->o = (cmph_uint32 *)malloc(sizeof(cmph_uint32) * bdz->m);
+	mphf->o = (cmph_uint32 *)xmalloc(sizeof(cmph_uint32) * bdz->m);
 	cmph_uint32 nread =
 	    fread(mphf->o, sizeof(cmph_uint32), (size_t)bdz->m, f);
 	if (nread != bdz->m) {

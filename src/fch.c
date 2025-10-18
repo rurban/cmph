@@ -24,7 +24,7 @@ static cmph_uint8 searching(cmph_config_t *mph, fch_buckets_t *buckets, cmph_uin
 fch_config_data_t *fch_config_new()
 {
 	fch_config_data_t *fch;
-	fch = (fch_config_data_t *)malloc(sizeof(fch_config_data_t));
+	fch = (fch_config_data_t *)xmalloc(sizeof(fch_config_data_t));
         if (!fch) return NULL;
 	memset(fch, 0, sizeof(fch_config_data_t));
 	//fch->m = fch->b = 0;
@@ -137,7 +137,7 @@ static cmph_uint32 * ordering(fch_buckets_t * buckets)
 static cmph_uint8 check_for_collisions_h2(fch_config_data_t *fch, fch_buckets_t * buckets, cmph_uint32 *sorted_indexes)
 {
 	//cmph_uint32 max_size = fch_buckets_get_max_size(buckets);
-	cmph_uint8 * hashtable = (cmph_uint8 *)calloc((size_t)fch->m, sizeof(cmph_uint8));
+	cmph_uint8 * hashtable = (cmph_uint8 *)xcalloc((size_t)fch->m, sizeof(cmph_uint8));
 	cmph_uint32 nbuckets = fch_buckets_get_nbuckets(buckets);
 	cmph_uint32 i = 0, index = 0, j =0;
 	for (i = 0; i < nbuckets; i++)
@@ -176,15 +176,15 @@ static void permut(cmph_uint32 * vector, cmph_uint32 n)
 static cmph_uint8 searching(cmph_config_t *mph, fch_buckets_t *buckets, cmph_uint32 *sorted_indexes, cmph_uint32 *ordering_table)
 {
 	fch_config_data_t *fch = (fch_config_data_t *)mph->data;
-	cmph_uint32 *random_table = (cmph_uint32 *) calloc((size_t)fch->m, sizeof(cmph_uint32));
-	cmph_uint32 *map_table    = (cmph_uint32 *) calloc((size_t)fch->m, sizeof(cmph_uint32));
+	cmph_uint32 *random_table = (cmph_uint32 *)xcalloc((size_t)fch->m, sizeof(cmph_uint32));
+	cmph_uint32 *map_table    = (cmph_uint32 *)xcalloc((size_t)fch->m, sizeof(cmph_uint32));
 	cmph_uint32 iteration_to_generate_h2 = 0;
 	cmph_uint32 searching_iterations     = 0;
 	cmph_uint8 restart                   = 0;
 	cmph_uint32 nbuckets                 = fch_buckets_get_nbuckets(buckets);
 	cmph_uint32 i, j, z, counter = 0, filled_count = 0;
 	if (fch->g) free (fch->g);
-	fch->g = (cmph_uint32 *) calloc((size_t)fch->b, sizeof(cmph_uint32));
+	fch->g = (cmph_uint32 *)xcalloc((size_t)fch->b, sizeof(cmph_uint32));
 
 	DEBUGP("max bucket size: %u, nbuckets: %u\n", fch_buckets_get_max_size(buckets), nbuckets);
 
@@ -297,7 +297,7 @@ cmph_t *fch_new(cmph_config_t *mph, double c)
 	fch->h2 = NULL;
 	fch->g = NULL;
 	if (mph->do_ordering_table)
-	    ordering_table = (cmph_uint32 *) calloc(fch->m, sizeof(cmph_uint32));
+	    ordering_table = (cmph_uint32 *)xcalloc(fch->m, sizeof(cmph_uint32));
 
 	do
 	{
@@ -330,11 +330,11 @@ cmph_t *fch_new(cmph_config_t *mph, double c)
 	    hash_state_destroy(fch->h2);
 	    return NULL;
 	}
-	mphf = (cmph_t *)calloc(1, sizeof(cmph_t));
+	mphf = (cmph_t *)xcalloc(1, sizeof(cmph_t));
 	mphf->algo = mph->algo;
 	mphf->o = ordering_table;
 	mphf->size = fch->m;
-	fchf = (fch_data_t *)malloc(sizeof(fch_data_t));
+	fchf = (fch_data_t *)xmalloc(sizeof(fch_data_t));
 	fchf->g = fch->g;
 	fch->g = NULL; //transfer memory ownership
 	fchf->h1 = fch->h1;
@@ -464,7 +464,7 @@ void fch_load(FILE *f, cmph_t *mphf)
 {
 	char *buf = NULL;
 	cmph_uint32 buflen;
-	fch_data_t *fch = (fch_data_t *)malloc(sizeof(fch_data_t));
+	fch_data_t *fch = (fch_data_t *)xmalloc(sizeof(fch_data_t));
 
 	DEBUGP("Loading fch mphf\n");
 	mphf->data = fch;
@@ -472,7 +472,7 @@ void fch_load(FILE *f, cmph_t *mphf)
 	fch->h1 = NULL;
 	CHK_FREAD(&buflen, sizeof(cmph_uint32), (size_t)1, f);
 	DEBUGP("Hash state of h1 has %u bytes\n", buflen);
-	buf = (char *)malloc((size_t)buflen);
+	buf = (char *)xmalloc((size_t)buflen);
 	CHK_FREAD(buf, (size_t)buflen, (size_t)1, f);
 	fch->h1 = hash_state_load(buf, "fch->h1");
 	free(buf);
@@ -482,7 +482,7 @@ void fch_load(FILE *f, cmph_t *mphf)
 	fch->h2 = NULL;
 	CHK_FREAD(&buflen, sizeof(cmph_uint32), (size_t)1, f);
 	DEBUGP("Hash state of h2 has %u bytes\n", buflen);
-	buf = (char *)malloc((size_t)buflen);
+	buf = (char *)xmalloc((size_t)buflen);
 	CHK_FREAD(buf, (size_t)buflen, (size_t)1, f);
 	fch->h2 = hash_state_load(buf, "fch->h2");
 	free(buf);
@@ -494,10 +494,10 @@ void fch_load(FILE *f, cmph_t *mphf)
 	CHK_FREAD(&(fch->p1), sizeof(double), (size_t)1, f);
 	CHK_FREAD(&(fch->p2), sizeof(double), (size_t)1, f);
 
-	fch->g = (cmph_uint32 *)malloc(sizeof(cmph_uint32)*fch->b);
+	fch->g = (cmph_uint32 *)xmalloc(sizeof(cmph_uint32)*fch->b);
 	CHK_FREAD(fch->g, fch->b*sizeof(cmph_uint32), (size_t)1, f);
 	// if more room in f than current position, TODO use fstat and ftell instead
-	mphf->o = (cmph_uint32 *)malloc(sizeof(cmph_uint32)*fch->m);
+	mphf->o = (cmph_uint32 *)xmalloc(sizeof(cmph_uint32)*fch->m);
 	cmph_uint32 nread = fread(mphf->o, sizeof(cmph_uint32), (size_t)fch->m, f);
 	if (nread != mphf->size) {
 		free(mphf->o);
