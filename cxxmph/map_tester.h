@@ -49,7 +49,7 @@ struct MapTester {
     map_type<int64_t, int64_t> m;
     // Start counting from 1 to not touch default constructed value bugs
     for (int i = 1; i < 12; ++i) m.insert(make_pair(i, i));
-    for (int i = 1; i < 12; ++i) if (m.find(i) == m.end()) return false; 
+    for (int i = 1; i < 12; ++i) if (m.find(i) == m.end()) return false;
     return true;
   }
   static bool default_search() {
@@ -65,7 +65,7 @@ struct MapTester {
     int nkeys = 10 * 1000;
     map_type<int64_t, int64_t> m;
     for (int i = 0; i < nkeys; ++i) m.insert(make_pair(i, i));
-    for (int i = 0; i < nkeys; ++i) if (m.find(i) == m.end()) return false; 
+    for (int i = 0; i < nkeys; ++i) if (m.find(i) == m.end()) return false;
     return true;
   }
   static bool string_search() {
@@ -124,7 +124,7 @@ struct MapTester {
     map_type<int64_t, int64_t> m;
     int nkeys = 10 * 1000;
     for (int i = 0; i < nkeys; ++i) { m.insert(make_pair(i, i)); }
-    for (int i = nkeys - 1; i >= 0; --i) { 
+    for (int i = nkeys - 1; i >= 0; --i) {
       fail_unless(m.find(i) != m.end());
       m.erase(i);
       if (static_cast<int>(m.size()) != i) return false;

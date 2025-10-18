@@ -21,16 +21,16 @@
 
 void usage(const char *prg)
 {
-	fprintf(stderr, "usage: %s [-v] [-h] [-V] [-t keys_per_bin] [-k nkeys] [-m file.mph]  keysfile\n", prg);   
+	fprintf(stderr, "usage: %s [-v] [-h] [-V] [-t keys_per_bin] [-k nkeys] [-m file.mph]  keysfile\n", prg);
 }
 void usage_long(const char *prg)
 {
-	fprintf(stderr, "usage: %s [-v] [-h] [-V] [-t keys_per_bin] [-k nkeys] [-m file.mph] keysfile\n", prg);   
-	fprintf(stderr, "Packed MPHFs testing tool\n\n"); 
+	fprintf(stderr, "usage: %s [-v] [-h] [-V] [-t keys_per_bin] [-k nkeys] [-m file.mph] keysfile\n", prg);
+	fprintf(stderr, "Packed MPHFs testing tool\n\n");
 	fprintf(stderr, "  -h\t print this help message\n");
 	fprintf(stderr, "  -V\t print version number and exit\n");
 	fprintf(stderr, "  -v\t increase verbosity (may be used multiple times)\n");
-	fprintf(stderr, "  -t\t set the number of keys per bin for a t-perfect hashing function.\n");	
+	fprintf(stderr, "  -t\t set the number of keys per bin for a t-perfect hashing function.\n");
 	fprintf(stderr, "    \t A t-perfect hashing function allows at most t collisions in a given bin.\n");
 	fprintf(stderr, "  -k\t number of keys\n");
 	fprintf(stderr, "  -m\t minimum perfect hash function file \n");
@@ -100,14 +100,14 @@ int main(int argc, char **argv)
 		return 1;
 	}
 	keys_file = argv[optind];
-  
+
 	int ret = 0;
 	if (mphf_file == NULL)
 	{
 		mphf_file = (char *)malloc(strlen(keys_file) + 5);
 		memcpy(mphf_file, keys_file, strlen(keys_file));
 		memcpy(mphf_file + strlen(keys_file), ".mph\0", (size_t)5);
-	}	
+	}
 
 	keys_fd = fopen(keys_file, "r");
 
@@ -139,12 +139,12 @@ int main(int argc, char **argv)
 	cmph_uint32 siz = cmph_size(mphf);
 	hashtable = (cmph_uint8*)calloc(siz, sizeof(cmph_uint8));
 	memset(hashtable, 0, (size_t)siz);
-			
+
 	// packing the function
 	/* Determine how much space is needed to pack the mphf. */
-	cmph_uint32 packed_size = cmph_packed_size(mphf); 
+	cmph_uint32 packed_size = cmph_packed_size(mphf);
 	fprintf(stderr, "packed_size = %u\n", packed_size);
-	
+
 	/* Make sure that we have enough space to pack the mphf. */
 	cmph_uint8 * packed_mphf = (cmph_uint8 *)calloc((size_t)packed_size,(size_t)1);
 
@@ -191,12 +191,12 @@ int main(int argc, char **argv)
 #endif
 
 	free(packed_mphf);
-	cmph_destroy(mphf);	
+	cmph_destroy(mphf);
 	free(hashtable);
 
 	fclose(keys_fd);
 	free(mphf_file);
 	cmph_io_nlfile_adapter_destroy(source);
 	return ret;
-  
+
 }

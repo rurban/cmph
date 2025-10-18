@@ -18,7 +18,7 @@ static inline void print_values(compressed_rank_t * cr, cmph_uint32 idx)
 static inline void print_values_packed(char * cr_packed, cmph_uint32 idx)
 {
 	cmph_uint32 index;
-	
+
 	index = compressed_rank_query_packed(cr_packed, idx);
 	fprintf(stderr, "Index[%u]\t= %u\n", idx, index);
 }
@@ -41,7 +41,7 @@ int main(void)
 	cmph_uint32 buflen = 0;
 	char * cr_packed = NULL;
 	cmph_uint32 cr_pack_size = 0;
-	
+
 	compressed_rank_init(&cr);
 	compressed_rank_generate(&cr, keys_vec, n);
 	fprintf(stderr, "Space usage = %u\n", compressed_rank_get_space_usage(&cr));
@@ -49,32 +49,32 @@ int main(void)
 	{
 		print_values(&cr, i);
 	}
-	
+
 	fprintf(stderr, "Dumping compressed rank structure\n");
 	compressed_rank_dump(&cr, &buf, &buflen);
-	
+
 	compressed_rank_destroy(&cr);
 	fprintf(stderr, "Loading compressed rank structure\n");
-	
+
 	compressed_rank_load(&cr, buf);
 	for(i = 0; i < nIndices; i++)
 	{
 		print_values(&cr, i);
 	}
 	free(buf);
-	
+
 	cr_pack_size = compressed_rank_packed_size(&cr);
-	
+
 	cr_packed = (char *) calloc(cr_pack_size, sizeof(char));
 	compressed_rank_pack(&cr, cr_packed);
 	compressed_rank_destroy(&cr);
-	
+
 	fprintf(stderr, "Querying the packed compressed rank structure\n");
 	for(i = 0; i < nIndices; i++)
 	{
 		print_values_packed(cr_packed, i);
 	}
-	
+
 	free(cr_packed);
 	return 0;
 }

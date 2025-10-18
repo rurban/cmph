@@ -36,7 +36,7 @@ class BM_CreateUrls : public UrlsBenchmark {
 template <class MapType>
 class BM_SearchUrls : public SearchUrlsBenchmark {
  public:
-  BM_SearchUrls(const std::string& urls_file, int nsearches, float miss_ratio) 
+  BM_SearchUrls(const std::string& urls_file, int nsearches, float miss_ratio)
       : SearchUrlsBenchmark(urls_file, nsearches, miss_ratio) { }
   virtual ~BM_SearchUrls() {}
   virtual void Run() {

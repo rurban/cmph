@@ -3,10 +3,13 @@
 upload_opt=
 
 while getopts "u:" opt; do
-    case $opt in
+    case "$opt" in
         u)
             upload_opt="$OPTARG"
-        ;;
+            ;;
+        *)  echo "Error: Unknown option $opt" >&2
+            exit 1
+            ;;
     esac
 done
 
@@ -20,19 +23,19 @@ function usage {
     exit 1
 }
 
-if [ "$upload_opt" = "" ] 
+if [ "$upload_opt" = "" ]
 then
     usage
 fi
 
-if [ "$upload_opt" != "html" ] && 
-   [ "$upload_opt" != "examples" ] && 
-   [ "$upload_opt" != "papers" ] && 
+if [ "$upload_opt" != "html" ] &&
+   [ "$upload_opt" != "examples" ] &&
+   [ "$upload_opt" != "papers" ] &&
    [ "$upload_opt" != "all" ]
 then
     usage
 fi
- 
+
 if [ "$upload_opt" = "html" ] || [ "$upload_opt" = "all" ]
 then
     scp -r docs/*.html  fc_botelho@web.sourceforge.net:/home/project-web/cmph/htdocs/

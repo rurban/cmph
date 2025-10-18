@@ -37,7 +37,7 @@ table.center {margin-left:auto; margin-right:auto;}
 <h2>Properties</h2>
 
   <ul>
-  <li>Construct minimal MPHFs in linear time. 
+  <li>Construct minimal MPHFs in linear time.
   </li>
   <li>It is based on acyclic random graphs
   </li>
@@ -66,56 +66,56 @@ The algorithm is presented in <a href="#papers">[1,2,3</a>].
 
 <p>
 Now we detail the memory consumption to generate and to store minimal perfect hash functions
-using the CHM algorithm. The structures responsible for memory consumption are in the 
+using the CHM algorithm. The structures responsible for memory consumption are in the
 following:
 </p>
 
 <ul>
 <li>Graph:
   <ol>
-  <li><strong>first</strong>: is a vector that stores <em>cn</em> integer numbers, each one representing 
-    the first edge (index in the vector edges) in the list of 
-    edges of each vertex. 
+  <li><strong>first</strong>: is a vector that stores <em>cn</em> integer numbers, each one representing
+    the first edge (index in the vector edges) in the list of
+    edges of each vertex.
     The integer numbers are 4 bytes long. Therefore,
     the vector first is stored in <em>4cn</em> bytes.
   <p></p>
   </li>
   <li><strong>edges</strong>: is a vector to represent the edges of the graph. As each edge
-    is compounded by a pair of vertices, each entry stores two integer numbers 
-    of 4 bytes that represent the vertices. As there are <em>n</em> edges, the 
-    vector edges is stored in <em>8n</em> bytes. 
+    is compounded by a pair of vertices, each entry stores two integer numbers
+    of 4 bytes that represent the vertices. As there are <em>n</em> edges, the
+    vector edges is stored in <em>8n</em> bytes.
   <p></p>
   </li>
-  <li><strong>next</strong>: given a vertex <img class="center" src="figs/img139.png" alt="">, we can discover the edges that 
-    contain <img class="center" src="figs/img139.png" alt=""> following its list of edges, which starts on 
+  <li><strong>next</strong>: given a vertex <img class="center" src="figs/img139.png" alt="">, we can discover the edges that
+    contain <img class="center" src="figs/img139.png" alt=""> following its list of edges, which starts on
     first[<img class="center" src="figs/img139.png" alt="">] and the next
-    edges are given by next[...first[<img class="center" src="figs/img139.png" alt="">]...]. Therefore, 
-    the vectors first and next represent 
+    edges are given by next[...first[<img class="center" src="figs/img139.png" alt="">]...]. Therefore,
+    the vectors first and next represent
     the linked lists of edges of each vertex. As there are two vertices for each edge,
-    when an edge is iserted in the graph, it must be inserted in the two linked lists 
+    when an edge is iserted in the graph, it must be inserted in the two linked lists
     of the vertices in its composition. Therefore, there are <em>2n</em> entries of integer
     numbers in the vector next, so it is stored in <em>4*2n = 8n</em> bytes.
   <p></p>
   </li>
   </ol>
 </li>
-<li>Other auxiliary structures    
+<li>Other auxiliary structures
   <ol>
-  <li><strong>visited</strong>: is a vector of <em>cn</em> bits, where each bit indicates if the g value of 
+  <li><strong>visited</strong>: is a vector of <em>cn</em> bits, where each bit indicates if the g value of
     a given vertex was already defined. Therefore, the vector visited is stored
     in <em>cn/8</em> bytes.
   <p></p>
   </li>
   <li><strong>function <em>g</em></strong>: is represented by a vector of <em>cn</em> integer numbers.
     As each integer number is 4 bytes long, the function <em>g</em> is stored in
-    <em>4cn</em> bytes. 
+    <em>4cn</em> bytes.
   </li>
   </ol>
 </li>
 </ul>
 
 <p>
-Thus, the total memory consumption of CHM algorithm for generating a minimal 
+Thus, the total memory consumption of CHM algorithm for generating a minimal
 perfect hash function (MPHF) is: <em>(8.125c + 16)n + O(1)</em> bytes.
 As the value of constant <em>c</em> must be at least 2.09 we have:
 </p>

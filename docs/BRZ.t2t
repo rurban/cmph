@@ -6,7 +6,7 @@ External Memory Based Algorithm
 ==Properties==
 
   - A very fast external memory based algorithm for constructing minimal perfect hash functions  for sets in the order of billions of keys.
-  - It works in linear time. 
+  - It works in linear time.
   - The resulting MPHFs are not order preserving.
   - The resulting MPHFs can be stored using less than //8.0// bits per key.
 
@@ -48,7 +48,7 @@ For instance, for a collection of 1 billion URLs
 collected from the web, each one 64 characters long on average, the time to construct a
 MPHF using a 2.4 gigahertz PC with 500 megabytes of available main memory
 is approximately 3 hours.
-Second, the algorithm needs a small a priori defined vector of [figs/brz/img23.png] one 
+Second, the algorithm needs a small a priori defined vector of [figs/brz/img23.png] one
 byte entries in main memory to construct a MPHF.
 For the collection of 1 billion URLs and using [figs/brz/img4.png], the algorithm needs only
 5.45 megabytes of internal memory.
@@ -61,7 +61,7 @@ For the collection of 1 billion URLs, it needs 8.1 bits for each key,
 while the theoretical lower bound is [figs/brz/img24.png] bits per key.
 
 ----------------------------------------
- 
+
 
 ==The Algorithm==
 
@@ -73,11 +73,11 @@ algorithm: the partitioning step and the searching step.
 
  | [figs/brz/brz.png]
  | **Figure 1:** Main steps of our algorithm.
- 
+
 The partitioning step takes a key set //S// and uses a universal hash
 function [figs/brz/img42.png] proposed by Jenkins[[5 #papers]]
 to transform each key [figs/brz/img43.png] into an integer [figs/brz/img44.png].
-Reducing [figs/brz/img44.png] modulo [figs/brz/img23.png], we partition //S//  
+Reducing [figs/brz/img44.png] modulo [figs/brz/img23.png], we partition //S//
 into [figs/brz/img23.png] buckets containing at most 256 keys in each bucket (with high
 probability).
 
@@ -110,9 +110,9 @@ Statement 1.1 of the **for** loop presented in Figure 2
 reads sequentially all the keys of block [figs/brz/img55.png] from disk into an internal area
 of size [figs/brz/img8.png].
 
-Statement 1.2 performs an indirect bucket sort of the keys in block [figs/brz/img55.png] and 
+Statement 1.2 performs an indirect bucket sort of the keys in block [figs/brz/img55.png] and
 at the same time updates the entries in the vector //size//.
-Let us briefly describe how [figs/brz/img55.png] is partitioned among 
+Let us briefly describe how [figs/brz/img55.png] is partitioned among
 the [figs/brz/img23.png] buckets.
 We use a local array of [figs/brz/img23.png] counters to store a
 count of how many keys from [figs/brz/img55.png] belong to each bucket.
@@ -130,7 +130,7 @@ Key //k// goes into bucket //i//, where
 
  | [figs/brz/img57.png] (1)
 
-Figure 3(a) shows a //logical// view of the [figs/brz/img23.png] buckets 
+Figure 3(a) shows a //logical// view of the [figs/brz/img23.png] buckets
 generated in the partitioning step.
 In reality, the keys belonging to each bucket are distributed among many files,
 as depicted in Figure 3(b).
@@ -147,7 +147,7 @@ needed to read the keys in each bucket from the //N// files in disk
 during the searching step.
 But, as we show in [[2 #papers]], the number of seeks
 can be kept small using buffering techniques.
-Considering that only the vector //size//, which has [figs/brz/img23.png] one-byte 
+Considering that only the vector //size//, which has [figs/brz/img23.png] one-byte
 entries (remember that each bucket has at most 256 keys),
 must be maintained in main memory during the searching step,
 almost all main memory is available to be used as disk I/O buffer.
@@ -161,7 +161,7 @@ As //size[i]// stores the number of keys
 in bucket //i//, where [figs/brz/img47.png], we have
 
  | [figs/brz/img63.png]
- 
+
 ----------------------------------------
 
 === Searching step ===
@@ -196,7 +196,7 @@ in Figure 5.
 
  | [figs/brz/img67.png]
  | **Figure 5:** Reading a bucket.
-  
+
 Bucket //i// is distributed among many files and the heap //H// is used to drive a
 multiway merge operation.
 In Figure 5, statement 1.1 extracts and removes triple
@@ -226,7 +226,7 @@ To the best of our knowledge the [BMZ algorithm bmz.html] we have designed in
 our previous works [[1,3 #papers]] is the fastest published algorithm for
 constructing MPHFs.
 That is why we are using that algorithm as a building block for the
-algorithm presented here. In reality, we are using 
+algorithm presented here. In reality, we are using
 an optimized version of BMZ (BMZ8) for small set of keys (at most 256 keys).
 [Click here to see details about BMZ algorithm bmz.html].
 
@@ -234,7 +234,7 @@ an optimized version of BMZ (BMZ8) for small set of keys (at most 256 keys).
 
 ==Analysis of the Algorithm==
 
-Analytical results and the complete analysis of the external memory based algorithm 
+Analytical results and the complete analysis of the external memory based algorithm
 can be found in [[2 #papers]].
 
 ----------------------------------------
@@ -273,12 +273,12 @@ It is a randomized algorithm because it needs to generate a simple random graph
 in its first step.
 Once the graph is obtained the other two steps are deterministic.
 
-Thus, we can consider the runtime of the algorithm to have 
-the form [figs/brz/img159.png] for an input of //n// keys, 
+Thus, we can consider the runtime of the algorithm to have
+the form [figs/brz/img159.png] for an input of //n// keys,
 where [figs/brz/img160.png] is some machine dependent
 constant that further depends on the length of the keys and //Z// is a random
-variable with geometric distribution with mean [figs/brz/img162.png].  All results 
-in our experiments were obtained taking //c=1//; the value of //c//, with //c// in //[0.93,1.15]//, 
+variable with geometric distribution with mean [figs/brz/img162.png].  All results
+in our experiments were obtained taking //c=1//; the value of //c//, with //c// in //[0.93,1.15]//,
 in fact has little influence in the runtime, as shown in [[3 #papers]].
 
 The values chosen for //n// were 1, 2, 4, 8, 16 and 32 million.
@@ -316,7 +316,7 @@ fluctuation. However, the fluctuation also grows linearly with //n//.
 
   | [figs/brz/bmz_temporegressao.png]
   | **Figure 6:** Time versus number of keys in //S// for the internal memory based algorithm. The solid line corresponds to a linear regression model.
-  
+
 The observed fluctuation in the runtimes is as expected; recall that this
 runtime has the form [figs/brz/img159.png] with //Z// a geometric random variable with
 mean //1/p=e//.  Thus, the runtime has mean [figs/brz/img181.png] and standard
@@ -329,7 +329,7 @@ in Table 1 and in Figure 6.
 
 ===Performance of the External Memory Based Algorithm===
 
-The runtime of the external memory based algorithm is also a random variable, 
+The runtime of the external memory based algorithm is also a random variable,
 but now it follows a (highly concentrated) normal distribution, as we discuss at the end of this
 section.  Again, we are interested in verifying the linearity claim made in
 [[2, Section 5.1 #papers]].  Therefore, we ran the algorithm for
@@ -384,14 +384,14 @@ variation.
 
 An intriguing observation is that the runtime of the algorithm is almost
 deterministic, in spite of the fact that it uses as building block an
-algorithm with a considerable fluctuation in its runtime.  A given bucket 
+algorithm with a considerable fluctuation in its runtime.  A given bucket
 //i//, [figs/brz/img47.png], is a small set of keys (at most 256 keys) and,
 as argued in last Section, the runtime of the
 building block algorithm is a random variable [figs/brz/img207.png] with high fluctuation.
 However, the runtime //Y// of the searching step of the external memory based algorithm is given
 by [figs/brz/img209.png].  Under the hypothesis that
 the [figs/brz/img207.png] are independent and bounded, the {\it law of large numbers} (see,
-e.g., [[6 #papers]]) implies that the random variable [figs/brz/img210.png] converges 
+e.g., [[6 #papers]]) implies that the random variable [figs/brz/img210.png] converges
 to a constant as [figs/brz/img83.png].  This explains why the runtime of our
 algorithm is almost deterministic.
 
@@ -422,7 +422,7 @@ has smart policies for avoiding seeks and diminishing the average seek time
 %!include(html): ''TABLEBRZ3.t2t''
  | **Table 3:**Influence of the internal memory area size ([figs/brz/img8.png]) in the external memory based algorithm runtime.
 
- 
+
 ----------------------------------------
 
 ==Papers==[papers]

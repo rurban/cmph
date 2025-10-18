@@ -22,12 +22,12 @@ class dynamic_2bitset {
   dynamic_2bitset(uint32_t size, bool fill = false);
 
   const uint8_t operator[](uint32_t i) const { return get(i); }
-  const uint8_t get(uint32_t i) const { 
+  const uint8_t get(uint32_t i) const {
     assert(i < size());
     assert((i >> 2) < data_.size());
     return (data_[(i >> 2)] >> (((i & 3) << 1)) & 3);
   }
-  void set(uint32_t i, uint8_t v) { 
+  void set(uint32_t i, uint8_t v) {
     assert((i >> 2) < data_.size());
     data_[(i >> 2)] |= ones() ^ dynamic_2bitset::vmask[i & 3];
     data_[(i >> 2)] &= ((v << ((i & 3) << 1)) | dynamic_2bitset::vmask[i & 3]);

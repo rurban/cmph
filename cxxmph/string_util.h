@@ -114,7 +114,7 @@ void infoln(const std::string& format_string, Args&&... args) {
 
 struct variadic_print {
   variadic_print(const std::string& file, uint32_t line, std::ostream* out,
-                 const std::string& format_line) 
+                 const std::string& format_line)
      : file_(file), line_(line), out_(out), format_line_(format_line) {}
   template <typename... Args>
   void operator()(Args&&... args) {

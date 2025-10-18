@@ -37,7 +37,7 @@ table.center {margin-left:auto; margin-right:auto;}
 <h2>Properties</h2>
 
   <ul>
-  <li>Construct minimal perfect hash functions that require  less than 4 bits per key to be stored. 
+  <li>Construct minimal perfect hash functions that require  less than 4 bits per key to be stored.
   </li>
   <li>The resulting MPHFs are very compact and very efficient at evaluation time
   </li>
@@ -68,7 +68,7 @@ The algorithm is presented in <a href="#papers">[1</a>].
 
 <p>
 Now we detail the memory consumption to generate and to store minimal perfect hash functions
-using the FCH algorithm. The structures responsible for memory consumption are in the 
+using the FCH algorithm. The structures responsible for memory consumption are in the
 following:
 </p>
 
@@ -86,9 +86,9 @@ following:
   </li>
   </ol>
 </li>
-<li>Other auxiliary structures    
+<li>Other auxiliary structures
   <ol>
-  <li><strong>sorted_indexes</strong>: is a vector of <em>cn/(log(n) + 1)</em> 4 byte long pointers to indirectly keep the buckets sorted by decreasing order of their sizes. 
+  <li><strong>sorted_indexes</strong>: is a vector of <em>cn/(log(n) + 1)</em> 4 byte long pointers to indirectly keep the buckets sorted by decreasing order of their sizes.
   <p></p>
   </li>
   <li><strong>function <em>g</em></strong>: is represented by a vector of <em>cn/(log(n) + 1)</em> 4 byte long integer numbers, one for each bucket. It is used to spread all the keys in a given bucket into the hash table without collisions.
@@ -98,7 +98,7 @@ following:
 </ul>
 
 <p>
-Thus, the total memory consumption of FCH algorithm for generating a minimal 
+Thus, the total memory consumption of FCH algorithm for generating a minimal
 perfect hash function (MPHF) is: <em>O(n) + 9n + 8cn/(log(n) + 1)</em> bytes.
 The value of parameter <em>c</em> must be greater than or equal to 2.6.
 </p>

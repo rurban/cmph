@@ -28,7 +28,7 @@ void chm_pack(cmph_t *mphf, void *packed_mphf);
  *  \brief Return the amount of space needed to pack mphf.
  *  \param mphf pointer to a mphf
  *  \return the size of the packed function or zero for failures
- */ 
+ */
 cmph_uint32 chm_packed_size(cmph_t *mphf);
 
 /** cmph_uint32 chm_search(void *packed_mphf, const char *key, cmph_uint32 keylen);

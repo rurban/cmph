@@ -27,7 +27,7 @@ void usage_long(const char *prg)
 {
 	cmph_uint32 i;
 	fprintf(stderr, "usage: %s [-v] [-h] [-V] [-k nkeys] [-m file.mph] [-a algorithm] [-f hash_function] keysfile\n", prg);
-	fprintf(stderr, "MPHFs testing tool\n\n"); 
+	fprintf(stderr, "MPHFs testing tool\n\n");
 	fprintf(stderr, "  -h\t print this help message\n");
 	fprintf(stderr, "  -V\t print version number and exit\n");
 	fprintf(stderr, "  -v\t increase verbosity (may be used multiple times)\n");

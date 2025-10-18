@@ -39,17 +39,17 @@ table.center {margin-left:auto; margin-right:auto;}
   <ul>
   <li>It is very simple and efficient. It outperforms all but CHM.
   </li>
-  <li>It constructs both PHFs and MPHFs in linear time. 
+  <li>It constructs both PHFs and MPHFs in linear time.
   </li>
-  <li>The maximum load factor one can achieve for a PHF is <em>1/1.23</em>.  
+  <li>The maximum load factor one can achieve for a PHF is <em>1/1.23</em>.
   </li>
-  <li>It is based on acyclic random 3-graphs. A 3-graph is a generalization of a graph where each edge connects 3 vertices instead of only 2. 
+  <li>It is based on acyclic random 3-graphs. A 3-graph is a generalization of a graph where each edge connects 3 vertices instead of only 2.
   </li>
   <li>The resulting MPHFs are not order preserving.
   </li>
   <li>The resulting MPHFs can be stored in only <em>(2 + x)cn</em> bits, where <em>c</em> should be larger than or equal to <em>1.23</em> and <em>x</em> is a constant larger than <em>0</em> (actually, x = 1/b and b is a parameter that should be larger than 2). For <em>c = 1.23</em> and <em>b = 8</em>, the resulting functions are stored in approximately 2.6 bits per key.
   </li>
-  <li>For its maximum load factor (<em>81 %</em>), the resulting PHFs are stored in approximately <em>1.95</em> bits per key. 
+  <li>For its maximum load factor (<em>81 %</em>), the resulting PHFs are stored in approximately <em>1.95</em> bits per key.
   <p></p>
   </li>
   </ul>
@@ -112,13 +112,13 @@ The <em>Mapping Step</em> in Figure 1(a) carries out two important tasks:
 <li>It assumes that it is possible to find three uniform hash functions <em>h<sub>0</sub></em>, <em>h<sub>1</sub></em> and <em>h<sub>2</sub></em>, with ranges <em>{0,1}</em>, <em>{2,3}</em> and <em>{4,5}</em>, respectively. These functions build an one-to-one mapping of the key set <em>S</em> to the edge set <em>E</em> of a random acyclic <em>3</em>-partite hypergraph <em>G=(V,E)</em>, where <em>|V|=m=6</em> and <em>|E|=n=3</em>. In <a href="#papers">[1,2</a>] it is shown that it is possible to obtain such a hypergraph with probability tending to <em>1</em> as <em>n</em> tends to infinity whenever <em>m=cn</em> and <em>c &gt; 1.22</em>. The value of that minimizes the hypergraph size (and thereby the amount of bits to represent the resulting functions) is in the range <em>(1.22,1.23)</em>. To illustrate the mapping, key "who" is mapped to edge <em>{h<sub>0</sub>("who"), h<sub>1</sub>("who"), h<sub>2</sub>("who")} = {1,3,5}</em>, key "band" is mapped to edge <em>{h<sub>0</sub>("band"), h<sub>1</sub>("band"), h<sub>2</sub>("band")} = {1,2,4}</em>, and key "the" is mapped to edge <em>{h<sub>0</sub>("the"), h<sub>1</sub>("the"), h<sub>2</sub>("the")} = {0,2,5}</em>.
 <p></p>
 </li>
-<li>It tests whether the resulting random <em>3</em>-partite hypergraph contains cycles by iteratively deleting edges connecting vertices of degree 1. The deleted edges are stored in the order of deletion in a list <img class="center" src="figs/bdz/img4.png" alt=""> to be used in the assigning step. The first deleted edge in Figure 1(a) was <em>{1,2,4}</em>, the second one was <em>{1,3,5}</em> and the third one was <em>{0,2,5}</em>. If it ends with an empty graph, then the test succeeds, otherwise it fails. 
+<li>It tests whether the resulting random <em>3</em>-partite hypergraph contains cycles by iteratively deleting edges connecting vertices of degree 1. The deleted edges are stored in the order of deletion in a list <img class="center" src="figs/bdz/img4.png" alt=""> to be used in the assigning step. The first deleted edge in Figure 1(a) was <em>{1,2,4}</em>, the second one was <em>{1,3,5}</em> and the third one was <em>{0,2,5}</em>. If it ends with an empty graph, then the test succeeds, otherwise it fails.
 </li>
 </ol>
 
 <p>
 We now show how to use the Jenkins hash functions <a href="#papers">[7</a>] to implement the three hash functions <em>h<sub>i</sub></em>, which map values from <em>S</em> to <em>V<sub>i</sub></em>, where <img class="center" src="figs/bdz/img52.png" alt="">. These functions are used to build a random <em>3</em>-partite hypergraph, where <img class="center" src="figs/bdz/img53.png" alt=""> and <img class="center" src="figs/bdz/img54.png" alt="">. Let <img class="center" src="figs/bdz/img55.png" alt=""> be a Jenkins hash function for <img class="center" src="figs/bdz/img56.png" alt="">, where
-<em>w=32 or 64</em> for 32-bit and 64-bit architectures, respectively. 
+<em>w=32 or 64</em> for 32-bit and 64-bit architectures, respectively.
 Let <em>H'</em> be an array of 3 <em>w</em>-bit values. The Jenkins hash function
 allow us to compute in parallel the three entries in <em>H'</em>
 and thereby the three hash functions <em>h<sub>i</sub></em>, as follows:
@@ -167,64 +167,64 @@ The resulting MPHFs have the following form: <em>h(x) = rank(phf(x))</em>. Then,
 
 <p>
 Now we detail the memory consumption to generate and to store minimal perfect hash functions
-using the BDZ algorithm. The structures responsible for memory consumption are in the 
+using the BDZ algorithm. The structures responsible for memory consumption are in the
 following:
 </p>
 
 <ul>
 <li>3-graph:
   <ol>
-  <li><strong>first</strong>: is a vector that stores <em>cn</em> integer numbers, each one representing 
-    the first edge (index in the vector edges) in the list of 
+  <li><strong>first</strong>: is a vector that stores <em>cn</em> integer numbers, each one representing
+    the first edge (index in the vector edges) in the list of
     incident edges of each vertex. The integer numbers are 4 bytes long. Therefore,
     the vector first is stored in <em>4cn</em> bytes.
   <p></p>
   </li>
   <li><strong>edges</strong>: is a vector to represent the edges of the graph. As each edge
-    is compounded by three vertices, each entry stores three integer numbers 
-    of 4 bytes that represent the vertices. As there are <em>n</em> edges, the 
-    vector edges is stored in <em>12n</em> bytes. 
+    is compounded by three vertices, each entry stores three integer numbers
+    of 4 bytes that represent the vertices. As there are <em>n</em> edges, the
+    vector edges is stored in <em>12n</em> bytes.
   <p></p>
   </li>
-  <li><strong>next</strong>: given a vertex <img class="center" src="figs/img139.png" alt="">, we can discover the edges that 
-    contain <img class="center" src="figs/img139.png" alt=""> following its list of incident edges, 
+  <li><strong>next</strong>: given a vertex <img class="center" src="figs/img139.png" alt="">, we can discover the edges that
+    contain <img class="center" src="figs/img139.png" alt=""> following its list of incident edges,
     which starts on first[<img class="center" src="figs/img139.png" alt="">] and the next
-    edges are given by next[...first[<img class="center" src="figs/img139.png" alt="">]...]. Therefore, the vectors first and next represent 
+    edges are given by next[...first[<img class="center" src="figs/img139.png" alt="">]...]. Therefore, the vectors first and next represent
     the linked lists of edges of each vertex. As there are three vertices for each edge,
-    when an edge is iserted in the 3-graph, it must be inserted in the three linked lists 
+    when an edge is iserted in the 3-graph, it must be inserted in the three linked lists
     of the vertices in its composition. Therefore, there are <em>3n</em> entries of integer
     numbers in the vector next, so it is stored in <em>4*3n = 12n</em> bytes.
   <p></p>
   </li>
   <li><strong>Vertices degree (vert_degree vector)</strong>: is a vector of <em>cn</em> bytes
     that represents the degree of each vertex. We can use just one byte for each
-    vertex because the 3-graph is sparse, once it has more vertices than edges. 
+    vertex because the 3-graph is sparse, once it has more vertices than edges.
     Therefore, the vertices degree is represented in <em>cn</em> bytes.
   <p></p>
   </li>
   </ol>
 </li>
-<li>Acyclicity test:    
+<li>Acyclicity test:
   <ol>
-  <li><strong>List of deleted edges obtained when we test whether the 3-graph is a forest (queue vector)</strong>: 
-    is a vector of <em>n</em> integer numbers containing indexes of vector edges. Therefore, it 
-    requires <em>4n</em> bytes in internal memory. 
+  <li><strong>List of deleted edges obtained when we test whether the 3-graph is a forest (queue vector)</strong>:
+    is a vector of <em>n</em> integer numbers containing indexes of vector edges. Therefore, it
+    requires <em>4n</em> bytes in internal memory.
   <p></p>
   </li>
-  <li><strong>Marked edges in the acyclicity test (marked_edges vector)</strong>: 
-    is a bit vector of <em>n</em> bits to indicate the edges that have already been deleted during 
-    the acyclicity test. Therefore, it requires <em>n/8</em> bytes in internal memory. 
+  <li><strong>Marked edges in the acyclicity test (marked_edges vector)</strong>:
+    is a bit vector of <em>n</em> bits to indicate the edges that have already been deleted during
+    the acyclicity test. Therefore, it requires <em>n/8</em> bytes in internal memory.
   <p></p>
   </li>
   </ol>
 </li>
-<li>MPHF description     
+<li>MPHF description
   <ol>
-  <li><strong>function <em>g</em></strong>: is represented by a vector of <em>2cn</em> bits. Therefore, it is 
+  <li><strong>function <em>g</em></strong>: is represented by a vector of <em>2cn</em> bits. Therefore, it is
     stored in <em>0.25cn</em> bytes
   </li>
   <li><strong>ranktable</strong>: is a lookup table used to store some precomputed ranking information.
-    It has <em>(cn)/(2^b)</em> entries of 4-byte integer numbers. Therefore it is stored in 
+    It has <em>(cn)/(2^b)</em> entries of 4-byte integer numbers. Therefore it is stored in
     <em>(4cn)/(2^b)</em> bytes. The larger is b, the more compact is the resulting MPHFs and
     the slower are the functions. So b imposes a trade-of between space and time.
   </li>
@@ -235,7 +235,7 @@ following:
 </ul>
 
 <p>
-Thus, the total memory consumption of BDZ algorithm for generating a minimal 
+Thus, the total memory consumption of BDZ algorithm for generating a minimal
 perfect hash function (MPHF) is: <em>(28.125 + 5c)n + 0.25cn + (4cn)/(2^b) + O(1)</em> bytes.
 As the value of constant <em>c</em> may be larger than or equal to 1.23 we have:
 </p>

@@ -128,7 +128,7 @@ bool MPHIndex::Reset(
   m_ = size;
   r_ = static_cast<uint32_t>(ceil((c_*m_)/3));
   if ((r_ % 2) == 0) r_ += 1;
-  // This can be used to speed mods, but increases occupation too much. 
+  // This can be used to speed mods, but increases occupation too much.
   // Needs to try http://gmplib.org/manual/Integer-Exponentiation.html instead
   if (square_) r_ = nextpoweroftwo(r_);
   nest_displacement_[0] = 0;
@@ -238,7 +238,7 @@ template <bool minimal, bool square, class Key, class HashFcn>
 struct FlexibleMPHIndex {};
 
 template <class Key, class HashFcn>
-struct FlexibleMPHIndex<true, false, Key, HashFcn> 
+struct FlexibleMPHIndex<true, false, Key, HashFcn>
     : public SimpleMPHIndex<Key, HashFcn> {
   FlexibleMPHIndex() : SimpleMPHIndex<Key, HashFcn>(false) {}
   uint32_t index(const Key& key) const {
@@ -246,7 +246,7 @@ struct FlexibleMPHIndex<true, false, Key, HashFcn>
   uint32_t size() const { return MPHIndex::minimal_perfect_hash_size(); }
 };
 template <class Key, class HashFcn>
-struct FlexibleMPHIndex<false, true, Key, HashFcn> 
+struct FlexibleMPHIndex<false, true, Key, HashFcn>
     : public SimpleMPHIndex<Key, HashFcn> {
   FlexibleMPHIndex() : SimpleMPHIndex<Key, HashFcn>(true) {}
   uint32_t index(const Key& key) const {
@@ -254,7 +254,7 @@ struct FlexibleMPHIndex<false, true, Key, HashFcn>
   uint32_t size() const { return MPHIndex::perfect_hash_size(); }
 };
 template <class Key, class HashFcn>
-struct FlexibleMPHIndex<false, false, Key, HashFcn> 
+struct FlexibleMPHIndex<false, false, Key, HashFcn>
     : public SimpleMPHIndex<Key, HashFcn> {
   FlexibleMPHIndex() : SimpleMPHIndex<Key, HashFcn>(false) {}
   uint32_t index(const Key& key) const {

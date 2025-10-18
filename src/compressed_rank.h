@@ -33,14 +33,14 @@ void compressed_rank_load(compressed_rank_t * cr, const char *buf);
 /** \fn void compressed_rank_pack(compressed_rank_t *cr, void *cr_packed);
  *  \brief Support the ability to pack a compressed_rank structure into a preallocated contiguous memory space pointed by cr_packed.
  *  \param cr points to the compressed_rank structure
- *  \param cr_packed pointer to the contiguous memory area used to store the compressed_rank structure. The size of cr_packed must be at least @see compressed_rank_packed_size 
+ *  \param cr_packed pointer to the contiguous memory area used to store the compressed_rank structure. The size of cr_packed must be at least @see compressed_rank_packed_size
  */
 void compressed_rank_pack(compressed_rank_t *cr, void *cr_packed);
 
 /** \fn cmph_uint32 compressed_rank_packed_size(compressed_rank_t *cr);
  *  \brief Return the amount of space needed to pack a compressed_rank structure.
  *  \return the size of the packed compressed_rank structure or zero for failures
- */ 
+ */
 cmph_uint32 compressed_rank_packed_size(compressed_rank_t *cr);
 
 

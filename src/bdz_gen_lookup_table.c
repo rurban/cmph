@@ -18,8 +18,8 @@ int main(int argc, char ** argv)
 		int num = i;
 		n_assigned = 0;
 		for(j = 0; j < wordsize; j++)
-		{			
-			if ((num & 0x0003) != 3) 
+		{
+			if ((num & 0x0003) != 3)
 			{
 				n_assigned++;
 				//fprintf(stderr, "num:%d\n", num);
@@ -27,7 +27,7 @@ int main(int argc, char ** argv)
 			num = num >> 2;
 		}
 		if(i%16 == 0) fprintf(stderr, "\n");
-		fprintf(stderr, "%d, ", n_assigned);	
-	} 
+		fprintf(stderr, "%d, ", n_assigned);
+	}
 	fprintf(stderr, "\n");
 }

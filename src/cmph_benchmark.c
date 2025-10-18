@@ -132,4 +132,3 @@ void run_benchmarks(void) {
     ++benchmark;
   }
 }
-

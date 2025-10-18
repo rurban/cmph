@@ -16,7 +16,7 @@ class TriGraph {
  public:
   struct Edge {
     Edge() { }
-    Edge(uint32_t v0, uint32_t v1, uint32_t v2) { 
+    Edge(uint32_t v0, uint32_t v1, uint32_t v2) {
       vertices[0] = v0;
       vertices[1] = v1;
       vertices[2] = v2;

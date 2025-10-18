@@ -63,7 +63,7 @@ int main(void)
 {
 	select_t sel;
 	cmph_uint32 n = 4;
-	cmph_uint32 keys_vec[4] = {0,1,2,3}; 
+	cmph_uint32 keys_vec[4] = {0,1,2,3};
 	cmph_uint32 m = keys_vec[3];
 	char *buf = NULL;
 	cmph_uint32 buflen = 0;

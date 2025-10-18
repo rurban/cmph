@@ -119,7 +119,7 @@ static void bdz_dump_graph(bdz_graph3_t* graph3)
 		       graph3->edges[i].next_edges[1],
 		       graph3->edges[i].next_edges[2]);
 	};
-	
+
 #ifdef DEBUG
 	for(i=0; i < graph3->nvertices; i++){
 		DEBUGP("first for vertices %d %d\n", i, graph3->first_edge[i]);

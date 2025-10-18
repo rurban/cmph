@@ -25,6 +25,9 @@ do
             echo "Error: Option -$OPTARG requires an argument" >&2
             exit 1
             ;;
+        *)  echo "Error: Unknown option $opt" >&2
+            exit 1
+            ;;
     esac
     shift $((OPTIND-1))
 done
@@ -53,18 +56,16 @@ for a in $algos; do
     fi
     for f in $hashes; do
         fail=
-        args="$f"
         base="${a}_${f}"
         echo "** cmph -C -a $a -f $f $words"
         # a retry often helps
-        # shellcheck disable=SC2086
-        ../src/cmph -C -a "$a" -f $f "$words" >"$base.c" || \
-            ../src/cmph -C -a "$a" -f $f "$words" >"$base.c" || fail=1
+        ../src/cmph -C -a "$a" -f "$f" "$words" >"$base.c" || \
+            ../src/cmph -C -a "$a" -f "$f" "$words" >"$base.c" || fail=1
         if [ -n "$fail" ]
         then
             fail=
             echo "too weak $f hash alone, add a seperate hashfunc and a seed"
-            if [ $f = crc32 ]; then
+            if [ "$f" = "crc32" ]; then
                 f="$f -f jenkins -s 11"
             else
                 f="$f -f crc32 -s 11"
@@ -101,6 +102,7 @@ for a in $algos; do
                 chd|bdz|bmz|fch|chd_ph|bdz_ph|bmz8|brz)
                     echo "Test ordering table"
                     echo "** cmph -Cr -a $a -f $f -o $base.c $words"
+                    # shellcheck disable=SC2086
                     ../src/cmph -Cr -a "$a" -f $f -o "$base.c" "$words" || \
                         ../src/cmph -Cr -a "$a" -f $f -o "$base.c" "$words" || fail=1
                     if [ -z "$fail" ]
@@ -121,6 +123,7 @@ for a in $algos; do
             # once again with fch
             # shellcheck disable=SC2086
             echo "** cmph -C -c 3 -a brz -f $f $words"
+            # shellcheck disable=SC2086
             ../src/cmph -C -c 3 -a brz -f $f -o "${base}_fch.c" "$words" || \
               ../src/cmph -C -c 3 -a brz -f $f -o "${base}_fch.c" "$words" || fail=1
             if [ -z "$fail" ]
@@ -132,7 +135,7 @@ for a in $algos; do
             fi
         fi
 
-        if [ "$words" = "_cwords1000" -a "$a" != "fch" ]; then
+        if [ "$words" = "_cwords1000" ] && [ "$a" != "fch" ]; then
             words=_cwords
             nwords="$N"
         fi

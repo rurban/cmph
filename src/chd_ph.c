@@ -431,7 +431,7 @@ static inline cmph_uint8 place_bucket_probe(chd_ph_config_data_t *chd_ph, chd_ph
 			};
 		};
 		return 0;
-	} 
+	}
 	return 1;
 };
 

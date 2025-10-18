@@ -96,7 +96,7 @@ class mph_map_base {
   const data_type& operator[](const key_type &k) const;
 
   size_type bucket_count() const { return index_.size() + slack_.bucket_count(); }
-  void rehash(size_type nbuckets /*ignored*/); 
+  void rehash(size_type nbuckets /*ignored*/);
 
  protected:  // mimicking STL implementation
   EqualKey equal_;

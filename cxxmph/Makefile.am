@@ -38,7 +38,7 @@ trigraph_test_SOURCES = trigraph_test.cc
 
 # Bad dependency, do not compile by default.
 # bm_index_LDADD = libcxxmph_bm.la -lcmph
-# bm_index_SOURCES = bm_index.cc 
+# bm_index_SOURCES = bm_index.cc
 
 bm_map_LDADD = libcxxmph_bm.la
 bm_map_SOURCES = bm_map.cc
@@ -59,4 +59,3 @@ string_util_test_LDADD   = libcxxmph.la libcxxmph_test.la $(CHECK_LIBS)
 
 map_tester_test_SOURCES = map_tester.h map_tester.cc map_tester_test.cc
 map_tester_test_LDADD = libcxxmph.la libcxxmph_test.la $(CHECK_LIBS)
-

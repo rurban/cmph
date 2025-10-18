@@ -48,4 +48,3 @@
 % The ^ need to be escaped by \
 %!postproc(html):  \^\^(.*?)\^\^  <sup>\1</sup>
 %!postproc(html):  ,,(.*?),,      <sub>\1</sub>
-

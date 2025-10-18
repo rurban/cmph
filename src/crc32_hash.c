@@ -380,4 +380,3 @@ void crc32_state_compile_seed(int i, cmph_uint32 seed, char do_vector, FILE* out
     }
     return;
 }
-

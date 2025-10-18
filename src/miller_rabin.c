@@ -62,5 +62,3 @@ cmph_uint8 check_primality(cmph_uint64 n)
 		return 0;
 	return 1;
 };
-
-

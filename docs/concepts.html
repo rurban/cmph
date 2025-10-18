@@ -42,8 +42,8 @@ table.center {margin-left:auto; margin-right:auto;}
 Suppose <img class="center" src="figs/img14.png" alt=""> is a universe of <em>keys</em>.
 Let <img class="center" src="figs/img15.png" alt=""> be a <em>hash function</em> that maps the keys from <img class="center" src="figs/img14.png" alt=""> to a given interval of integers <img class="center" src="figs/img16.png" alt="">.
 Let <img class="center" src="figs/img17.png" alt=""> be a set of <img class="center" src="figs/img8.png" alt=""> keys from <img class="center" src="figs/img14.png" alt="">.
-Given a key <img class="center" src="figs/img18.png" alt="">, the hash function <img class="center" src="figs/img7.png" alt=""> computes an 
-integer in <img class="center" src="figs/img19.png" alt=""> for the storage or retrieval of <img class="center" src="figs/img11.png" alt=""> in 
+Given a key <img class="center" src="figs/img18.png" alt="">, the hash function <img class="center" src="figs/img7.png" alt=""> computes an
+integer in <img class="center" src="figs/img19.png" alt=""> for the storage or retrieval of <img class="center" src="figs/img11.png" alt=""> in
 a <em>hash table</em>.
 Hashing methods for <em>non-static sets</em> of keys can be used to construct
 data structures storing <img class="center" src="figs/img20.png" alt=""> and supporting membership queries
@@ -55,23 +55,23 @@ two keys are hashed to the same table location.
 <p>
 For <em>static sets</em> of keys it is possible to compute a function
 to find any key in a table in one probe; such hash functions are called
-<em>perfect</em>. 
-More precisely, given a set of keys <img class="center" src="figs/img20.png" alt="">, we shall say that a 
-hash function <img class="center" src="figs/img15.png" alt=""> is a <em>perfect hash function</em> 
+<em>perfect</em>.
+More precisely, given a set of keys <img class="center" src="figs/img20.png" alt="">, we shall say that a
+hash function <img class="center" src="figs/img15.png" alt=""> is a <em>perfect hash function</em>
 for <img class="center" src="figs/img20.png" alt=""> if <img class="center" src="figs/img7.png" alt=""> is an injection on <img class="center" src="figs/img20.png" alt="">,
-that is, there are no <em>collisions</em> among the keys in <img class="center" src="figs/img20.png" alt="">: 
-if <img class="center" src="figs/img11.png" alt=""> and <img class="center" src="figs/img22.png" alt=""> are in <img class="center" src="figs/img20.png" alt=""> and <img class="center" src="figs/img23.png" alt="">, 
+that is, there are no <em>collisions</em> among the keys in <img class="center" src="figs/img20.png" alt="">:
+if <img class="center" src="figs/img11.png" alt=""> and <img class="center" src="figs/img22.png" alt=""> are in <img class="center" src="figs/img20.png" alt=""> and <img class="center" src="figs/img23.png" alt="">,
 then <img class="center" src="figs/img24.png" alt="">.
 Figure 1(a) illustrates a perfect hash function.
 Since no collisions occur, each key can be retrieved from the table
 with a single probe.
 If <img class="center" src="figs/img25.png" alt="">, that is, the table has the same size as <img class="center" src="figs/img20.png" alt="">,
-then we say that <img class="center" src="figs/img7.png" alt=""> is a <em>minimal perfect hash function</em> 
+then we say that <img class="center" src="figs/img7.png" alt=""> is a <em>minimal perfect hash function</em>
 for <img class="center" src="figs/img20.png" alt="">.
 Figure 1(b) illustrates a minimal perfect hash function.
 Minimal perfect hash functions totally avoid the problem of wasted
-space and time. A perfect hash function <img class="center" src="figs/img7.png" alt=""> is <em>order preserving</em> 
-if the keys in <img class="center" src="figs/img20.png" alt=""> are arranged in some given order 
+space and time. A perfect hash function <img class="center" src="figs/img7.png" alt=""> is <em>order preserving</em>
+if the keys in <img class="center" src="figs/img20.png" alt=""> are arranged in some given order
 and <img class="center" src="figs/img7.png" alt=""> preserves this order in the hash table.
 </p>
 

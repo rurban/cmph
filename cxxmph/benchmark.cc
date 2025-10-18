@@ -27,7 +27,7 @@ namespace {
 /* Subtract the `struct timeval' values X and Y,
    storing the result in RESULT.
    Return 1 if the difference is negative, otherwise 0.  */
-int timeval_subtract ( 
+int timeval_subtract (
     struct timeval *result, struct timeval *x, struct timeval* y) {
   /* Perform the carry for the later subtraction by updating y. */
   if (x->tv_usec < y->tv_usec) {
@@ -70,7 +70,7 @@ struct rusage getrusage_or_die() {
 
 struct timeval gettimeofday_or_die() {
   struct timeval tv;
-  int ret = gettimeofday(&tv, NULL); 
+  int ret = gettimeofday(&tv, NULL);
   if (ret != 0) {
     cerr << "gettimeofday failed: " << strerror(errno) << endl;
     exit(-1);
@@ -90,7 +90,7 @@ string demangle(const string& name) {
 #else
 string demangle(const string& name) { return name; }
 #endif
- 
+
 
 static vector<cxxmph::Benchmark*> g_benchmarks;
 
@@ -115,7 +115,7 @@ namespace cxxmph {
       continue;
     }
     bm->MeasureRun();
-    bm->TearDown(); 
+    bm->TearDown();
   }
 }
 

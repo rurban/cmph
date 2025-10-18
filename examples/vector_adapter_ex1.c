@@ -2,11 +2,11 @@
 #include <string.h>
 // Create minimal perfect hash function from in-memory vector
 int main(void)
-{ 
+{
 
     // Creating a filled vector
     unsigned int i = 0;
-    const char *vector[] = {"aaaaaaaaaa", "bbbbbbbbbb", "cccccccccc", "dddddddddd", "eeeeeeeeee", 
+    const char *vector[] = {"aaaaaaaaaa", "bbbbbbbbbb", "cccccccccc", "dddddddddd", "eeeeeeeeee",
         "ffffffffff", "gggggggggg", "hhhhhhhhhh", "iiiiiiiiii", "jjjjjjjjjj"};
     unsigned int nkeys = 10;
     FILE* mphf_fd = fopen("temp.mph", "wb");
@@ -19,8 +19,8 @@ int main(void)
     cmph_config_set_mphf_fd(config, mphf_fd);
     cmph_t *hash = cmph_new(config);
     cmph_config_destroy(config);
-    cmph_dump(hash, mphf_fd); 
-    cmph_destroy(hash);	
+    cmph_dump(hash, mphf_fd);
+    cmph_destroy(hash);
     fclose(mphf_fd);
 
     //Find key
@@ -35,7 +35,7 @@ int main(void)
 
     //Destroy hash
     cmph_destroy(hash);
-    cmph_io_vector_adapter_destroy(source);   
+    cmph_io_vector_adapter_destroy(source);
     fclose(mphf_fd);
     return 0;
 }

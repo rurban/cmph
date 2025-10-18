@@ -39,7 +39,7 @@
 		}
 		static inline void dummy_elapsed_time_in_useconds()
 		{
-		}	
+		}
 #  endif
 #endif
 

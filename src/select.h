@@ -38,14 +38,14 @@ void select_load(select_t * sel, const char *buf);
 /** \fn void select_pack(select_t *sel, void *sel_packed);
  *  \brief Support the ability to pack a select structure into a preallocated contiguous memory space pointed by sel_packed.
  *  \param sel points to the select structure
- *  \param sel_packed pointer to the contiguous memory area used to store the select structure. The size of sel_packed must be at least @see select_packed_size 
+ *  \param sel_packed pointer to the contiguous memory area used to store the select structure. The size of sel_packed must be at least @see select_packed_size
  */
 void select_pack(select_t *sel, void *sel_packed);
 
 /** \fn cmph_uint32 select_packed_size(select_t *sel);
  *  \brief Return the amount of space needed to pack a select structure.
  *  \return the size of the packed select structure or zero for failures
- */ 
+ */
 cmph_uint32 select_packed_size(const select_t *sel);
 
 

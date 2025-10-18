@@ -38,7 +38,7 @@ void wyhash_state_pack(hash_state_t *state, void *wyhash_packed);
 /** \fn cmph_uint32 wyhash_state_packed_size();
  *  \brief Return the amount of space needed to pack a wyhash function.
  *  \return the size of the packed function or zero for failures
- */ 
+ */
 cmph_uint32 wyhash_state_packed_size(void);
 
 

@@ -10,7 +10,7 @@ using std::vector;
 
 namespace {
 static const uint32_t kInvalidEdge = std::numeric_limits<uint32_t>::max();
-} 
+}
 
 namespace cxxmph {
 
@@ -29,8 +29,8 @@ void TriGraph::ExtractEdgesAndClear(vector<Edge>* edges) {
   nedges_ = 0;
   edges->swap(edges_);
 }
-void TriGraph::AddEdge(const Edge& edge) { 
-  edges_[nedges_] = edge; 
+void TriGraph::AddEdge(const Edge& edge) {
+  edges_[nedges_] = edge;
   assert(first_edge_.size() > edge[0]);
   assert(first_edge_.size() > edge[1]);
   assert(first_edge_.size() > edge[0]);
@@ -78,5 +78,5 @@ void TriGraph::DebugGraph() const {
   }
 }
 
-     
+
 }  // namespace cxxmph

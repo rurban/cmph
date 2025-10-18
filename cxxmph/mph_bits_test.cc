@@ -57,5 +57,5 @@ int main(int argc, char** argv) {
 
   if (nextpoweroftwo(3) != 4) exit(-1);
 }
-  
-  
+
+

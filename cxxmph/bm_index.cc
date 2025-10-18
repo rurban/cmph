@@ -83,12 +83,12 @@ class BM_CmphIndexSearch : public SearchUrlsBenchmark {
     }
     FILE* f = fopen(urls_file_.c_str(), "r");
     if (!f) {
-      cerr << "Faied to open " << urls_file_ << endl; 
+      cerr << "Faied to open " << urls_file_ << endl;
       return false;
     }
     cmph_io_adapter_t* source = cmph_io_nlfile_adapter(f);
     if (!source) {
-      cerr << "Faied to create io adapter for " << urls_file_ << endl; 
+      cerr << "Faied to create io adapter for " << urls_file_ << endl;
       return false;
     }
     cmph_config_t* config = cmph_config_new(source);
@@ -111,7 +111,7 @@ class BM_CmphIndexSearch : public SearchUrlsBenchmark {
   }
   cmph_t* index_;
 };
-    
+
 
 class BM_STLIndexSearch : public SearchUrlsBenchmark {
  public:

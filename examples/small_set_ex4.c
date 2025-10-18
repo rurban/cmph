@@ -39,11 +39,11 @@ int test(cmph_uint32* items_to_hash, cmph_uint32 items_len, CMPH_ALGO alg_n)
         printf("%d -> %u\n",
                items_to_hash[i],
                cmph_search(hash,
-                           (char*)(items_to_hash+i), 
+                           (char*)(items_to_hash+i),
                            (cmph_uint32)sizeof(cmph_uint32)));
     printf("\n");
 
-    cmph_io_vector_adapter_destroy(source);   
+    cmph_io_vector_adapter_destroy(source);
     cmph_destroy(hash);
 
     if (alg_n == CMPH_BRZ) {

@@ -1,10 +1,10 @@
-all: 
+all:
 	latex bdz.tex
 	bibtex bdz
 	latex bdz.tex
 	latex bdz.tex
 	dvips bdz.dvi -o bdz.ps
-run: clean all 
+run: clean all
 	gv bdz.ps &
 html: clean all
 	latex2html bdz.tex

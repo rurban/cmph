@@ -46,4 +46,3 @@ int main(int, char**) {
   default_constructed = make_hollow(&v, &p, v.begin());
   return 0;
 }
-

@@ -54,6 +54,6 @@ int main(int argc, char** argv) {
       exit(-1);
     }
   }
-    
+
   for (uint64_t i = 0; i < 1000; ++i) if (g2[inthasher.hash128(i, 0)] != i) exit(-1);
 }

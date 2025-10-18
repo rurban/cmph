@@ -13,7 +13,7 @@ using std::string;
 using std::vector;
 
 namespace cxxmph {
-  
+
 UrlsBenchmark::~UrlsBenchmark() {}
 bool UrlsBenchmark::SetUp() {
   vector<string> urls;
@@ -72,4 +72,4 @@ bool SearchUint64Benchmark::SetUp() {
   return true;
 }
 
-}  // namespace cxxmph 
+}  // namespace cxxmph

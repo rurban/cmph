@@ -39,7 +39,7 @@ class SearchUrlsBenchmark : public UrlsBenchmark {
  virtual ~SearchUrlsBenchmark();
  protected:
   virtual bool SetUp();
-  const uint32_t nsearches_; 
+  const uint32_t nsearches_;
   float miss_ratio_;
   std::vector<std::string> forced_miss_urls_;
   std::vector<StringPiece> random_;

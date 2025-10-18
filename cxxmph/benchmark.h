@@ -18,7 +18,7 @@ class Benchmark {
   static void RunAll();
 
  protected:
-  virtual bool SetUp() { return true; }; 
+  virtual bool SetUp() { return true; };
   virtual void Run() = 0;
   virtual bool TearDown() { return true; };
 

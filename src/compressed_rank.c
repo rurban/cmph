@@ -11,7 +11,7 @@
 static inline cmph_uint32 compressed_rank_i_log2(cmph_uint32 x)
 {
 	cmph_uint32 res = 0;
-	
+
 	while(x > 1)
 	{
 		x >>= 1;
@@ -51,7 +51,7 @@ void compressed_rank_generate(compressed_rank_t * cr, cmph_uint32 * vals_table, 
 	select_vec = (cmph_uint32 *) calloc(cr->max_val >> cr->rem_r, sizeof(cmph_uint32));
 	cr->vals_rems = (cmph_uint32 *) calloc(BITS_TABLE_SIZE(cr->n, cr->rem_r), sizeof(cmph_uint32));
 	rems_mask = (1U << cr->rem_r) - 1U;
-	
+
 	for(i = 0; i < cr->n; i++)
 	{
 		set_bits_value(cr->vals_rems, i, vals_table[i] & rems_mask, cr->rem_r, rems_mask);
@@ -79,13 +79,13 @@ cmph_uint32 compressed_rank_query(compressed_rank_t * cr, cmph_uint32 idx)
 	cmph_uint32 rems_mask;
 	cmph_uint32 val_quot, val_rem;
 	cmph_uint32 sel_res, rank;
-	
+
 	if(idx > cr->max_val)
 		return cr->n;
-	
-	val_quot = idx >> cr->rem_r; 	
-	rems_mask = (1U << cr->rem_r) - 1U; 
-	val_rem = idx & rems_mask; 
+
+	val_quot = idx >> cr->rem_r;
+	rems_mask = (1U << cr->rem_r) - 1U;
+	val_rem = idx & rems_mask;
 	if(val_quot == 0)
 	{
 		rank = sel_res = 0;
@@ -128,20 +128,20 @@ void compressed_rank_dump(compressed_rank_t * cr, char **buf, cmph_uint32 *bufle
 	cmph_uint32 pos = 0;
 	char * buf_sel = 0;
 	cmph_uint32 buflen_sel = 0;
-	
+
 	*buflen = 4*(cmph_uint32)sizeof(cmph_uint32) + sel_size +  vals_rems_size;
-	
+
 	DEBUGP("sel_size = %u\n", sel_size);
 	DEBUGP("vals_rems_size = %u\n", vals_rems_size);
-	
+
 	*buf = (char *)calloc(*buflen, sizeof(char));
-	
-	if (!*buf) 
+
+	if (!*buf)
 	{
 		*buflen = UINT_MAX;
 		return;
 	}
-	
+
 	// dumping max_val, n and rem_r
 	memcpy(*buf, &(cr->max_val), sizeof(cmph_uint32));
 	pos += (cmph_uint32)sizeof(cmph_uint32);
@@ -150,7 +150,7 @@ void compressed_rank_dump(compressed_rank_t * cr, char **buf, cmph_uint32 *bufle
 	memcpy(*buf + pos, &(cr->n), sizeof(cmph_uint32));
 	pos += (cmph_uint32)sizeof(cmph_uint32);
 	DEBUGP("n = %u\n", cr->n);
-	
+
 	memcpy(*buf + pos, &(cr->rem_r), sizeof(cmph_uint32));
 	pos += (cmph_uint32)sizeof(cmph_uint32);
 	DEBUGP("rem_r = %u\n", cr->rem_r);
@@ -162,18 +162,18 @@ void compressed_rank_dump(compressed_rank_t * cr, char **buf, cmph_uint32 *bufle
 	DEBUGP("buflen_sel = %u\n", buflen_sel);
 
 	memcpy(*buf + pos, buf_sel, buflen_sel);
-	
+
 #ifdef DEBUG
-	cmph_uint32 i = 0; 
+	cmph_uint32 i = 0;
 	for(i = 0; i < buflen_sel; i++)
 	{
 	    DEBUGP("pos = %u  -- buf_sel[%u] = %u\n", pos, i, *(*buf + pos + i));
 	}
 #endif
 	pos += buflen_sel;
-	
+
 	free(buf_sel);
-	
+
 	// dumping vals_rems
 	memcpy(*buf + pos, cr->vals_rems, vals_rems_size);
 #ifdef DEBUG
@@ -192,7 +192,7 @@ void compressed_rank_load(compressed_rank_t * cr, const char *buf)
 	cmph_uint32 pos = 0;
 	cmph_uint32 buflen_sel = 0;
 	cmph_uint32 vals_rems_size = 0;
-	
+
 	// loading max_val, n, and rem_r
 	memcpy(&(cr->max_val), buf, sizeof(cmph_uint32));
 	pos += (cmph_uint32)sizeof(cmph_uint32);
@@ -259,7 +259,7 @@ void compressed_rank_pack(compressed_rank_t *cr, void *cr_packed)
 cmph_uint32 compressed_rank_packed_size(compressed_rank_t *cr)
 {
 	cmph_uint32 sel_size = select_packed_size(&cr->sel);
-	cmph_uint32 vals_rems_size = BITS_TABLE_SIZE(cr->n, cr->rem_r) * (cmph_uint32)sizeof(cmph_uint32);	
+	cmph_uint32 vals_rems_size = BITS_TABLE_SIZE(cr->n, cr->rem_r) * (cmph_uint32)sizeof(cmph_uint32);
 	return 4 * (cmph_uint32)sizeof(cmph_uint32)  + sel_size +  vals_rems_size;
 }
 
@@ -272,22 +272,22 @@ cmph_uint32 compressed_rank_query_packed(void * cr_packed, cmph_uint32 idx)
 	cmph_uint32 rem_r = *ptr++;
 	cmph_uint32 buflen_sel = *ptr++;
 	cmph_uint32 * sel_packed = ptr;
-	
+
 	cmph_uint32 * bits_vec = sel_packed + 2; // skipping n and m
 
-	cmph_uint32 * vals_rems = (ptr += (buflen_sel >> 2)); 
+	cmph_uint32 * vals_rems = (ptr += (buflen_sel >> 2));
 
 	// compressed sequence query computation
 	cmph_uint32 rems_mask;
 	cmph_uint32 val_quot, val_rem;
 	cmph_uint32 sel_res, rank;
-	
+
 	if(idx > max_val)
 		return n;
-	
-	val_quot = idx >> rem_r; 	
-	rems_mask = (1U << rem_r) - 1U; 
-	val_rem = idx & rems_mask; 
+
+	val_quot = idx >> rem_r;
+	rems_mask = (1U << rem_r) - 1U;
+	val_rem = idx & rems_mask;
 	if(val_quot == 0)
 	{
 		rank = sel_res = 0;
@@ -297,7 +297,7 @@ cmph_uint32 compressed_rank_query_packed(void * cr_packed, cmph_uint32 idx)
 		sel_res = select_query_packed(sel_packed, val_quot - 1) + 1;
 		rank = sel_res - val_quot;
 	}
-	
+
 	do
 	{
 		if(GETBIT32(bits_vec, sel_res))

@@ -22,6 +22,9 @@ do
             echo "Error: Option -$OPTARG requires an argument" >&2
             exit 1
             ;;
+        *)  echo "Error: Unknown option $opt" >&2
+            exit 1
+            ;;
     esac
     shift $((OPTIND-1))
 done
@@ -47,6 +50,7 @@ for a in $algos; do
     fi
     for f in $hashes; do
         fail=
+        opts=
         echo "** cmph -g -a $a -f $f $words"
         # a retry often helps
         ../src/cmph -g -a "$a" -f "$f" "$words" || \
@@ -55,22 +59,22 @@ for a in $algos; do
         then
             fail=
             echo "too weak $f hash alone, add a seperate hashfunc and a seed"
-            if [ $f = crc32 ]; then
-                f="$f -f jenkins -s 11"
+            if [ "$f" = "crc32" ]; then
+                opts="-f jenkins -s 11"
             else
-                f="$f -f crc32 -s 11"
+                opts="-f crc32 -s 11"
             fi
-            echo "** cmph -g -a $a -f $f $words"
+            echo "** cmph -g -a $a -f $f $opts $words"
             # shellcheck disable=SC2086
-            ../src/cmph -g -a "$a" -f $f "$words" || fail=1
+            ../src/cmph -g -a "$a" -f "$f" $opts "$words" || fail=1
             if [ -n "$fail" ]
             then
                 fail=
                 echo "still too weak $f hashes, use less keys"
                 words=_words1000
-                echo "** cmph -g -a $a -f $f $words"
+                echo "** cmph -g -a $a -f $f $opts $words"
                 # shellcheck disable=SC2086
-                ../src/cmph -g -a "$a" -f $f "$words" || fail=1
+                ../src/cmph -g -a "$a" -f "$f" $opts "$words" || fail=1
             else
                 echo "see, that worked"
             fi
@@ -78,17 +82,18 @@ for a in $algos; do
         if [ -z "$fail" ]; then
             echo "** cmph $words"
             ../src/cmph $words
-            echo "** mphf_tests -a $a -f $f $words"
+            echo "** mphf_tests -a $a -f $f $opts $words"
             # shellcheck disable=SC2086
-            ./mphf_tests -a "$a" -f $f "$words"
+            ./mphf_tests -a "$a" -f "$f" $opts "$words"
 
             case "$a" in
                 chd|bdz|bmz|fch|chd_ph|bdz_ph|bmz8|brz)
                     echo "Test ordering table for $a"
-                    echo "** cmph -gr -a $a -f $f $words"
-                    ../src/cmph -gr -a $a -f $f "$words" && \
-                        ( echo "** mphf_tests -a $a -f $f $words";  \
-                          ./mphf_tests -a $a -f $f "$words" )
+                    echo "** cmph -gr -a $a -f $f $opts $words"
+                    # shellcheck disable=SC2086
+                    ../src/cmph -gr -a $a -f "$f" $opts "$words" && \
+                        ( echo "** mphf_tests -a $a -f $f $opts $words";  \
+                          ./mphf_tests -a $a -f "$f" $opts "$words" )
                     ;;
                 chm) echo "Skip ordering table test for $a" ;;
                 *) echo "TODO Skip ordering table test for $a NYI" ;;
@@ -98,27 +103,28 @@ for a in $algos; do
         if [ "$a" = "brz" ]; then
             # once again with fch
             # shellcheck disable=SC2086
-            echo "** cmph -g -c 3 -a brz -f $f $words"
-            ../src/cmph -g -c 3 -a brz -f $f "$words" || \
-              ../src/cmph -g -c 3 -a brz -f $f "$words" || fail=1
+            echo "** cmph -g -c 3 -a brz -f $f $opts $words"
+            # shellcheck disable=SC2086
+            ../src/cmph -g -c 3 -a brz -f "$f" $opts "$words" || \
+              ../src/cmph -g -c 3 -a brz -f "$f" $opts "$words" || fail=1
             if [ -z "$fail" ]; then
-                echo "** cmph -a $a -f $f $words"
+                echo "** cmph -a $a -f $f $opts $words"
                 # shellcheck disable=SC2086
-                ../src/cmph -c 3 -a brz -f $f $words
-                echo "** mphf_tests -a $a -f $f $words"
+                ../src/cmph -c 3 -a brz -f $f $opts $words
+                echo "** mphf_tests -a $a -f $f $opts $words"
                 # shellcheck disable=SC2086
-                ./mphf_tests -a brz -f $f "$words"
+                ./mphf_tests -a brz -f "$f" $opts "$words"
 
                 #echo "Test ordering table for $a with fch"
-                #echo "** cmph -c 3 -gr -a brz -f $f $words"
-                #../src/cmph -c 3 -gr -a brz -f $f "$words"
-                #echo "** mphf_tests -a $a -f $f $words"
-                #./mphf_tests -a brz -f $f "$words"
+                #echo "** cmph -c 3 -gr -a brz -f $f $opts $words"
+                #../src/cmph -c 3 -gr -a brz -f "$f" $opts "$words"
+                #echo "** mphf_tests -a $a -f $f $opts $words"
+                #./mphf_tests -a brz -f "$f" $opts "$words"
             fi
         fi
 
         rm -f "$words.mph"
-        if [ "$words" = "_words1000" -a "$a" != "fch" ]; then
+        if [ "$words" = "_words1000" ] && [ "$a" != "fch" ]; then
             words=_words
         fi
     done
