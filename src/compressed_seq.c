@@ -48,7 +48,7 @@ void compressed_seq_destroy(compressed_seq_t * cs)
 void compressed_seq_generate(compressed_seq_t * cs, cmph_uint32 * vals_table, cmph_uint32 n)
 {
 	cmph_uint32 i;
-	// lengths: represents lengths of encoded values	
+	// lengths: represents lengths of encoded values
 	cmph_uint32 * lengths = (cmph_uint32 *)calloc(n, sizeof(cmph_uint32));
 	cmph_uint32 rems_mask;
 	cmph_uint32 stored_value;

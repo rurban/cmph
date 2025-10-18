@@ -34,7 +34,7 @@ int main(void)
 	cmph_uint32 buflen = 0;
 	char * cs_packed = NULL;
 	cmph_uint32 cs_pack_size = 0;
-	
+
 	compressed_seq_init(&cs);
 	compressed_seq_generate(&cs, keys_vec, n);
 	fprintf(stderr, "Space usage = %u\n", compressed_seq_get_space_usage(&cs));

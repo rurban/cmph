@@ -10,7 +10,7 @@ flags = [
     "-std=c++11",
     "-x",
     "c++",
-    "-isystem" "/usr/lib/c++/v1",
+    "-isystem/usr/lib/c++/v1",
     "-I",
     ".",
 ]
