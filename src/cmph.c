@@ -666,6 +666,11 @@ int cmph_compile(cmph_t *mphf, cmph_config_t *config, const char *c_file,
 		 const char *keys_file)
 {
 	FILE *out = c_file ? fopen(c_file, "w") : stdout;
+	if (!out) {
+	    perror("fopen");
+	    fprintf(stderr, "ERROR: Can't write to %s\n", c_file ? c_file : "stdout");
+	    exit(1);
+	}
 	DEBUGP("Compiling mphf with algorithm %s\n", cmph_names[mphf->algo]);
 	fprintf(out, "/* ex: set ro ft=c: -*- mode: c; buffer-read-only: t -*- */\n");
 	fprintf(out, "/* Created via cmph -C ");

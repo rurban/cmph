@@ -318,6 +318,15 @@ static int brz_gen_mphf(cmph_config_t *mph)
 			filename = (char *)xcalloc(strlen((char *)(brz->tmp_dir)) + 11, sizeof(char));
 			sprintf(filename, "%s%u.cmph", brz->tmp_dir, nflushes);
 			tmp_fd = fopen(filename, "wb");
+			if (!tmp_fd) {
+			    perror("fopen");
+			    fprintf(stderr, "ERROR: Can't write to %s\n", filename);
+			    free(filename);
+			    free(buffer);
+			    free(buckets_size);
+			    mph->key_source->dispose(key);
+			    return 0;
+			}
 			free(filename);
 			filename = NULL;
 			for(i = 0; i < nkeys_in_buffer; i++)
@@ -382,6 +391,15 @@ static int brz_gen_mphf(cmph_config_t *mph)
 		filename = (char *)xcalloc(strlen((char *)(brz->tmp_dir)) + 11, sizeof(char));
 		sprintf(filename, "%s%u.cmph", brz->tmp_dir, nflushes);
 		tmp_fd = fopen(filename, "wb");
+		if (!tmp_fd) {
+		    perror("fopen");
+		    fprintf(stderr, "ERROR: Can't write to %s\n", filename);
+		    free(filename);
+		    free(buffer);
+		    free(buckets_size);
+		    mph->key_source->dispose(key);
+		    return 0;
+		}
 		free(filename);
 		filename = NULL;
 		for(i = 0; i < nkeys_in_buffer; i++)
