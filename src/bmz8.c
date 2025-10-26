@@ -207,13 +207,14 @@ cmph_t *bmz8_new(cmph_config_t *mph, double c)
 		fprintf(stderr, "Create ordering table\n");
 	    mph->key_source->rewind(mph->key_source->data);
 	    for (cmph_uint32 i = 0; i < bmz8->m; i++) {
-		cmph_uint32 h, keylen;
+		cmph_uint32 h, keylen, n;
 		cmph_uint32 h1, h2;
 		char *key = NULL;
+		n = bmz8->n;
 		mph->key_source->read(mph->key_source->data, &key, &keylen);
-		h1 = hash(bmz8->hashes[0], key, keylen) % bmz8->n;
-		h2 = hash(bmz8->hashes[1], key, keylen) % bmz8->n;
-		if (h1 == h2 && ++h2 >= bmz8->n) h2 = 0;
+		h1 = hash(bmz8->hashes[0], key, keylen) % n;
+		h2 = hash(bmz8->hashes[1], key, keylen) % n;
+		if (h1 == h2 && ++h2 >= n) h2 = 0;
 		h = bmz8->g[h1] + bmz8->g[h2];
 		DEBUGP("%u: %u\n", i, h);
 		assert(h < bmz8->m);
@@ -519,23 +520,25 @@ static int bmz8_gen_edges(cmph_config_t *mph)
 int bmz8_compile(cmph_t *mphf, cmph_config_t *mph, FILE *out)
 {
 	bmz8_data_t *data = (bmz8_data_t *)mphf->data;
+	char g_name[24];
 	DEBUGP("Compiling bmz8\n");
 	hash_state_compile(2, data->hashes, false, out);
+	snprintf(g_name, sizeof(g_name)-1, "_%s_g", mph->c_prefix);
+	bytes_compile(out, g_name, data->g, data->n);
 	printf("\nuint32_t %s_search(const char* key, uint32_t keylen) {\n", mph->c_prefix);
 	printf("    /* n: %u */\n", data->n);
-	printf("    static const uint32_t g[%u] = {\n        ", data->n);
-	for (int i=0; i < data->n - 1; i++) {
-		printf("%u, ", data->g[i]);
-		if (i % 16 == 15)
-			printf("\n        ");
-	}
-	printf("%u\n    };\n", data->g[data->n - 1]);
+	//printf("    static const uint32_t g[%u] = {\n        ", data->n);
+	//for (int i=0; i < data->n - 1; i++) {
+	//	printf("%u, ", data->g[i]);
+	//	if (i % 16 == 15)
+	//		printf("\n        ");
+	//}
+	//printf("%u\n    };\n", data->g[data->n - 1]);
 	printf("    uint32_t h1, h2;\n");
 	printf("    h1 = %s_0(%u, (const unsigned char*)key, keylen) %% %u;\n",
 	       cmph_hash_names[mph->hashfuncs[0]], data->hashes[0]->seed, data->n);
 	printf("    h2 = %s_1(%u, (const unsigned char*)key, keylen) %% %u;\n",
-	       cmph_hash_names[mph->hashfuncs[1]], data->hashes[1]->seed,
-	       data->n);
+	       cmph_hash_names[mph->hashfuncs[1]], data->hashes[1]->seed, data->n);
 	printf("    if (h1 == h2 && ++h2 >= %u) h2 = 0;\n", data->n);
 	printf("    return (g[h1] + g[h2]) /* %% %u */;\n", data->m);
 	printf("};\n");
@@ -655,10 +658,11 @@ void bmz8_load(FILE *f, cmph_t *mphf)
 cmph_uint8 bmz8_search(cmph_t *mphf, const char *key, cmph_uint32 keylen)
 {
 	bmz8_data_t *bmz8 = (bmz8_data_t *)mphf->data;
-	cmph_uint8 h1 = (cmph_uint8)(hash(bmz8->hashes[0], key, keylen) % bmz8->n);
-	cmph_uint8 h2 = (cmph_uint8)(hash(bmz8->hashes[1], key, keylen) % bmz8->n);
+	cmph_uint32 n = bmz8->n;
+	cmph_uint8 h1 = (cmph_uint8)(hash(bmz8->hashes[0], key, keylen) % n);
+	cmph_uint8 h2 = (cmph_uint8)(hash(bmz8->hashes[1], key, keylen) % n);
 	DEBUGP("key: %s h1: %u h2: %u\n", key, h1, h2);
-	if (h1 == h2 && ++h2 > bmz8->n) h2 = 0;
+	if (h1 == h2 && ++h2 > n) h2 = 0;
 	DEBUGP("key: %s g[h1]: %u g[h2]: %u edges: %u\n", key, bmz8->g[h1], bmz8->g[h2], bmz8->m);
 	return (cmph_uint8)(bmz8->g[h1] + bmz8->g[h2]); // TODO no % bmz8->m ?
 }
