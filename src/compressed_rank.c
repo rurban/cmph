@@ -178,9 +178,10 @@ void compressed_rank_dump(compressed_rank_t * cr, char **buf, cmph_uint32 *bufle
 	// dumping vals_rems
 	memcpy(*buf + pos, cr->vals_rems, vals_rems_size);
 #ifdef DEBUG
-	for(i = 0; i < vals_rems_size; i++)
+	DEBUGP("pos = %u -- vals_rems_size = %u\n", pos, vals_rems_size/4);
+	for(i = 0; i < vals_rems_size/4; i++) // in bytes
 	{
-	    DEBUGP("pos = %u -- vals_rems_size = %u  -- vals_rems[%u] = %u\n", pos, vals_rems_size, i, *(*buf + pos + i));
+	    DEBUGP("vals_rems[%u] = %u\n", i, cr->vals_rems[i]);
 	}
 #endif
 	pos += vals_rems_size;
@@ -233,9 +234,10 @@ void compressed_rank_load(compressed_rank_t * cr, const char *buf)
 	memcpy(cr->vals_rems, buf + pos, vals_rems_size);
 
 #ifdef DEBUG
-	for(i = 0; i < vals_rems_size; i++)
+	DEBUGP("pos = %u -- vals_rems_size = %u\n", pos, vals_rems_size/4);
+	for(i = 0; i < vals_rems_size/4; i++)
 	{
-	    DEBUGP("pos = %u -- vals_rems_size = %u  -- vals_rems[%u] = %u\n", pos, vals_rems_size, i, *(buf + pos + i));
+	    DEBUGP("vals_rems[%u] = %u\n", i, cr->vals_rems[i]);
 	}
 #endif
 	pos += vals_rems_size;
