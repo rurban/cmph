@@ -216,6 +216,8 @@ cmph_t *bmz8_new(cmph_config_t *mph, double c)
 		h2 = hash(bmz8->hashes[1], key, keylen) % n;
 		if (h1 == h2 && ++h2 >= n) h2 = 0;
 		h = bmz8->g[h1] + bmz8->g[h2];
+		if (mph->verbosity)
+		    fprintf(stderr, "key %u -> h1: %u h2: %u h: %u\n", i, h1,  h2, h);
 		DEBUGP("%u: %u\n", i, h);
 		assert(h < bmz8->m);
 		ordering_table[h] = i;

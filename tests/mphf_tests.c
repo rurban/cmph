@@ -12,6 +12,7 @@
 #include <assert.h>
 
 #include "cmph.h"
+#include "cmph_structs.h"
 #ifdef WIN32
 #define VERSION "0.8"
 #else
@@ -190,6 +191,7 @@ int main(int argc, char **argv)
 	}
 	cmph_config_set_mphf_fd(config, mphf_fd);
 	mphf = cmph_load(mphf_fd);
+	mph_algo = ((struct __cmph_t*)mphf)->algo;
 	cmph_config_destroy(config);
 	fclose(mphf_fd);
 	if (!mphf)
@@ -207,7 +209,7 @@ int main(int argc, char **argv)
 		fprintf(stderr, "TODO empty ordering table with %s\n", cmph_names[mph_algo]);
 		o = NULL;
 	}
-	//check all keys
+	// check all keys
 	for (i = 0; i < source->nkeys; ++i)
 	{
 		cmph_uint32 h;
