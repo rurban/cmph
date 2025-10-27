@@ -531,20 +531,13 @@ int bmz8_compile(cmph_t *mphf, cmph_config_t *mph, FILE *out)
 	bytes_compile(out, g_name, data->g, data->n);
 	printf("\nuint32_t %s_search(const char* key, uint32_t keylen) {\n", mph->c_prefix);
 	printf("    /* n: %u */\n", data->n);
-	//printf("    static const uint32_t g[%u] = {\n        ", data->n);
-	//for (int i=0; i < data->n - 1; i++) {
-	//	printf("%u, ", data->g[i]);
-	//	if (i % 16 == 15)
-	//		printf("\n        ");
-	//}
-	//printf("%u\n    };\n", data->g[data->n - 1]);
-	printf("    uint32_t h1, h2;\n");
-	printf("    h1 = %s_0(%u, (const unsigned char*)key, keylen) %% %u;\n",
+	printf("    uint8_t h1, h2;\n");
+	printf("    h1 = (uint8_t)(%s_0(%u, (const unsigned char*)key, keylen) %% %u);\n",
 	       cmph_hash_names[mph->hashfuncs[0]], data->hashes[0]->seed, data->n);
-	printf("    h2 = %s_1(%u, (const unsigned char*)key, keylen) %% %u;\n",
+	printf("    h2 = (uint8_t)(%s_1(%u, (const unsigned char*)key, keylen) %% %u);\n",
 	       cmph_hash_names[mph->hashfuncs[1]], data->hashes[1]->seed, data->n);
 	printf("    if (h1 == h2 && ++h2 >= %u) h2 = 0;\n", data->n);
-	printf("    return (g[h1] + g[h2]) /* %% %u */;\n", data->m);
+	printf("    return (g[h1] + g[h2]) & 0xFF;\n");
 	printf("};\n");
 	if (mphf->o) {
 		uint32_compile(out, "ordering_table", mphf->o, data->m);
