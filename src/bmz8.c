@@ -207,17 +207,19 @@ cmph_t *bmz8_new(cmph_config_t *mph, double c)
 		fprintf(stderr, "Create ordering table\n");
 	    mph->key_source->rewind(mph->key_source->data);
 	    for (cmph_uint32 i = 0; i < bmz8->m; i++) {
-		cmph_uint32 h, keylen, n;
-		cmph_uint32 h1, h2;
+		cmph_uint32 keylen, n;
+		cmph_uint8 h, h1, h2;
 		char *key = NULL;
 		n = bmz8->n;
 		mph->key_source->read(mph->key_source->data, &key, &keylen);
-		h1 = hash(bmz8->hashes[0], key, keylen) % n;
-		h2 = hash(bmz8->hashes[1], key, keylen) % n;
+		h1 = (cmph_uint8)(hash(bmz8->hashes[0], key, keylen) % n);
+		h2 = (cmph_uint8)(hash(bmz8->hashes[1], key, keylen) % n);
 		if (h1 == h2 && ++h2 >= n) h2 = 0;
-		h = bmz8->g[h1] + bmz8->g[h2];
-		if (mph->verbosity)
-		    fprintf(stderr, "key %u -> h1: %u h2: %u h: %u\n", i, h1,  h2, h);
+		h = (cmph_uint8)(bmz8->g[h1] + bmz8->g[h2]);
+//#ifdef DEBUG
+//		if (mph->verbosity)
+//		    fprintf(stderr, "key %u -> h1: %u h2: %u h: %u\n", i, h1,  h2, h);
+//#endif
 		DEBUGP("%u: %u\n", i, h);
 		assert(h < bmz8->m);
 		ordering_table[h] = i;
