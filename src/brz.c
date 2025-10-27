@@ -702,7 +702,7 @@ void brz_load(FILE *f, cmph_t *mphf)
 {
 	char *buf = NULL;
 	cmph_uint32 buflen;
-	cmph_uint32 i, n;
+	cmph_uint32 i, n = 0;
 	brz_data_t *brz = (brz_data_t *)xmalloc(sizeof(brz_data_t));
 
 	DEBUGP("Loading brz mphf\n");
@@ -746,7 +746,8 @@ void brz_load(FILE *f, cmph_t *mphf)
 			case CMPH_BMZ8:
 				n = (cmph_uint32)ceil(brz->c * brz->size[i]);
 				break;
-			default: assert(0);
+			default:
+			        assert(0);
 		}
 		DEBUGP("g[] has %u bytes\n", n);
 		brz->g[i] = (cmph_uint8 *)xcalloc((size_t)n, sizeof(cmph_uint8));
@@ -871,7 +872,7 @@ void brz_pack(cmph_t *mphf, void *packed_mphf)
 {
 	brz_data_t *data = (brz_data_t *)mphf->data;
 	cmph_uint8 * ptr = (cmph_uint8 *)packed_mphf;
-	cmph_uint32 i,n;
+	cmph_uint32 i, n = 0;
 
         // This assumes that if one function pointer is NULL,
         // all the others will be as well.
@@ -949,7 +950,8 @@ void brz_pack(cmph_t *mphf, void *packed_mphf)
 			case CMPH_BMZ8:
 				n = (cmph_uint32)ceil(data->c * data->size[i]);
 				break;
-			default: assert(0);
+			default:
+			        assert(0);
 		}
 		memcpy(g_i, data->g[i], sizeof(cmph_uint8)*n);
 		g_i += n;

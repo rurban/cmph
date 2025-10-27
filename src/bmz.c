@@ -423,6 +423,9 @@ static cmph_uint8 bmz_traverse_critical_nodes_heuristic(bmz_config_data_t *bmz, 
 
 static cmph_uint32 next_unused_edge(bmz_config_data_t *bmz, cmph_uint8 * used_edges, cmph_uint32 unused_edge_index)
 {
+#ifdef NDEBUG
+       (void)bmz;
+#endif
        while(1)
        {
 		assert(unused_edge_index < bmz->m);
