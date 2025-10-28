@@ -547,7 +547,7 @@ int bmz8_compile(cmph_t *mphf, cmph_config_t *mph, FILE *out)
 	printf("    h2 = (uint8_t)(%s_1(%u, (const unsigned char*)key, keylen) %% %u);\n",
 	       cmph_hash_names[mph->hashfuncs[1]], data->hashes[1]->seed, data->n);
 	printf("    if (h1 == h2 && ++h2 >= %u) h2 = 0;\n", data->n);
-	printf("    return (g[h1] + g[h2]) & 0xFF;\n");
+	printf("    return ((unsigned)g[h1] + g[h2]) & 0xFF;\n");
 	printf("};\n");
 	if (mph->ordering_table) {
 		compressed_seq_t co = {0};
@@ -666,7 +666,7 @@ cmph_uint8 bmz8_search(cmph_t *mphf, const char *key, cmph_uint32 keylen)
 	DEBUGP("key: %s h1: %u h2: %u\n", key, h1, h2);
 	if (h1 == h2 && ++h2 > n) h2 = 0;
 	DEBUGP("key: %s g[h1]: %u g[h2]: %u edges: %u\n", key, bmz8->g[h1], bmz8->g[h2], bmz8->m);
-	return (cmph_uint8)(bmz8->g[h1] + bmz8->g[h2]); // TODO no % bmz8->m ?
+	return ((cmph_uint32)bmz8->g[h1] + bmz8->g[h2]) & 0xFF; // TODO no % bmz8->m ?
 }
 void bmz8_destroy(cmph_t *mphf)
 {
