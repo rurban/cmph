@@ -40,8 +40,17 @@ table.center {margin-left:auto; margin-right:auto;}
 
 <ul>
 <li>Added compilation to standalone C files.
+  -C compiles to stdout,
+  -o gives an output filename,
+  -p gives a C function prefix (default: cmph_c_)
+  It's usually about 10% faster than loading the serialized .mph file at run-time.
 </li>
-<li>Optimize bmz,chm search with hash_vector.
+<li>Added ordering_table support needed for randomnly ordered algos (all but CHM):
+  -r creates a compressed table to lookup the real key indices
+  -R creates a new ordered keys file, so that cmph_search in that new keys file
+     will return the proper index.
+</li>
+<li>Optimize bmz, chm search with hash_vector (getting multiple hash values per call)
 </li>
 <li>When selecting one hash function with -f, it selects this hash function
   for the next hash functions also, to override the default jenkins.
