@@ -89,6 +89,11 @@ for a in $algos; do
                     ../src/cmph -gr -a $a -f $f "$words" && \
                         ( echo "** mphf_tests -a $a -f $f $words";  \
                           ./mphf_tests -a $a -f $f "$words" )
+                    echo "Test re-ordered keyfile for $a"
+                    echo "** cmph -gR -a $a -f $f $words"
+                    ../src/cmph -gR -a $a -f $f "$words" && \
+                        ( echo "** mphf_tests -a $a -f $f ${words}_${a}.ord";  \
+                          ./mphf_tests -a $a -f $f "${words}_${a}.ord" )
                     ;;
                 chm) echo "Skip ordering table test for $a" ;;
                 *) echo "TODO Skip ordering table test for $a NYI" ;;
@@ -124,3 +129,4 @@ for a in $algos; do
     done
 done
 rm -f _words100 _words100.mph _words1000 _words1000.mph _words _words.mph
+rm -f _words*.ord

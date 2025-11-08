@@ -111,6 +111,18 @@ for a in $algos; do
                         ./compile_run "$base" "$words" "$nwords" && rm "$base.c" "$base.o" || fail=1
                         [ -n "$fail" ] && exit 1
                     fi
+                    echo "Test reordered keyfile"
+                    echo "** cmph -CR -a $a -f $f -o $base.c $words"
+                    ../src/cmph -CR -a "$a" -f $f -o "$base.c" "$words" || \
+                        ../src/cmph -CR -a "$a" -f $f -o "$base.c" "$words" || fail=1
+                    if [ -z "$fail" ]
+                    then
+                        echo "** cc -O2 -Wall -Wextra -c -I@top_srcdir@/src $base.c"
+                        cc -O2 -Wall -Wextra -c -I"@top_srcdir@/src" "$base.c"
+                        echo "** compile_run $base ${words}_${a}.ord $nwords"
+                        ./compile_run "$base" "${words}_${a}.ord" "$nwords" && rm "$base.c" "$base.o" "${words}_${a}.ord" || fail=1
+                        [ -n "$fail" ] && exit 1
+                    fi
                     ;;
                 chm) echo "Skip ordering table test for $a" ;;
                 *) echo "TODO Skip ordering table test for $a NYI" ;;
@@ -139,4 +151,9 @@ for a in $algos; do
 
     done
 done
-rm -f _cwords _cwords100 _cwords1000
+rm -f _cwords _cwords100 _cwords1000 _cwords*.ord
+
+rm -f bdz_sdbm.c bdz_ph_sdbm.c chd_djb2.c bdz_wyhash.c bdz_fnv.c \
+   fch_sdbm.c fch_djb2.c chd_fnv.c bdz_djb2.c bmz_fnv.c bmz_jenkins.c \
+   bmz_sdbm.c chd_wyhash.c bmz_crc32.c bdz_crc32.c fch_fnv.c bdz_jenkins.c \
+   chd_crc32.c chd_jenkins.c bmz_djb2.c chd_sdbm.c fch_wyhash.c fch_crc32.c bmz_wyhash.c
