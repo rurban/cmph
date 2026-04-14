@@ -1,5 +1,5 @@
 bin_PROGRAMS = cmph
-noinst_PROGRAMS = bm_numbers bm_compiled
+noinst_PROGRAMS = bm_numbers bm_compiled bm_strings bm_cstrings
 lib_LTLIBRARIES = libcmph.la
 include_HEADERS = cmph.h cmph_types.h cmph_time.h chd_ph.h
 libcmph_la_SOURCES =  hash.h hash.c hash_state.h \
@@ -43,3 +43,10 @@ bm_numbers_LDADD = libcmph.la
 bm_compiled_SOURCES = bm_numbers.c
 bm_compiled_CFLAGS = $(AM_CFLAGS) -DCOMPILED -Dtop_srcdir=\"$(abs_top_srcdir)\"
 bm_compiled_LDADD = libcmph.la
+
+bm_strings_SOURCES = bm_strings.c
+bm_strings_LDADD = libcmph.la
+
+bm_cstrings_SOURCES = bm_strings.c
+bm_cstrings_CFLAGS = $(AM_CFLAGS) -DCOMPILED -Dtop_srcdir=\"$(abs_top_srcdir)\"
+bm_cstrings_LDADD = libcmph.la

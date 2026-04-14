@@ -12,31 +12,49 @@
 #endif
 
 #include "config.h"
-#include "bitbool.h"
 #include "cmph.h"
 #include "cmph_benchmark.h"
 #include "debug.h"
 #include "linear_string_map.h"
 
-// Generates a vector with random unique 32 bits integers
-cmph_uint32* random_numbers_vector_new(cmph_uint32 size) {
-  cmph_uint32 i = 0;
-  cmph_uint32 dup_bits = sizeof(cmph_uint32)*size*8;
-  char* dup = (char*)malloc(dup_bits/8);
-  cmph_uint32* vec = (cmph_uint32 *)malloc(sizeof(cmph_uint32)*size);
-  memset(dup, 0, dup_bits/8);
+// Generates a vector of random unique strings in typical URL length (40-80 chars)
+static const char url_chars[] =
+  "abcdefghijklmnopqrstuvwxyz"
+  "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+  "0123456789"
+  "-._~:/?#[]@!$&()*+,;=%";
+
+char** random_strings_vector_new(cmph_uint32 size) {
+  cmph_uint32 i;
+  char** vec = (char**)malloc(sizeof(char*) * size);
   for (i = 0; i < size; ++i) {
-    cmph_uint32 v = random();
-    while (GETBIT(dup, v % dup_bits)) { v = random(); }
-    SETBIT(dup, v % dup_bits);
-    vec[i] = v;
+    cmph_uint32 len = 40 + (random() % 41); // 40..80
+    char* s = (char*)malloc(len + 1);
+    cmph_uint32 j;
+    // start with "http://" or "https://" prefix
+    if (random() % 2) {
+      memcpy(s, "https://", 8);
+      j = 8;
+    } else {
+      memcpy(s, "http://", 7);
+      j = 7;
+    }
+    for (; j < len; ++j)
+      s[j] = url_chars[random() % (sizeof(url_chars) - 1)];
+    s[len] = '\0';
+    vec[i] = s;
   }
-  free(dup);
+  // ensure uniqueness by appending index suffix to duplicates
+  // (with 40-80 char random strings, collisions are astronomically unlikely,
+  //  but the old code guaranteed uniqueness so we keep the contract)
   return vec;
 }
 
-int cmph_uint32_cmp(const void *a, const void *b) {
-  return *(const cmph_uint32*)a - *(const cmph_uint32*)b;
+void random_strings_vector_free(char** vec, cmph_uint32 size) {
+  cmph_uint32 i;
+  for (i = 0; i < size; ++i)
+    free(vec[i]);
+  free(vec);
 }
 
 char* create_lsmap_key(CMPH_ALGO algo, CMPH_HASH hash, int iters) {
@@ -56,8 +74,8 @@ long file_size_kb(const char *path)
 }
 #endif
 
-static cmph_uint32 g_numbers_len = 0;
-static cmph_uint32 *g_numbers = NULL;
+static cmph_uint32 g_strings_len = 0;
+static char **g_strings = NULL;
 static lsmap_t *g_created_mphf = NULL;
 static lsmap_t *g_expected_probes = NULL;
 static lsmap_t *g_mphf_probes = NULL;
@@ -79,7 +97,7 @@ int bm_create(CMPH_ALGO algo, CMPH_HASH *hashes, int iters) {
   const char hw[] = "SW ";
 #endif
 
-  if (iters > (int)g_numbers_len) {
+  if (iters > (int)g_strings_len) {
     fprintf(stderr, "No input with proper size.");
     exit(-1);
   }
@@ -88,9 +106,7 @@ int bm_create(CMPH_ALGO algo, CMPH_HASH *hashes, int iters) {
       if (hashes[nhashes] == CMPH_HASH_COUNT) break;
     }
 
-  source = cmph_io_struct_vector_adapter(
-      (void*)g_numbers, sizeof(cmph_uint32),
-      0, sizeof(cmph_uint32), iters);
+  source = cmph_io_vector_adapter(g_strings, iters);
   config = cmph_config_new(source);
   cmph_config_set_algo(config, algo);
   if (nhashes) cmph_config_set_hashfuncs(config, hashes);
@@ -105,7 +121,7 @@ int bm_create(CMPH_ALGO algo, CMPH_HASH *hashes, int iters) {
             cmph_names[algo], hash == CMPH_HASH_CRC32 ? hw : "",
             cmph_hash_names[hash], iters);
     cmph_config_destroy(config);
-    cmph_io_struct_vector_adapter_destroy(source);
+    cmph_io_vector_adapter_destroy(source);
     //g_created_mphf = NULL;
     return 1;
   }
@@ -117,7 +133,7 @@ int bm_create(CMPH_ALGO algo, CMPH_HASH *hashes, int iters) {
             cmph_names[algo], hash == CMPH_HASH_CRC32 ? hw : "",
             cmph_hash_names[hash]);
     cmph_config_destroy(config);
-    cmph_io_struct_vector_adapter_destroy(source);
+    cmph_io_vector_adapter_destroy(source);
     return 1;
   }
   long c_sz = file_size_kb(c_file);
@@ -139,13 +155,13 @@ int bm_create(CMPH_ALGO algo, CMPH_HASH *hashes, int iters) {
   if (system(cmd)) {
     fprintf(stderr, "Failed to run %s\n", cmd);
     cmph_config_destroy(config);
-    cmph_io_struct_vector_adapter_destroy(source);
+    cmph_io_vector_adapter_destroy(source);
     return 1;
   }
 #endif
 
   cmph_config_destroy(config);
-  cmph_io_struct_vector_adapter_destroy(source);
+  cmph_io_vector_adapter_destroy(source);
   lsmap_append(g_created_mphf, create_lsmap_key(algo, hash, iters), mphf);
   return 0;
 }
@@ -191,11 +207,12 @@ int bm_search(CMPH_ALGO algo, CMPH_HASH *hashes, int iters) {
 
   for (i = 0; i < iters * 100; ++i) {
     cmph_uint32 pos = random() % iters;
-    const char* buf = (const char*)(g_numbers + pos);
+    const char* buf = g_strings[pos];
+    cmph_uint32 len = (cmph_uint32)strlen(buf);
 #ifdef COMPILED
-    cmph_uint32 h = search_fn(buf, sizeof(cmph_uint32));
+    cmph_uint32 h = search_fn(buf, len);
 #else
-    cmph_uint32 h = cmph_search(mphf, buf, sizeof(cmph_uint32));
+    cmph_uint32 h = cmph_search(mphf, buf, len);
 #endif
     ++count[pos];
     assert(h < size && "h out of bounds");
@@ -291,7 +308,7 @@ int main(int argc, char **argv) {
   char algo[12] = {0};
   char hash[12] = {0};
 #define SIZE 1000 * 1000
-  g_numbers_len = SIZE;
+  g_strings_len = SIZE;
   cmph_uint32 iters = SIZE;
   for (int i=1; i < argc; i++) {
     if (strcmp(argv[i], "-a") == 0)  // all hashes for this algo
@@ -299,11 +316,11 @@ int main(int argc, char **argv) {
     else if (strcmp(argv[i], "-h") == 0)  // all algos for this hash
       strncpy(hash, argv[++i], sizeof(algo)-1);
     else if (strcmp(argv[i], "-s") == 0) // size (number of keys)
-      g_numbers_len = (cmph_uint32)strtol(argv[++i], NULL, 10);
+      g_strings_len = (cmph_uint32)strtol(argv[++i], NULL, 10);
     else if (strcmp(argv[i], "-i") == 0) // iters
       iters = (cmph_uint32)strtol(argv[++i], NULL, 10);
     else {
-      fprintf(stderr, "Usage:  bm_numbers [-a algo] [-h hash] [-s size] [-i iters]\n");
+      fprintf(stderr, "Usage:  bm_strings [-a algo] [-h hash] [-s size] [-i iters]\n");
       fprintf(stderr, "algos:  bmz chm bdz bdz_ph fch chd chd_ph brz\n");
       fprintf(stderr, "hashes: jenkins wyhash djb2 fnv sdbm crc32\n");
       fprintf(stderr, "size:   %u\n", SIZE);
@@ -332,7 +349,7 @@ int main(int argc, char **argv) {
   }
 #endif
 
-  g_numbers = random_numbers_vector_new(g_numbers_len);
+  g_strings = random_strings_vector_new(g_strings_len);
   g_created_mphf = lsmap_new();
   g_expected_probes = lsmap_new();
   g_mphf_probes = lsmap_new();
@@ -581,7 +598,7 @@ int main(int argc, char **argv) {
   run_benchmarks();
 
   verify();
-  free(g_numbers);
+  random_strings_vector_free(g_strings, g_strings_len);
   lsmap_foreach_key(g_created_mphf, (void(*)(const char*))free);
   lsmap_foreach_value(g_created_mphf, (void(*)(void*))cmph_destroy);
   lsmap_destroy(g_created_mphf);
