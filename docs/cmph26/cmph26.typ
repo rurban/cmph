@@ -131,7 +131,7 @@ construction. @tbl:algos summarizes their key properties.
     [BRZ],      [~8.1 bits/key],  [No],  [External, billions], [@wea2005],
     [FCH],      [~4 bits/key],    [No],  [Small sets], [@fch92],
     [BDZ],      [~2.62 bits/key], [No],  [Internal memory], [@botelho2008thesis],
-    [BDZ\_PH],  [~1.95 bits/key], [No],  [PHF only],   [@botelho2008thesis],
+    [BDZ_PH],  [~1.95 bits/key], [No],  [PHF only],   [@botelho2008thesis],
     [CHD\_PH],  [~1.40 bits/key], [No],  [PHF only],   [@esa09],
     [CHD],      [~2.07 bits/key], [No],  [Internal memory], [@esa09],
   ),
@@ -153,7 +153,7 @@ The BDZ algorithm (also called BPZ) @botelho2008thesis uses random 3-partite hyp
 key is mapped to an edge connecting three vertices. An acyclic hypergraph is constructed in the
 mapping step, then a function $g$ is assigned and a compact rank structure built. For $m = c n$
 with $c gt.eq 1.23$, the resulting MPHF needs approximately $2.62 n$ bits. The PHF variant
-BDZ\_PH omits the rank step and achieves $1.95 n$ bits for $m = 1.23 n$.
+BDZ_PH omits the rank step and achieves $1.95 n$ bits for $m = 1.23 n$.
 
 == CHD
 
@@ -229,7 +229,7 @@ object code. This makes it suitable for:
 - *Performance-critical lookup paths*: inlined constants allow the compiler to apply
   constant-folding and better code generation than a loaded binary MPHF.
 
-Supported algorithms for compilation include BMZ, BDZ (and BDZ\_PH), CHD (and CHD\_PH),
+Supported algorithms for compilation include BMZ, BDZ (and BDZ_PH), CHD (and CHD\_PH),
 FCH, and CHM. BRZ is excluded as it relies on external temporary files during construction,
 though the resulting MPHF itself could in principle be compiled.
 
@@ -466,7 +466,101 @@ requirements, supporting external-memory construction (BRZ), t-perfect hashing (
 heterogeneous environments where cutting-edge but architecture-specific C++ libraries may
 not be suitable.
 
-// --- 6. Implementation Notes ---
+// --- 6. Benchmarks ---
+
+= Benchmarks <sec:benchmarks>
+
+We measured construction and lookup performance on a dataset of $n = 10^6$ integer keys,
+compiled with `-DNDEBUG`. Construction time is nanoseconds per key (total / $n$). Lookup
+time is nanoseconds per query over $100n = 10^8$ random lookups. C file sizes are for 1M
+keys and scale linearly with $n$: for $n approx 200$ keywords (a typical compiler keyword
+table), all compiled outputs fit in a few kilobytes.
+
+The two benchmark programs are `bm_numbers` (runtime library lookup via `cmph_search`) and
+`bm_compiled` (compiled C function, loaded with `dlopen`, no library linkage). The speedup
+column is the ratio of library to compiled lookup time.
+
+@tbl:bench shows results for all algorithms across Jenkins, wyhash, FNV, and CRC32.
+
+#figure(
+  table(
+    columns: (auto, auto, auto, auto, auto, auto, auto),
+    align: (left, left, right, right, right, right, right),
+    stroke: 0.5pt,
+    inset: (x: 5pt, y: 3pt),
+    table.header(
+      [*Algo*], [*Hash*], [*C size (KB)*],
+      [*Create (ns/key)*], [*Lib (ns)*], [*Compiled (ns)*], [*Speedup*]
+    ),
+    // --- BMZ ---
+    [BMZ],     [Jenkins], [19\,673], [1\,486], [350], [283], [1.24×],
+    [BMZ],     [wyhash],  [19\,668], [1\,534], [340], [270], [1.26×],
+    // --- CHM ---
+    [CHM],     [Jenkins], [21\,105], [1\,412], [360], [286], [1.26×],
+    [CHM],     [wyhash],  [21\,104], [1\,390], [346], [269], [1.29×],
+    // --- BDZ ---
+    [BDZ],     [Jenkins], [6\,509],  [695],  [392], [192], [2.04×],
+    [BDZ],     [wyhash],  [6\,509],  [692],  [382], [184], [2.08×],
+    [BDZ],     [FNV],     [6\,508],  [712],  [407], [192], [2.12×],
+    [BDZ],     [CRC32],   [6\,511],  [655],  [361], [180], [2.01×],
+    // --- BDZ_PH ---
+    [BDZ\_PH], [Jenkins], [3\,323],  [705],  [318], [163], [1.95×],
+    [BDZ\_PH], [wyhash],  [3\,322],  [691],  [305], [156], [1.96×],
+    [BDZ\_PH], [FNV],     [3\,321],  [748],  [325], [167], [1.95×],
+    [BDZ\_PH], [CRC32],   [3\,325],  [671],  [291], [153], [1.90×],
+    // --- FCH ---
+    [FCH],     [Jenkins], [1\,828],  [15\,862], [372], [160], [2.33×],
+    [FCH],     [wyhash],  [1\,828],  [20\,030], [355], [141], [2.52×],
+    // --- CHD_PH ---
+    [CHD\_PH], [Jenkins], [1\,420],  [1\,291], [429], [190], [2.26×],
+    [CHD\_PH], [wyhash],  [1\,419],  [1\,272], [425], [186], [2.28×],
+    [CHD\_PH], [FNV],     [1\,418],  [1\,303], [436], [196], [2.22×],
+    [CHD\_PH], [CRC32],   [1\,426],  [1\,258], [400], [186], [2.15×],
+    // --- CHD ---
+    [CHD],     [Jenkins], [807],     [1\,293], [600], [246], [2.44×],
+    [CHD],     [wyhash],  [806],     [1\,277], [602], [237], [2.54×],
+    [CHD],     [FNV],     [806],     [1\,331], [631], [245], [2.57×],
+    [CHD],     [CRC32],   [808],     [1\,263], [559], [237], [2.36×],
+  ),
+  caption: [Construction and lookup performance, $n = 10^6$ keys, NDEBUG build.
+    Lookup is ns/query over $10^8$ random lookups. C size scales linearly with $n$
+    (divide by 1000 for $n = 1000$). FCH construction is slow due to exhaustive
+    search but yields the smallest compiled output. CHD achieves the highest
+    compiled speedup because constant-folding the SDC displacement array is
+    especially effective.],
+) <tbl:bench>
+
+Key observations:
+
+- *CHD benefits most from compilation*: CHD library lookup is the slowest among
+  MPHF algorithms (559--631~ns depending on hash), but compiled lookup drops to
+  237--246~ns --- a *2.4--2.6x speedup*. This is because CHD's SDC-compressed
+  displacement array is an ideal target for compiler constant-folding when baked
+  into a `const` C array. After compilation, CHD is faster than library BDZ.
+
+- *BDZ and BDZ\_PH gain ~2x*: Both roughly double in lookup speed under compilation
+  (BDZ: 361--407~ns → 180--192~ns; BDZ\_PH: 291--325~ns → 153--167~ns), making
+  them competitive with FCH without FCH's expensive construction.
+
+- *FCH: fastest lookup, smallest file*: FCH compiled with wyhash reaches 141~ns/query
+  (the best overall), and at 1.8~MB per 1M keys it produces by far the smallest
+  compiled output. At $n = 1000$ the file is under 2~KB. The tradeoff is
+  construction time of 15--20~s per 1M keys, acceptable only for static, small
+  key sets built offline.
+
+- *CHD C file is the most compact for large $n$*: At 807~KB for 1M keys, CHD's
+  compiled output is 8x smaller than BDZ (6.5~MB) and 24x smaller than BMZ (19.7~MB),
+  because CHD stores displacement values in compressed form rather than full arrays.
+
+- *wyhash is consistently fastest*: wyhash reduces lookup latency by 3--10~ns over
+  Jenkins for both library and compiled variants. CRC32 is a close second and also
+  competitive.
+
+- *BMZ and CHM gain least*: Both show only a 1.24--1.29x speedup from compilation.
+  Their compiled files are also the largest (~20~MB at 1M keys), making them poor
+  candidates for compiled deployment at scale.
+
+// --- 7. Implementation Notes ---
 
 = Implementation Notes <sec:impl>
 
@@ -499,11 +593,12 @@ special care to inline the vector initialization; all such paths have been imple
 
 == Multiple Hash Function Support
 
-A correctness issue was uncovered and fixed in release 2.0.3: hash states were not properly
-initialized for non-Jenkins hash functions, causing incorrect behavior with `bdz`, `chm`, `chd`,
-and `chd_pc`. The fix involved separating hash state initialization from the seed selection and
-ensuring all algorithm initialization paths set the hash function configuration before use.
-Additionally, wyhash @wyhash was added as a new default alternative with competitive speed.
+Several correctness issues were uncovered and fixed in release 2.0.3:
+The broken algorithms `bmz8`, `chd`, `chd_ph` were fixed.
+Memory leaks and heap-overflows were fixed.
+Wrong hash states for non-Jenkins hash functions, causing incorrect behavior with `bdz`, `chm`, `chd`,
+and `chd_pc`.
+wyhash @wyhash, and CRC (SW and HW) were added as a new default alternatives with competitive speed.
 
 // --- 7. Conclusion ---
 
@@ -523,10 +618,9 @@ toward the theoretical minimum of $log_2 e approx 1.443$ bits/key. CONSENSUS-Rec
 to the lower bound. The trade-off is query time: all RecSplit-family algorithms traverse a
 splitting tree, giving $O(log n)$ memory accesses, while CHD and PTHash achieve 1–2 accesses.
 
-Future directions for CMPH include: adding support for 64-bit key counts (currently
-limited to 32-bit), adding support for integer keys, implementing a fingerprinting-based
-algorithm (BBHash or FMPH) for medium space efficiency with simple parallel construction,
-and exploring GPU compilation output alongside C.
+Future directions for CMPH include: adding support for 64-bit key counts (currently limited to
+32-bit), implementing a fingerprinting-based algorithm (BBHash or FMPH) for medium space
+efficiency with simple parallel construction, and exploring GPU compilation output alongside C.
 
 // --- References ---
 
