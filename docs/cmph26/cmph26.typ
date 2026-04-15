@@ -470,17 +470,20 @@ not be suitable.
 
 = Benchmarks <sec:benchmarks>
 
-We measured construction and lookup performance on a dataset of $n = 10^6$ integer keys,
-compiled with `-DNDEBUG`. Construction time is nanoseconds per key (total / $n$). Lookup
-time is nanoseconds per query over $100n = 10^8$ random lookups. C file sizes are for 1M
-keys and scale linearly with $n$: for $n approx 200$ keywords (a typical compiler keyword
-table), all compiled outputs fit in a few kilobytes.
+We measured construction and lookup performance on datasets of $n = 10^6$ keys,
+compiled with `-DNDEBUG`. Two key types are tested: 4-byte integer keys (@tbl:bench)
+and random URL-like strings of 40–80 characters (@tbl:bench_strings). Construction time
+is nanoseconds per key (total / $n$). Lookup time is nanoseconds per query over $100n =
+10^8$ random lookups. C file sizes are for 1M keys and scale linearly with $n$: for
+$n approx 200$ keywords (a typical compiler keyword table), all compiled outputs fit in
+a few kilobytes.
 
-The two benchmark programs are `bm_numbers` (runtime library lookup via `cmph_search`) and
-`bm_compiled` (compiled C function, loaded with `dlopen`, no library linkage). The speedup
-column is the ratio of library to compiled lookup time.
+The benchmark programs are `bm_numbers` / `bm_strings` (runtime library lookup via
+`cmph_search`) and `bm_compiled` / `bm_cstrings` (compiled C function, loaded with
+`dlopen`, no library linkage). The speedup column is the ratio of library to compiled
+lookup time.
 
-@tbl:bench shows results for all algorithms across Jenkins, wyhash, FNV, and CRC32.
+@tbl:bench shows integer key results for all algorithms across Jenkins, wyhash, FNV, and CRC32.
 
 #figure(
   table(
@@ -559,6 +562,83 @@ Key observations:
 - *BMZ and CHM gain least*: Both show only a 1.24--1.29x speedup from compilation.
   Their compiled files are also the largest (~20~MB at 1M keys), making them poor
   candidates for compiled deployment at scale.
+
+=== String Key Benchmarks
+
+The preceding benchmarks use 4-byte integer keys, where the hash computation is fast and the
+lookup table dominates query time. To measure a more realistic workload, we benchmarked the
+same algorithms on $10^6$ random URL-like strings of 40–80 characters (average ~60 bytes),
+typical of web-scale key sets.
+
+@tbl:bench_strings shows results for library and compiled lookup across Jenkins, wyhash, and
+FNV hash functions. SDBM and CRC32 failed to produce valid MPHFs for this key set.
+
+#figure(
+  table(
+    columns: (auto, auto, auto, auto, auto, auto),
+    align: (left, left, right, right, right, right),
+    stroke: 0.5pt,
+    inset: (x: 5pt, y: 3pt),
+    table.header(
+      [*Algo*], [*Hash*],
+      [*Create (ns/key)*], [*Lib (ns)*], [*Compiled (ns)*], [*Speedup*]
+    ),
+    // --- Jenkins ---
+    [BMZ],     [Jenkins], [1\,001], [463], [448], [1.03×],
+    [CHM],     [Jenkins], [1\,327], [485], [448], [1.08×],
+    [BDZ],     [Jenkins], [427],    [480], [435], [1.10×],
+    [FCH],     [Jenkins], [12\,601],[464], [439], [1.06×],
+    [BDZ\_PH], [Jenkins], [444],    [378], [376], [1.01×],
+    [CHD\_PH], [Jenkins], [581],    [419], [381], [1.10×],
+    [CHD],     [Jenkins], [579],    [468], [425], [1.10×],
+    // --- wyhash ---
+    [BMZ],     [wyhash],  [912],    [413], [406], [1.02×],
+    [CHM],     [wyhash],  [850],    [413], [409], [1.01×],
+    [BDZ],     [wyhash],  [382],    [405], [402], [1.01×],
+    [FCH],     [wyhash],  [8\,095], [346], [404], [0.86×],
+    [BDZ\_PH], [wyhash],  [379],    [356], [378], [0.94×],
+    [CHD\_PH], [wyhash],  [535],    [364], [342], [1.06×],
+    [CHD],     [wyhash],  [523],    [425], [399], [1.07×],
+    // --- FNV ---
+    [BMZ],     [FNV],     [1\,224], [717], [533], [1.35×],
+    [CHM],     [FNV],     [1\,158], [719], [482], [1.49×],
+    [BDZ],     [FNV],     [674],    [703], [587], [1.20×],
+    [FCH],     [FNV],     [10\,800],[544], [459], [1.19×],
+    [BDZ\_PH], [FNV],     [694],    [645], [527], [1.22×],
+    [CHD\_PH], [FNV],     [830],    [639], [518], [1.23×],
+    [CHD],     [FNV],     [811],    [695], [555], [1.25×],
+  ),
+  caption: [String key benchmarks: $n = 10^6$ random URL-like strings (40–80 chars).
+    Create is ns/key (library). Lookup is ns/query over $10^8$ random lookups.
+    Compiled C sizes are identical to @tbl:bench (they depend on $n$, not key length).
+    DJB2 is omitted for brevity (similar to FNV). SDBM and CRC32 failed on this key set.],
+) <tbl:bench_strings>
+
+Key observations for string keys:
+
+- *Compilation speedup largely disappears.* With 4-byte integer keys (@tbl:bench),
+  compiled lookup was 1.2–2.6× faster than the library. With 60-byte strings, the speedup
+  drops to 1.0–1.1× for Jenkins and wyhash, because the hash computation over the key bytes
+  now dominates query time and is identical in both paths. The compiled lookup tables provide
+  little benefit when hashing itself is the bottleneck.
+
+- *wyhash with compilation can be _slower_*: for FCH and BDZ\_PH with wyhash, the compiled
+  variant is slightly slower than the library (0.86× and 0.94×), likely due to code-cache
+  pressure from the large compiled arrays offsetting any table-access savings.
+
+- *FNV shows the largest compiled speedup on strings* (1.2–1.5×). FNV's byte-at-a-time loop
+  is slower than Jenkins or wyhash for longer keys, making the lookup table contribution
+  relatively more significant. CHM+FNV compiled achieves 1.49× — the highest string-key
+  speedup — because CHM's large lookup array benefits most from constant-folding.
+
+- *wyhash remains the fastest hash for strings*: FCH+wyhash library achieves 346~ns/query,
+  the fastest overall string lookup. BDZ\_PH+wyhash at 356~ns is a close second with much
+  faster construction (379 vs 8\,095~ns/key).
+
+- *Practical recommendation*: for compiled deployment with string keys, prefer BDZ\_PH or
+  CHD\_PH with wyhash — they offer the best balance of fast lookup, compact compiled output,
+  and fast construction. Compilation is primarily valuable for integer or short keys where
+  table access dominates; for URL-length strings, the library is nearly as fast.
 
 // --- 7. Implementation Notes ---
 
