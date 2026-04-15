@@ -161,7 +161,7 @@ FIGS = figs/img177.png figs/img82.png figs/img1.png figs/img109.png	\
 	figs/img146.png figs/img118.png					\
 	figs/brz/brz_temporegressao.eps
 PAPERS = papers/esa09.pdf papers/thesis.pdf papers/bmz_tr004_04.ps.gz papers/wads07.pdf \
-	papers/bmz_wea2005.ps.gz papers/fch92.pdf papers/chm92.pdf
+	papers/bmz_wea2005.ps.gz papers/fch92.pdf papers/chm92.pdf papers/cmph26.pdf
 
 doc_HTML = \
 	bdz.html brz.html chm.html fch.html bmz.html chd.html \

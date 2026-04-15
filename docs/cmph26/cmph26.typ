@@ -81,8 +81,8 @@ supporting multiple MPHF algorithms with a unified API for creation, serializati
 
 The period from 2009 to the present has seen dramatic progress in MPHF research @survey2025.
 Modern algorithms approach the theoretical space lower bound of $log_2 e approx 1.443$ bits per
-key @hammings1997 @mitzenmacher2008 — a bound that seemed distant when CMPH was first
-released. CMPH's CHD algorithm @esa09 already achieved near-practical-optimal space (~2.07
+key @lehmann2025combined — a bound that seemed distant when CMPH was first released. CMPH's CHD algorithm
+@esa09 already achieved near-practical-optimal space (~2.07
 bits/key) at the time; the question is how the library's practical tooling fits into this modern
 landscape.
 
@@ -277,7 +277,7 @@ Most CMPH algorithms (BMZ, BDZ, CHD, etc.) produce MPHFs that are bijections fro
 $[0, n-1]$, but the assignment of hash values to keys is determined by the construction algorithm
 and seed — it is essentially random. The information content of such an MPHF is
 $log_2 e + o(1) approx 1.443$ bits per key (the theoretical lower bound for MPHFs
-@mitzenmacher2008).
+@esa09).
 
 === Order-Preserving MPHFs
 
@@ -325,7 +325,7 @@ Lehmann et al. @survey2025 and place CMPH algorithms in this context.
 == The Theoretical Landscape
 
 The space lower bound for an MPHF is $n log_2 e - O(log n) approx 1.443n$ bits
-@mitzenmacher2008. When the CHD paper was written in 2009, the best practical algorithms
+@esa09. When the CHD paper was written in 2009, the best practical algorithms
 achieved about $2.07$ bits/key — a factor of $1.43times$ above the lower bound. As of 2025,
 CONSENSUS-RecSplit achieves $1.444$ bits/key @consensus2025, effectively reaching the lower
 bound for practical purposes.
