@@ -112,7 +112,7 @@ concludes.
 = The CMPH Algorithm Suite <sec:algorithms>
 
 CMPH implements nine algorithm variants, covering the main families of practical MPHF
-construction. @tbl:algos summarizes their key properties.
+construction. This table summarizes their key properties.
 
 #figure(
   table(
@@ -354,7 +354,7 @@ The author worked on a compiler for PTHash
 to emit a C++ function for a given keyset. The straighforward approach of pure nested C++
 functions was not possible with the in Januray 2025 non-C26 C++ meta reflection capabilities of the
 gnu and clang compilers. It did create a proper function, but the compilation produced wrong results.
-Splitting up the single nest function in subsequent steps of intermediary results produced a
+Splitting up the single nested function in subsequent steps of intermediary results produced a
 correct function, but the author rather wanted to wait for compiler fixes, then rewriting the
 compiler to emit gensym'ed intermediate results.
 
@@ -423,7 +423,7 @@ tree traversal and combined seed computation at each level.
 
 == Summary Comparison
 
-@tbl:comparison places CMPH algorithms alongside the modern approaches described above.
+This table places CMPH algorithms alongside the modern approaches described above.
 
 #figure(
   table(
@@ -448,9 +448,9 @@ tree traversal and combined seed computation at each level.
     [CONSENSUS-RS],       [1.444],        [$O(n/epsilon)$],         [O(log n)],[2025],
   ),
   caption: [Approximate space, construction complexity, query memory accesses, and year for CMPH
-             algorithms and leading modern approaches. Space for CMPH legacy algorithms (CHM, BMZ)
-             is dominated by storing $O(log n)$-bit integer arrays per key, not just the hash
-             function description.],
+            algorithms and leading modern approaches. Space for CMPH legacy algorithms (CHM, BMZ)
+            is dominated by storing $O(log n)$-bit integer arrays per key, not just the hash
+            function description.],
 ) <tbl:comparison>
 
 == Where CMPH Fits
@@ -471,8 +471,8 @@ not be suitable.
 = Benchmarks <sec:benchmarks>
 
 We measured construction and lookup performance on datasets of $n = 10^6$ keys,
-compiled with `-DNDEBUG`. Two key types are tested: 4-byte integer keys (@tbl:bench)
-and random URL-like strings of 40–80 characters (@tbl:bench_strings). Construction time
+compiled with `-DNDEBUG`. Two key types are tested: 4-byte integer keys (Table 3)
+and random URL-like strings of 40–80 characters (Table 4). Construction time
 is nanoseconds per key (total / $n$). Lookup time is nanoseconds per query over $100n =
 10^8$ random lookups. C file sizes are for 1M keys and scale linearly with $n$: for
 $n approx 200$ keywords (a typical compiler keyword table), all compiled outputs fit in
@@ -483,7 +483,7 @@ The benchmark programs are `bm_numbers` / `bm_strings` (runtime library lookup v
 `dlopen`, no library linkage). The speedup column is the ratio of library to compiled
 lookup time.
 
-@tbl:bench shows integer key results for all algorithms across Jenkins, wyhash, FNV, and CRC32.
+Table 3 shows integer key results for all algorithms across Jenkins, wyhash, FNV, and CRC32.
 
 #figure(
   table(
@@ -570,7 +570,7 @@ lookup table dominates query time. To measure a more realistic workload, we benc
 same algorithms on $10^6$ random URL-like strings of 40–80 characters (average ~60 bytes),
 typical of web-scale key sets.
 
-@tbl:bench_strings shows results for library and compiled lookup across Jenkins, wyhash, and
+Table 4 shows results for library and compiled lookup across Jenkins, wyhash, and
 FNV hash functions. SDBM and CRC32 failed to produce valid MPHFs for this key set.
 
 #figure(
@@ -610,13 +610,13 @@ FNV hash functions. SDBM and CRC32 failed to produce valid MPHFs for this key se
   ),
   caption: [String key benchmarks: $n = 10^6$ random URL-like strings (40–80 chars).
     Create is ns/key (library). Lookup is ns/query over $10^8$ random lookups.
-    Compiled C sizes are identical to @tbl:bench (they depend on $n$, not key length).
+    Compiled C sizes are identical to Table 3 (they depend on $n$, not key length).
     DJB2 is omitted for brevity (similar to FNV). SDBM and CRC32 failed on this key set.],
 ) <tbl:bench_strings>
 
 Key observations for string keys:
 
-- *Compilation speedup largely disappears.* With 4-byte integer keys (@tbl:bench),
+- *Compilation speedup largely disappears.* With 4-byte integer keys (Table 3),
   compiled lookup was 1.2–2.6× faster than the library. With 60-byte strings, the speedup
   drops to 1.0–1.1× for Jenkins and wyhash, because the hash computation over the key bytes
   now dominates query time and is identical in both paths. The compiled lookup tables provide

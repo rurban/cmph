@@ -16,6 +16,7 @@ pdf: $(PAPER).pdf
 
 $(PAPER).pdf: $(PAPER).typ $(PAPER).bib
 	$(TYPST) compile $(PAPER).typ
+	cp $@ ../papers/
 
 ## Typst → LaTeX (via pandoc; bibliography inlined by citeproc — no .bib needed at submission)
 tex: $(PAPER).tex
@@ -24,6 +25,9 @@ $(PAPER).tex: $(PAPER).typ $(PAPER).bib
 	$(PANDOC) -f typst -t latex --standalone \
 	          --bibliography $(PAPER).bib --citeproc \
 	          -o $@ $<
+	@# tables are not referenced in latest pandoc 3.9
+	sed -i -E 's/\(\\textbf\{tbl\?\}\):bench\\_strings/Table~\\ref{tbl:bench_strings}/g' cmph26.tex
+	sed -i -E 's/\(\\textbf\{tbl\?\}\):bench/Table~\\ref{tbl:bench}/g' cmph26.tex
 
 ## LaTeX → PDF (two-pass; bibliography already inlined by citeproc)
 tex-pdf: $(PAPER)-latex.pdf
